@@ -98,8 +98,8 @@ class Generator(object):
             f.pass_word(word)
         return word_index
 
-    def generate_poem_by_line(self, accent_dict: AccentDict, accents_classifier: MLAccentClassifier,
-                              line: str, rhyme_pattern: str="aabb") -> str:
+    def generate_poem_by_line(self, line: str, rhyme_pattern: str,
+                              accent_dict: AccentDict, accents_classifier: MLAccentClassifier) -> str:
         """
         Генерация стихотвторения по одной строчке.
 

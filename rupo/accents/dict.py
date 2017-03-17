@@ -12,16 +12,18 @@ from rupo.settings import DICT_TXT_PATH
 from rupo.settings import DICT_TRIE_PATH
 
 
-class AccentType(Enum):
-    ANY = -1
-    PRIMARY = 0
-    SECONDARY = 1
-
-
 class AccentDict:
     """
     Класс данных, для сериализации словаря как dict'а и быстрой загрузки в память.
     """
+
+    class AccentType(Enum):
+        ANY = -1
+        PRIMARY = 0
+        SECONDARY = 1
+
+    AccentType = AccentType
+
     def __init__(self) -> None:
         self.data = datrie.Trie(CYRRILIC_LOWER_VOWELS+CYRRILIC_LOWER_CONSONANTS+"-")
         src_filename = DICT_TXT_PATH
@@ -53,14 +55,14 @@ class AccentDict:
                     for i in range(len(word)):
                         if word[i] == "'" or word[i] == "`":
                             if word[i] == "`":
-                                accents.append((pos, AccentType.SECONDARY))
+                                accents.append((pos, AccentDict.AccentType.SECONDARY))
                             else:
-                                accents.append((pos, AccentType.PRIMARY))
+                                accents.append((pos, AccentDict.AccentType.PRIMARY))
                             continue
                         clean_word += word[i]
                         pos += 1
                         if word[i] == "ё":
-                            accents.append((pos, AccentType.PRIMARY))
+                            accents.append((pos, AccentDict.AccentType.PRIMARY))
                     self.__update(clean_word, accents)
         self.data.save(dst_filename)
 
@@ -81,7 +83,7 @@ class AccentDict:
         :return forms: массив всех ударений.
         """
         if word in self.data:
-            if accent_type == AccentType.ANY:
+            if accent_type == AccentDict.AccentType.ANY:
                 return [i[0] for i in self.data[word]]
             else:
                 return [i[0] for i in self.data[word] if i[1] == accent_type]

@@ -3,11 +3,9 @@
 # Описание: Тесты для модуля фонетики.
 
 import unittest
-import os
 
 from rupo.main.markup import Syllable, Word
 from rupo.rhymes.rhymes import Rhymes
-from rupo.settings import MARKUPS_DUMP_XML_PATH
 
 
 class TestRhymes(unittest.TestCase):

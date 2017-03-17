@@ -135,6 +135,9 @@ class Markup(CommonMixin):
 
     def from_json(self, st) -> 'Markup':
         d = json.loads(st)
+        return self.from_dict(d)
+
+    def from_dict(self, d) -> 'Markup':
         self.__dict__.update(d)
         lines = d["lines"]  # type: List[dict]
         self.lines = [Line(0, 0, "", []).from_dict(lines[i]) for i in range(len(lines))]

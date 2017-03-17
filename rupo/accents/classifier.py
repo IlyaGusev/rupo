@@ -10,7 +10,7 @@ from sklearn.externals import joblib
 from sklearn.model_selection import ShuffleSplit, cross_val_score
 from sklearn.tree import DecisionTreeClassifier
 
-from rupo.accents.dict import AccentDict, AccentType
+from rupo.accents.dict import AccentDict
 from rupo.main.markup import Syllable
 from rupo.main.phonetics import Phonetics
 from rupo.util.preprocess import CYRRILIC_LOWER_CONSONANTS, CYRRILIC_LOWER_VOWELS, VOWELS
@@ -98,7 +98,7 @@ class MLAccentClassifier:
             for syllable in syllables:
                 if "ё" in key:
                     continue
-                primary_accents = [i[0] for i in accents if i[1] == AccentType.PRIMARY]
+                primary_accents = [i[0] for i in accents if i[1] == AccentDict.AccentType.PRIMARY]
                 if len(primary_accents) != 1:
                     continue
                 for accent in primary_accents:

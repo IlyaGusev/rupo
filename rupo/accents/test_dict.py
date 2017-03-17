@@ -5,7 +5,7 @@
 import unittest
 import os
 
-from rupo.accents.dict import AccentDict, AccentType
+from rupo.accents.dict import AccentDict
 from rupo.util.preprocess import VOWELS
 from rupo.settings import DICT_TXT_PATH, DICT_TRIE_PATH
 
@@ -23,11 +23,11 @@ class TestAccentDict(unittest.TestCase):
         self.assertTrue(os.path.exists(DICT_TRIE_PATH))
 
     def test_get_accents(self):
-        self.assertCountEqual(self.dict.get_accents("данный", AccentType.PRIMARY), [1])
-        self.assertCountEqual(self.dict.get_accents("союза", AccentType.PRIMARY), [2])
-        self.assertCountEqual(self.dict.get_accents("англосакс", AccentType.SECONDARY), [0])
-        self.assertCountEqual(self.dict.get_accents("англосакс", AccentType.ANY), [0, 6])
-        self.assertCountEqual(self.dict.get_accents("пора", AccentType.PRIMARY), [1, 3])
+        self.assertCountEqual(self.dict.get_accents("данный", AccentDict.AccentType.PRIMARY), [1])
+        self.assertCountEqual(self.dict.get_accents("союза", AccentDict.AccentType.PRIMARY), [2])
+        self.assertCountEqual(self.dict.get_accents("англосакс", AccentDict.AccentType.SECONDARY), [0])
+        self.assertCountEqual(self.dict.get_accents("англосакс", AccentDict.AccentType.ANY), [0, 6])
+        self.assertCountEqual(self.dict.get_accents("пора", AccentDict.AccentType.PRIMARY), [1, 3])
 
     def test_accent_only_in_vowels(self):
         for word, accents in self.dict.get_all():

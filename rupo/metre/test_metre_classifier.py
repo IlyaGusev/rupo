@@ -9,13 +9,12 @@ from rupo.main.markup import Markup
 from rupo.accents.dict import AccentDict
 from rupo.main.phonetics import Phonetics
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult, AccentCorrection
-from rupo.settings import DICT_PATH
 
 
 class TestMetreClassifier(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict(DICT_PATH)
+        cls.accent_dict = AccentDict()
 
     def test_classification_result(self):
         result = ClassificationResult(5)

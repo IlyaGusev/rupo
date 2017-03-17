@@ -12,7 +12,7 @@ import numpy as np
 
 from rupo.main.markup import Markup
 from rupo.util.vocabulary import Vocabulary
-from rupo.convertion.reader import Reader, FileTypeEnum
+from rupo.files.reader import Reader, FileTypeEnum
 
 
 class MarkovModelContainer(object):
