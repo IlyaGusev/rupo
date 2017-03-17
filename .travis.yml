@@ -1,0 +1,19 @@
+dist: trusty
+sudo: required
+language: python
+python: 3.6
+before_install:
+- sudo apt-get install git-lfs
+- git lfs install
+before_script:
+- git lfs pull
+install:
+- pip install --upgrade pip setuptools wheel
+- pip install --only-binary=numpy,scipy numpy scipy
+- pip install -r requirements.txt
+script:
+- python3 manage.py migrate
+- python3 manage.py loaddata datasets/django/themes_django.json
+- python3 manage.py loaddata datasets/django/all_django.json
+- python3 manage.py generate_markups --to 500
+- python3 manage.py test
