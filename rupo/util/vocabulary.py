@@ -27,7 +27,6 @@ class Vocabulary(object):
         if os.path.isfile(self.dump_filename):
             self.load()
         else:
-            print("Vocabulary collecting...")
             i = 0
             markups = Reader.read_markups(markup_path, FileTypeEnum.XML, is_processed=True)
             for markup in markups:

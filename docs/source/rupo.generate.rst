@@ -36,7 +36,6 @@ rupo.generate.test_markov module
     :undoc-members:
     :show-inheritance:
 
-
 Module contents
 ---------------
 

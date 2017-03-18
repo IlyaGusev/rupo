@@ -50,5 +50,5 @@ class TestApi(unittest.TestCase):
 
     def test_get_word_rhymes(self):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
-        print(get_word_rhymes("глядел", vocab_dump_file, MARKUP_XML_EXAMPLE))
+        self.assertEqual(get_word_rhymes("глядел", vocab_dump_file, MARKUP_XML_EXAMPLE), ["сидел"])
         os.remove(vocab_dump_file)

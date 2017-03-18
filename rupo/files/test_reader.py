@@ -30,7 +30,6 @@ class TestReader(unittest.TestCase):
         self.__assert_markup_is_correct(next(processed_json))
 
     def __assert_markup_is_correct(self, markup):
-        print(markup)
         self.assertIsInstance(markup, Markup)
         self.assertIsNotNone(markup.text)
         self.assertNotEqual(markup.text, "")

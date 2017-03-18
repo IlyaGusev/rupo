@@ -29,13 +29,11 @@ class AccentDict:
         src_filename = DICT_TXT_PATH
         dst_filename = DICT_TRIE_PATH
         if not os.path.isfile(src_filename):
-            print(src_filename)
             raise FileNotFoundError("Не найден файл словаря.")
         if os.path.isfile(dst_filename):
             self.data = datrie.Trie.load(dst_filename)
         else:
             self.create(src_filename, dst_filename)
-        print("Accent dict loaded")
 
     def create(self, src_filename: str, dst_filename: str) -> None:
         """

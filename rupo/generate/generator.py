@@ -85,12 +85,10 @@ class Generator(object):
         for f in filters:
             model = f.filter_model(model, self.vocabulary)
         if sum(model) == 0:
-            print("Failed: step 1")
             model = self.model_container.get_model([])
             for f in filters:
                 model = f.filter_model(model, self.vocabulary)
             if sum(model) == 0:
-                print("Failed: step 2")
                 model = self.model_container.get_model([])
         word_index = Generator.__choose(model)
         word = self.vocabulary.get_word(word_index)

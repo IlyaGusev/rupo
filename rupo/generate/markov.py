@@ -4,7 +4,6 @@
 
 import os
 import pickle
-import sys
 from collections import Counter
 from typing import List
 
@@ -30,7 +29,6 @@ class MarkovModelContainer(object):
         else:
             for i in range(len(self.vocabulary.words)):
                 self.transitions.append(Counter())
-            print("Starting markov chaining...")
             i = 0
             markups = Reader.read_markups(markup_dump_path, FileTypeEnum.XML, is_processed=True)
             for markup in markups:
