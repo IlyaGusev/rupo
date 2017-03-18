@@ -28,6 +28,14 @@ rupo.generate.markov module
     :undoc-members:
     :show-inheritance:
 
+rupo.generate.test_markov module
+--------------------------------
+
+.. automodule:: rupo.generate.test_markov
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
