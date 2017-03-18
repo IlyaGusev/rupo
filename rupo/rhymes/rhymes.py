@@ -2,7 +2,7 @@
 # Автор: Гусев Илья
 # Описание: Класс рифм.
 
-from typing import Tuple
+from typing import Tuple, List
 
 from rupo.main.markup import Word
 from rupo.util.preprocess import VOWELS

@@ -19,29 +19,36 @@ class MarkovModelContainer(object):
     """
     Марковские цепи.
     """
-    def __init__(self, dump_filename: str, markup_dump_path: str=None):
+    def __init__(self, dump_filename: str, vocabulary: Vocabulary, markup_dump_path: str=None):
         self.transitions = list()
-        self.vocabulary = Vocabulary()
+        self.vocabulary = vocabulary
+        self.dump_filename = dump_filename
 
         # Делаем дамп модели для ускорения загрузки.
         if os.path.isfile(dump_filename):
-            with open(dump_filename, "rb") as f:
-                markov = pickle.load(f)
-                self.__dict__.update(markov.__dict__)
+            self.load()
         else:
-            sys.stdout.write("Starting\n")
-            sys.stdout.flush()
+            for i in range(len(self.vocabulary.words)):
+                self.transitions.append(Counter())
+            print("Starting markov chaining...")
             i = 0
             markups = Reader.read_markups(markup_dump_path, FileTypeEnum.XML, is_processed=True)
             for markup in markups:
                 self.add_markup(markup)
                 i += 1
                 if i % 500 == 0:
-                    sys.stdout.write(str(i)+"\n")
-                    sys.stdout.flush()
+                    print(i)
+            self.save()
 
-            with open(dump_filename, "wb") as f:
-                pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+    def save(self):
+        with open(self.dump_filename, "wb") as f:
+            pickle.dump(self.transitions, f, pickle.HIGHEST_PROTOCOL)
+        self.vocabulary.save()
+
+    def load(self):
+        with open(self.dump_filename, "rb") as f:
+            self.transitions = pickle.load(f)
+        self.vocabulary.load()
 
     def generate_chain(self, words: List[int]) -> List[Counter]:
         """
@@ -65,10 +72,12 @@ class MarkovModelContainer(object):
         words = []
         for line in markup.lines:
             for word in line.words:
-                is_added = self.vocabulary.add_word(word)
-                if is_added:
-                    self.transitions.append(Counter())
-                words.append(self.vocabulary.get_word_index(word))
+                try:
+                    self.vocabulary.get_word_index(word)
+                    words.append(self.vocabulary.get_word_index(word))
+                except IndexError:
+                    print("Слово не из словаря.")
+                    pass
 
         # Генерируем переходы.
         self.generate_chain(list(reversed(words)))

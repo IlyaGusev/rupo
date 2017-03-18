@@ -2,18 +2,19 @@
 # Автор: Гусев Илья
 # Описание: Набор внешних методов для работы с библиотекой.
 
-from typing import List
+from typing import List, Tuple
 
 from rupo.main.phonetics import Phonetics
 from rupo.main.markup import Markup
 from rupo.accents.dict import AccentDict
 from rupo.accents.classifier import MLAccentClassifier
-from rupo.metre.metre_classifier import MetreClassifier
+from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.files.reader import FileTypeEnum, Reader
 from rupo.files.writer import Writer
 from rupo.rhymes.rhymes import Rhymes
 from rupo.generate.markov import MarkovModelContainer
 from rupo.generate.generator import Generator
+from rupo.util.vocabulary import Vocabulary
 
 
 class Global:
@@ -22,6 +23,7 @@ class Global:
     """
     accent_dict = None
     accent_classifier = None
+    vocabulary = None
     markov = None
     generator = None
 
@@ -38,16 +40,23 @@ class Global:
         return cls.accent_classifier
 
     @classmethod
-    def get_markov(cls, markup_path, dump_path):
+    def get_vocabulary(cls, dump_path, markup_path):
+        if cls.vocabulary is None:
+            cls.vocabulary = Vocabulary(dump_path, markup_path)
+        return cls.vocabulary
+
+    @classmethod
+    def get_markov(cls, dump_path, vocab_dump_path, markup_path):
         if cls.markov is None:
-            cls.markov = MarkovModelContainer(dump_path, markup_path)
+            vocab = cls.get_vocabulary(vocab_dump_path, markup_path)
+            cls.markov = MarkovModelContainer(dump_path, vocab, markup_path)
         return cls.markov
 
     @classmethod
-    def get_generator(cls, markup_path, dump_path):
+    def get_generator(cls, dump_path, vocab_dump_path, markup_path):
         if cls.generator is None:
-            cls.generator = Generator(cls.get_markov(markup_path, dump_path),
-                                      cls.get_markov(markup_path, dump_path).vocabulary)
+            cls.generator = Generator(cls.get_markov(dump_path, vocab_dump_path, markup_path),
+                                      cls.get_vocabulary(vocab_dump_path, markup_path))
         return cls.generator
 
 
@@ -83,13 +92,13 @@ def get_markup(text: str) -> Markup:
     return Phonetics.process_text(text, Global.get_dict())
 
 
-def get_improved_markup(text: str) -> Markup:
+def get_improved_markup(text: str) -> Tuple[Markup, ClassificationResult]:
     """
     :param text: текст.
     :return: его разметка по словарю, классификатору метру и  ML классификатору.
     """
     markup = Phonetics.process_text(text, Global.get_dict())
-    return MetreClassifier.improve_markup(markup, Global.get_classifier())[0]
+    return MetreClassifier.improve_markup(markup, Global.get_classifier())
 
 
 def classify_metre(text: str) -> str:
@@ -130,31 +139,53 @@ def is_rhyme(word1: str, word2: str) -> bool:
     return Rhymes.is_rhyme(markup_word1, markup_word2)
 
 
-def generate_poem(markup_path, dump_path, metre_schema: str="-+",
+def generate_poem(markup_path: str, dump_path: str, vocab_dump_path: str, metre_schema: str="-+",
                   rhyme_pattern: str="abab", n_syllables: int=8) -> str:
     """
     Сгенерировать стих по данным из разметок.
 
     :param markup_path: путь к разметкам.
     :param dump_path: путь, куда сохранять модель.
+    :param vocab_dump_path: путь, куда сохранять словарь.
     :param metre_schema: схема метра.
     :param rhyme_pattern: схема рифм.
     :param n_syllables: количество слогов в строке.
     :return: стих.
     """
-    generator = Global.get_generator(dump_path, markup_path)
+    generator = Global.get_generator(dump_path, vocab_dump_path, markup_path)
     return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables)
 
 
-def generate_poem_by_line(markup_path, dump_path, line, rhyme_pattern="abab") -> str:
+def generate_poem_by_line(markup_path: str, dump_path: str, vocab_dump_path: str,
+                          line, rhyme_pattern="abab") -> str:
     """
     Сгенерировать стих по первой строчке.
 
     :param markup_path: путь к разметкам.
-    :param dump_path: путь, куда сохранять модель.
+    :param dump_path: путь, куда сохраняется модель.
+    :param vocab_dump_path: путь, куда сохраняется словарь.
     :param line: первая строчка
     :param rhyme_pattern: схема рифм.
     :return: стих.
     """
-    generator = Global.get_generator(dump_path, markup_path)
+    generator = Global.get_generator(dump_path, vocab_dump_path, markup_path)
     return generator.generate_poem_by_line(line, rhyme_pattern, Global.get_dict(), Global.get_classifier())
+
+
+def get_word_rhymes(word: str, vocab_dump_path: str, markup_path: str=None) -> List[str]:
+    """
+    Поиск рифмы для данного слова.
+
+    :param word: слово.
+    :param vocab_dump_path: путь, куда сохраняется словарь.
+    :param markup_path: путь к разметкам.
+    :return: список рифм.
+    """
+    markup_word = get_markup(word).lines[0].words[0]
+    markup_word.set_accents([get_accent(word)])
+    rhymes = []
+    vocabulary = Global.get_vocabulary(vocab_dump_path, markup_path)
+    for i in range(len(vocabulary.words)):
+        if Rhymes.is_rhyme(markup_word, vocabulary.get_word(i)):
+            rhymes.append(vocabulary.get_word(i))
+    return rhymes

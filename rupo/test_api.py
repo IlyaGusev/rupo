@@ -3,10 +3,12 @@
 # Описание: Тесты для API библиотеки.
 
 import unittest
+import os
 
+from rupo.settings import MARKUP_XML_EXAMPLE, EXAMPLES_DIR
 from rupo.main.markup import Markup
 from rupo.api import get_accent, get_word_syllables, count_syllables, get_markup, get_improved_markup, \
-    is_rhyme, classify_metre
+    is_rhyme, classify_metre, generate_poem, get_word_rhymes, Global
 
 
 class TestApi(unittest.TestCase):
@@ -26,7 +28,7 @@ class TestApi(unittest.TestCase):
         self.assertIsInstance(get_markup("корова"), Markup)
 
     def test_get_improved_markup(self):
-        self.assertIsInstance(get_improved_markup("корова"), Markup)
+        self.assertIsInstance(get_improved_markup("корова")[0], Markup)
 
     def test_classify_metre(self):
         text = "Горит восток зарёю новой.\n" \
@@ -34,3 +36,19 @@ class TestApi(unittest.TestCase):
                "Грохочут пушки. Дым багровый\n" \
                "Кругами всходит к небесам."
         self.assertEqual(classify_metre(text), "iambos")
+
+    def test_generate_poem(self):
+        vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
+        markov_dump_file = os.path.join(EXAMPLES_DIR, "markov.pickle")
+        self.assertNotEqual(
+            generate_poem(MARKUP_XML_EXAMPLE, markov_dump_file, vocab_dump_file, rhyme_pattern="aa", n_syllables=6), "")
+        os.remove(vocab_dump_file)
+        os.remove(markov_dump_file)
+        Global.vocabulary = None
+        Global.markov = None
+        Global.generator = None
+
+    def test_get_word_rhymes(self):
+        vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
+        print(get_word_rhymes("глядел", vocab_dump_file, MARKUP_XML_EXAMPLE))
+        os.remove(vocab_dump_file)
