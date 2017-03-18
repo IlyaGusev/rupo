@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.main.test_phonetics &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c15c8>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.main.test_phonetics</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Тесты для модуля фонетики.</span>
+
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">rupo.accents.dict</span> <span class="k">import</span> <span class="n">AccentDict</span>
+<span class="kn">from</span> <span class="nn">rupo.main.markup</span> <span class="k">import</span> <span class="n">Syllable</span>
+<span class="kn">from</span> <span class="nn">rupo.main.phonetics</span> <span class="k">import</span> <span class="n">Phonetics</span>
+<span class="kn">from</span> <span class="nn">rupo.util.data</span> <span class="k">import</span> <span class="n">MARKUP_EXAMPLE</span>
+
+
+<div class="viewcode-block" id="TestPhonetics"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.test_phonetics.TestPhonetics">[документация]</a><span class="k">class</span> <span class="nc">TestPhonetics</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TestPhonetics.setUpClass"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.test_phonetics.TestPhonetics.setUpClass">[документация]</a>    <span class="k">def</span> <span class="nf">setUpClass</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">accent_dict</span> <span class="o">=</span> <span class="n">AccentDict</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TestPhonetics.test_syllables"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.test_phonetics.TestPhonetics.test_syllables">[документация]</a>    <span class="k">def</span> <span class="nf">test_syllables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">checks</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;я&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;я&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;в&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;лдж&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;кронв&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;кронв&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;он&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;он&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;когда&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;ко&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;гда&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;майка&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;май&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ка&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;сонька&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;сонь&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ка&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;соломка&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;со&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;лом&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;ка&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;изжить&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;и&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;зжить&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;виться&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;ви&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ться&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;данный&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;да&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;нный&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;марка&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;мар&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ка&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;зорька&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;зорь&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ка&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;банка&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;бан&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ка&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;банька&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;бань&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ка&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;лайка&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;лай&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ка&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;оттечь&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;о&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ттечь&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;дяденька&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;дя&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;день&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;ка&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;подъезд&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;по&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;дъезд&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;морские&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;мор&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ски&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;е&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;мерзкие&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;мер&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;зки&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;е&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;полный&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;по&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;лный&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;зародыш&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;за&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;ро&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;дыш&#39;</span><span class="p">)],</span>
+            <span class="s1">&#39;война&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;вой&#39;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;на&#39;</span><span class="p">)],</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">borders</span> <span class="ow">in</span> <span class="n">checks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">Phonetics</span><span class="o">.</span><span class="n">get_word_syllables</span><span class="p">(</span><span class="n">word</span><span class="p">),</span> <span class="n">borders</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestPhonetics.test_accents"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.test_phonetics.TestPhonetics.test_accents">[документация]</a>    <span class="k">def</span> <span class="nf">test_accents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">checks</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;я&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;в&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;он&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;майка&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;соломка&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="s1">&#39;изжить&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="s1">&#39;виться&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;данный&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;зорька&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;банка&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;оттечь&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="s1">&#39;советского&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="s1">&#39;союза&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="s1">&#39;пора&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;изжила&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span>
+            <span class="s1">&#39;меда&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;автоподъёмник&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">8</span><span class="p">],</span>
+            <span class="s1">&#39;автоподъемник&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">8</span><span class="p">],</span>
+            <span class="s1">&#39;предопределенность&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">checks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">Phonetics</span><span class="o">.</span><span class="n">get_word_accents</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">accent_dict</span><span class="p">)),</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TestPhonetics.test_process_text"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.test_phonetics.TestPhonetics.test_process_text">[документация]</a>    <span class="k">def</span> <span class="nf">test_process_text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;Соломка изжила себя.</span><span class="se">\n</span><span class="s2"> Пора виться майкой в.&quot;</span>
+        <span class="n">markup</span> <span class="o">=</span> <span class="n">Phonetics</span><span class="o">.</span><span class="n">process_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">accent_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">markup</span><span class="p">,</span> <span class="n">MARKUP_EXAMPLE</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c1e08>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c15c8>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

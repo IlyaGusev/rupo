@@ -1,0 +1,257 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.accents package &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="genindex.html" />
+    <link rel="search" title="Поиск" href="search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c2695c8>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="rupo-accents-package">
+<h1>rupo.accents package<a class="headerlink" href="#rupo-accents-package" title="Ссылка на этот заголовок">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Ссылка на этот заголовок">¶</a></h2>
+</div>
+<div class="section" id="module-rupo.accents.classifier">
+<span id="rupo-accents-classifier-module"></span><h2>rupo.accents.classifier module<a class="headerlink" href="#module-rupo.accents.classifier" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="class">
+<dt id="rupo.accents.classifier.MLAccentClassifier">
+<em class="property">class </em><code class="descclassname">rupo.accents.classifier.</code><code class="descname">MLAccentClassifier</code><span class="sig-paren">(</span><em>accents_dict: rupo.accents.dict.AccentDict</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/rupo/accents/classifier.html#MLAccentClassifier"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.classifier.MLAccentClassifier" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></div></blockquote>
+<p>Классификатор ударений на основе машинного обучения.</p>
+<dl class="method">
+<dt id="rupo.accents.classifier.MLAccentClassifier.classify_accent">
+<code class="descname">classify_accent</code><span class="sig-paren">(</span><em>word: str</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/rupo/accents/classifier.html#MLAccentClassifier.classify_accent"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.classifier.MLAccentClassifier.classify_accent" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Проставление ударения в слове на основе классификатора.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><strong>word</strong> &#8211; слово, в котором надо поставить ударение.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Результат:</th><td class="field-body">позиция буквы, на которую падает ударение.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="rupo.accents.classifier.MLAccentClassifier.clf_filename">
+<code class="descname">clf_filename</code><em class="property"> = 'clf_{}.pickle'</em><a class="headerlink" href="#rupo.accents.classifier.MLAccentClassifier.clf_filename" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="rupo.accents.classifier.MLAccentClassifier.do_cross_val">
+<code class="descname">do_cross_val</code><span class="sig-paren">(</span><em>accents_dict: rupo.accents.dict.AccentDict</em><span class="sig-paren">)</span> &#x2192; typing.List[float]<a class="reference internal" href="_modules/rupo/accents/classifier.html#MLAccentClassifier.do_cross_val"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.classifier.MLAccentClassifier.do_cross_val" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Кроссвалидация классификаторов.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><strong>accents_dict</strong> &#8211; словарь ударений.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return result:</th><td class="field-body">среднее по кроссвалидации каждого классификатора.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rupo.accents.dict">
+<span id="rupo-accents-dict-module"></span><h2>rupo.accents.dict module<a class="headerlink" href="#module-rupo.accents.dict" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="class">
+<dt id="rupo.accents.dict.AccentDict">
+<em class="property">class </em><code class="descclassname">rupo.accents.dict.</code><code class="descname">AccentDict</code> &#x2192; None<a class="reference internal" href="_modules/rupo/accents/dict.html#AccentDict"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.dict.AccentDict" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></div></blockquote>
+<p>Класс данных, для сериализации словаря как dict&#8217;а и быстрой загрузки в память.</p>
+<dl class="class">
+<dt id="rupo.accents.dict.AccentDict.AccentType">
+<em class="property">class </em><code class="descname">AccentType</code><a class="reference internal" href="_modules/rupo/accents/dict.html#AccentDict.AccentType"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.dict.AccentDict.AccentType" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">enum.Enum</span></code></div></blockquote>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="rupo.accents.dict.AccentDict.AccentType.ANY">
+<code class="descname">ANY</code><em class="property"> = -1</em><a class="headerlink" href="#rupo.accents.dict.AccentDict.AccentType.ANY" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="rupo.accents.dict.AccentDict.AccentType.PRIMARY">
+<code class="descname">PRIMARY</code><em class="property"> = 0</em><a class="headerlink" href="#rupo.accents.dict.AccentDict.AccentType.PRIMARY" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="rupo.accents.dict.AccentDict.AccentType.SECONDARY">
+<code class="descname">SECONDARY</code><em class="property"> = 1</em><a class="headerlink" href="#rupo.accents.dict.AccentDict.AccentType.SECONDARY" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="rupo.accents.dict.AccentDict.create">
+<code class="descclassname">AccentDict.</code><code class="descname">create</code><span class="sig-paren">(</span><em>src_filename: str</em>, <em>dst_filename: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/rupo/accents/dict.html#AccentDict.create"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.dict.AccentDict.create" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Загрузка словаря из файла. Если уже есть его сериализация в .trie файле, берём из него.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><ul class="first last simple">
+<li><strong>src_filename</strong> &#8211; имя файла с оригинальным словарём.</li>
+<li><strong>dst_filename</strong> &#8211; имя файла, в который будет сохранён дамп.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rupo.accents.dict.AccentDict.get_accents">
+<code class="descclassname">AccentDict.</code><code class="descname">get_accents</code><span class="sig-paren">(</span><em>word: str</em>, <em>accent_type: rupo.accents.dict.AccentDict.AccentType = &lt;AccentType.ANY: -1&gt;</em><span class="sig-paren">)</span> &#x2192; typing.List[int]<a class="reference internal" href="_modules/rupo/accents/dict.html#AccentDict.get_accents"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.dict.AccentDict.get_accents" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Обёртка над data.get().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><ul class="first simple">
+<li><strong>word</strong> &#8211; слово, которое мы хотим посмотреть в словаре.</li>
+<li><strong>accent_type</strong> &#8211; тип ударения.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return forms:</th><td class="field-body"><p class="first last">массив всех ударений.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rupo.accents.dict.AccentDict.get_all">
+<code class="descclassname">AccentDict.</code><code class="descname">get_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; typing.List[typing.Tuple[str, typing.List[typing.Tuple[int, rupo.accents.dict.AccentDict.AccentType]]]]<a class="reference internal" href="_modules/rupo/accents/dict.html#AccentDict.get_all"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.dict.AccentDict.get_all" title="Ссылка на это определение">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return items:</th><td class="field-body">все ключи и ударения словаря.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rupo.accents.dict.AccentDict.save">
+<code class="descclassname">AccentDict.</code><code class="descname">save</code><span class="sig-paren">(</span><em>dst_filename: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/rupo/accents/dict.html#AccentDict.save"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.dict.AccentDict.save" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Сохранение дампа.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><strong>dst_filename</strong> &#8211; имя файла, в который сохраняем дамп словаря.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rupo.accents.test_accent_classifier">
+<span id="rupo-accents-test-accent-classifier-module"></span><h2>rupo.accents.test_accent_classifier module<a class="headerlink" href="#module-rupo.accents.test_accent_classifier" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="class">
+<dt id="rupo.accents.test_accent_classifier.TestAccentClassifier">
+<em class="property">class </em><code class="descclassname">rupo.accents.test_accent_classifier.</code><code class="descname">TestAccentClassifier</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/accents/test_accent_classifier.html#TestAccentClassifier"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.test_accent_classifier.TestAccentClassifier" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">unittest.case.TestCase</span></code></div></blockquote>
+<dl class="classmethod">
+<dt id="rupo.accents.test_accent_classifier.TestAccentClassifier.setUpClass">
+<em class="property">classmethod </em><code class="descname">setUpClass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/accents/test_accent_classifier.html#TestAccentClassifier.setUpClass"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.test_accent_classifier.TestAccentClassifier.setUpClass" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="rupo.accents.test_accent_classifier.TestAccentClassifier.test_accent_classifier">
+<code class="descname">test_accent_classifier</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/accents/test_accent_classifier.html#TestAccentClassifier.test_accent_classifier"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.test_accent_classifier.TestAccentClassifier.test_accent_classifier" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rupo.accents.test_dict">
+<span id="rupo-accents-test-dict-module"></span><h2>rupo.accents.test_dict module<a class="headerlink" href="#module-rupo.accents.test_dict" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="class">
+<dt id="rupo.accents.test_dict.TestAccentDict">
+<em class="property">class </em><code class="descclassname">rupo.accents.test_dict.</code><code class="descname">TestAccentDict</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/accents/test_dict.html#TestAccentDict"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.test_dict.TestAccentDict" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">unittest.case.TestCase</span></code></div></blockquote>
+<dl class="classmethod">
+<dt id="rupo.accents.test_dict.TestAccentDict.setUpClass">
+<em class="property">classmethod </em><code class="descname">setUpClass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/accents/test_dict.html#TestAccentDict.setUpClass"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.test_dict.TestAccentDict.setUpClass" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="rupo.accents.test_dict.TestAccentDict.test_accent_only_in_vowels">
+<code class="descname">test_accent_only_in_vowels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/accents/test_dict.html#TestAccentDict.test_accent_only_in_vowels"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.test_dict.TestAccentDict.test_accent_only_in_vowels" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="rupo.accents.test_dict.TestAccentDict.test_get_accents">
+<code class="descname">test_get_accents</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/accents/test_dict.html#TestAccentDict.test_get_accents"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.test_dict.TestAccentDict.test_get_accents" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="rupo.accents.test_dict.TestAccentDict.test_load_and_create">
+<code class="descname">test_load_and_create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/accents/test_dict.html#TestAccentDict.test_load_and_create"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.accents.test_dict.TestAccentDict.test_load_and_create" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rupo.accents">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-rupo.accents" title="Ссылка на этот заголовок">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c269518>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c2695c8>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

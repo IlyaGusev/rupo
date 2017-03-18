@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.metre.patterns &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c1570>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.metre.patterns</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Шаблоны ритма.</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
+
+
+<div class="viewcode-block" id="FlagEnum"><a class="viewcode-back" href="../../../rupo.metre.html#rupo.metre.patterns.FlagEnum">[документация]</a><span class="k">class</span> <span class="nc">FlagEnum</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">ZERO_OR_ONE</span> <span class="o">=</span> <span class="s2">&quot;?&quot;</span>
+    <span class="n">ZERO_TO_INF</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
+    <span class="n">ONE</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="Group"><a class="viewcode-back" href="../../../rupo.metre.html#rupo.metre.patterns.Group">[документация]</a><span class="k">class</span> <span class="nc">Group</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Группа - выражение в круглых скобках и её модификатор.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">flag</span><span class="p">:</span> <span class="n">FlagEnum</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param exp: выражение в круглых скобках.</span>
+<span class="sd">        :param flag: модификатор.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exp</span> <span class="o">=</span> <span class="n">exp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flag</span> <span class="o">=</span> <span class="n">flag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extended</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[str]</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flag</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extended</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__str__</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Patterns"><a class="viewcode-back" href="../../../rupo.metre.html#rupo.metre.patterns.Patterns">[документация]</a><span class="k">class</span> <span class="nc">Patterns</span><span class="p">:</span>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Patterns.compile_pattern"><a class="viewcode-back" href="../../../rupo.metre.html#rupo.metre.patterns.Patterns.compile_pattern">[документация]</a>    <span class="k">def</span> <span class="nf">compile_pattern</span><span class="p">(</span><span class="n">metre_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">l</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Скомпилировать заданное выражение.</span>
+
+<span class="sd">        :param metre_pattern: выражение.</span>
+<span class="sd">        :param l: итоговое количество символов.</span>
+<span class="sd">        :return: скомпилированные шаблоны.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="n">metre_pattern</span><span class="p">,</span> <span class="n">FlagEnum</span><span class="o">.</span><span class="n">ONE</span><span class="p">)</span>
+        <span class="n">Patterns</span><span class="o">.</span><span class="n">__process_group</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">st</span> <span class="k">for</span> <span class="n">st</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">extended</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">st</span><span class="p">)</span> <span class="o">==</span> <span class="n">l</span><span class="p">]))</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__process_group</span><span class="p">(</span><span class="n">group</span><span class="p">:</span> <span class="n">Group</span><span class="p">,</span> <span class="n">l</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Обработка группы. Записывает в extended результаты.</span>
+
+<span class="sd">        :param group: группа.</span>
+<span class="sd">        :param l: максимальное количество символов.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Высчитываем группы следующего уровня.</span>
+        <span class="n">children_groups</span> <span class="o">=</span> <span class="n">Patterns</span><span class="o">.</span><span class="n">__find_groups</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">exp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">children_groups</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Нижний уровень.</span>
+            <span class="k">if</span> <span class="n">group</span><span class="o">.</span><span class="n">flag</span> <span class="o">==</span> <span class="n">FlagEnum</span><span class="o">.</span><span class="n">ZERO_OR_ONE</span> <span class="ow">or</span> <span class="n">group</span><span class="o">.</span><span class="n">flag</span> <span class="o">==</span> <span class="n">FlagEnum</span><span class="o">.</span><span class="n">ONE</span><span class="p">:</span>
+                <span class="n">group</span><span class="o">.</span><span class="n">extended</span> <span class="o">=</span> <span class="p">[</span><span class="n">group</span><span class="o">.</span><span class="n">exp</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">group</span><span class="o">.</span><span class="n">flag</span> <span class="o">==</span> <span class="n">FlagEnum</span><span class="o">.</span><span class="n">ZERO_TO_INF</span><span class="p">:</span>
+                <span class="n">group</span><span class="o">.</span><span class="n">extended</span> <span class="o">=</span> <span class="p">[</span><span class="n">group</span><span class="o">.</span><span class="n">exp</span> <span class="o">*</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">l</span> <span class="o">//</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">exp</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Спускаемся.</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children_groups</span><span class="p">:</span>
+                <span class="n">Patterns</span><span class="o">.</span><span class="n">__process_group</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+            <span class="c1"># Поднимаемся, параллельно проставляем extended</span>
+            <span class="n">group</span><span class="o">.</span><span class="n">extended</span> <span class="o">=</span> <span class="n">Patterns</span><span class="o">.</span><span class="n">__next</span><span class="p">(</span><span class="n">children_groups</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__find_groups</span><span class="p">(</span><span class="n">expression</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Group</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Высчитываем группы выражения.</span>
+
+<span class="sd">        :param expression: выражение.</span>
+<span class="sd">        :return: группы.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">begin</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">expression</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">expression</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;(&quot;</span><span class="p">:</span>
+                <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">begin</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">expression</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;)&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="n">FlagEnum</span><span class="o">.</span><span class="n">ONE</span>  <span class="c1"># type: FlagEnum</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">expression</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;?&quot;</span> <span class="ow">or</span> <span class="n">expression</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">):</span>
+                        <span class="n">flag</span> <span class="o">=</span> <span class="n">FlagEnum</span><span class="p">(</span><span class="n">expression</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Group</span><span class="p">(</span><span class="n">expression</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">i</span><span class="p">],</span> <span class="n">flag</span><span class="p">))</span>
+                <span class="n">counter</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">assert</span> <span class="n">counter</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">groups</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__next</span><span class="p">(</span><span class="n">groups</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Group</span><span class="p">],</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">l</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Получение всех возможных шаблонов на заданных группах заданной длины.</span>
+
+<span class="sd">        :param groups: группы.</span>
+<span class="sd">        :param index: индекс текущей группы в массиве.</span>
+<span class="sd">        :param pattern: текущий набранный шаблон</span>
+<span class="sd">        :param l: максимальное количество символов.</span>
+<span class="sd">        :return: все возможные шаблоны.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># База рекурсии.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">l</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">flag</span> <span class="o">==</span> <span class="n">FlagEnum</span><span class="o">.</span><span class="n">ONE</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">)))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">pattern</span><span class="p">,</span> <span class="p">]</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="n">groups</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">flag</span>
+        <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="n">FlagEnum</span><span class="o">.</span><span class="n">ZERO_TO_INF</span><span class="p">:</span>
+            <span class="c1"># Продолжаем все варианты *</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">extended</span><span class="p">)):</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="n">Patterns</span><span class="o">.</span><span class="n">__next</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">pattern</span> <span class="o">+</span> <span class="n">groups</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">extended</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">l</span><span class="p">)</span>
+            <span class="c1"># Пропускаем *</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="n">Patterns</span><span class="o">.</span><span class="n">__next</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">flag</span> <span class="o">==</span> <span class="n">FlagEnum</span><span class="o">.</span><span class="n">ZERO_OR_ONE</span><span class="p">:</span>
+            <span class="c1"># Пропускаем ?</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="n">Patterns</span><span class="o">.</span><span class="n">__next</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+            <span class="c1"># Продолжаем ?</span>
+            <span class="k">for</span> <span class="n">st</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">extended</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="n">Patterns</span><span class="o">.</span><span class="n">__next</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pattern</span> <span class="o">+</span> <span class="n">st</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">flag</span> <span class="o">==</span> <span class="n">FlagEnum</span><span class="o">.</span><span class="n">ONE</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">st</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">extended</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="n">Patterns</span><span class="o">.</span><span class="n">__next</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pattern</span> <span class="o">+</span> <span class="n">st</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="CompiledPatterns"><a class="viewcode-back" href="../../../rupo.metre.html#rupo.metre.patterns.CompiledPatterns">[документация]</a><span class="k">class</span> <span class="nc">CompiledPatterns</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Скомпилированные шаблоны (нужно, чтобы не пересчитывать их каждый раз).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metres</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">border</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compilations</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">metre_name</span><span class="p">,</span> <span class="n">metre_pattern</span> <span class="ow">in</span> <span class="n">metres</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">border</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compilations</span><span class="p">[</span><span class="n">metre_name</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Patterns</span><span class="o">.</span><span class="n">compile_pattern</span><span class="p">(</span><span class="n">metre_pattern</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CompiledPatterns.get_patterns"><a class="viewcode-back" href="../../../rupo.metre.html#rupo.metre.patterns.CompiledPatterns.get_patterns">[документация]</a>    <span class="k">def</span> <span class="nf">get_patterns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metre_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">syllables_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Получить или посчитать шаблоны метра для заданного метра.</span>
+
+<span class="sd">        :param metre_name: название метра.</span>
+<span class="sd">        :param syllables_count: количество слогов в шаблоне.</span>
+<span class="sd">        :return: итоговые скомпилированные шаблоны метра.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compilations</span><span class="p">[</span><span class="n">metre_name</span><span class="p">][</span><span class="n">syllables_count</span><span class="p">]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c1fc0>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c1570>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.files.test_reader &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c1570>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.files.test_reader</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Тесты считывателя разметок.</span>
+
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">rupo.files.reader</span> <span class="k">import</span> <span class="n">Reader</span><span class="p">,</span> <span class="n">FileTypeEnum</span>
+<span class="kn">from</span> <span class="nn">rupo.accents.classifier</span> <span class="k">import</span> <span class="n">MLAccentClassifier</span>
+<span class="kn">from</span> <span class="nn">rupo.accents.dict</span> <span class="k">import</span> <span class="n">AccentDict</span>
+<span class="kn">from</span> <span class="nn">rupo.main.markup</span> <span class="k">import</span> <span class="n">Markup</span><span class="p">,</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Word</span>
+<span class="kn">from</span> <span class="nn">rupo.settings</span> <span class="k">import</span> <span class="n">MARKUP_XML_EXAMPLE</span><span class="p">,</span> <span class="n">TEXT_XML_EXAMPLE</span><span class="p">,</span> <span class="n">MARKUP_JSON_EXAMPLE</span>
+
+
+<div class="viewcode-block" id="TestReader"><a class="viewcode-back" href="../../../rupo.files.html#rupo.files.test_reader.TestReader">[документация]</a><span class="k">class</span> <span class="nc">TestReader</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TestReader.setUpClass"><a class="viewcode-back" href="../../../rupo.files.html#rupo.files.test_reader.TestReader.setUpClass">[документация]</a>    <span class="k">def</span> <span class="nf">setUpClass</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">accents_dict</span> <span class="o">=</span> <span class="n">AccentDict</span><span class="p">()</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">accents_classifier</span> <span class="o">=</span> <span class="n">MLAccentClassifier</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">accents_dict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestReader.test_read"><a class="viewcode-back" href="../../../rupo.files.html#rupo.files.test_reader.TestReader.test_read">[документация]</a>    <span class="k">def</span> <span class="nf">test_read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">processed_xml</span> <span class="o">=</span> <span class="n">Reader</span><span class="o">.</span><span class="n">read_markups</span><span class="p">(</span><span class="n">MARKUP_XML_EXAMPLE</span><span class="p">,</span> <span class="n">FileTypeEnum</span><span class="o">.</span><span class="n">XML</span><span class="p">,</span> <span class="n">is_processed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__assert_markup_is_correct</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">processed_xml</span><span class="p">))</span>
+
+        <span class="n">unprocessed_xml</span> <span class="o">=</span> <span class="n">Reader</span><span class="o">.</span><span class="n">read_markups</span><span class="p">(</span><span class="n">TEXT_XML_EXAMPLE</span><span class="p">,</span> <span class="n">FileTypeEnum</span><span class="o">.</span><span class="n">XML</span><span class="p">,</span> <span class="n">is_processed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                              <span class="n">accents_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">accents_dict</span><span class="p">,</span>
+                                              <span class="n">accents_classifier</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">accents_classifier</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__assert_markup_is_correct</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">unprocessed_xml</span><span class="p">))</span>
+
+        <span class="n">processed_json</span> <span class="o">=</span> <span class="n">Reader</span><span class="o">.</span><span class="n">read_markups</span><span class="p">(</span><span class="n">MARKUP_JSON_EXAMPLE</span><span class="p">,</span> <span class="n">FileTypeEnum</span><span class="o">.</span><span class="n">JSON</span><span class="p">,</span> <span class="n">is_processed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__assert_markup_is_correct</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">processed_json</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">__assert_markup_is_correct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">markup</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">markup</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">markup</span><span class="p">,</span> <span class="n">Markup</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">markup</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="n">markup</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="n">markup</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">markup</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Line</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">markup</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Word</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c1ca8>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c1570>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

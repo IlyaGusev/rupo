@@ -1,0 +1,6 @@
+dicttoxml == 1.7.4
+datrie == 0.7.1
+numpy == 1.11.3
+scipy == 0.18.1
+scikit-learn == 0.18.1
+jsonpickle == 0.9.4

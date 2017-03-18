@@ -1,0 +1,707 @@
+{
+  "items": [
+    {
+      "version": 2,
+      "text": "Забывши волнения жизни мятежной,\nОдин жил в пустыне рыбак молодой.\nОднажды на скале прибрежной,\nНад тихой прозрачной рекой\nОн с удой беспечно\nСидел\nИ думой сердечной\nК прошедшему счастью летел.",
+      "lines": [
+        {
+          "words": [
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "За",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 4,
+                  "text": "бы",
+                  "accent": -1,
+                  "number": 1
+                },
+                {
+                  "begin": 4,
+                  "end": 7,
+                  "text": "вши",
+                  "accent": 6,
+                  "number": 2
+                }
+              ],
+              "end": 7,
+              "text": "Забывши",
+              "begin": 0
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "во",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "лне",
+                  "accent": 4,
+                  "number": 1
+                },
+                {
+                  "begin": 5,
+                  "end": 7,
+                  "text": "ни",
+                  "accent": -1,
+                  "number": 2
+                },
+                {
+                  "begin": 7,
+                  "end": 8,
+                  "text": "я",
+                  "accent": -1,
+                  "number": 3
+                }
+              ],
+              "end": 16,
+              "text": "волнения",
+              "begin": 8
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "жи",
+                  "accent": 1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "зни",
+                  "accent": -1,
+                  "number": 1
+                }
+              ],
+              "end": 22,
+              "text": "жизни",
+              "begin": 17
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "мя",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 4,
+                  "text": "те",
+                  "accent": 3,
+                  "number": 1
+                },
+                {
+                  "begin": 4,
+                  "end": 8,
+                  "text": "жной",
+                  "accent": -1,
+                  "number": 2
+                }
+              ],
+              "end": 31,
+              "text": "мятежной",
+              "begin": 23
+            }
+          ],
+          "end": 33,
+          "text": "Забывши волнения жизни мятежной,",
+          "begin": 0
+        },
+        {
+          "words": [
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 1,
+                  "text": "О",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 1,
+                  "end": 4,
+                  "text": "дин",
+                  "accent": 2,
+                  "number": 1
+                }
+              ],
+              "end": 37,
+              "text": "Один",
+              "begin": 33
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 3,
+                  "text": "жил",
+                  "accent": 1,
+                  "number": 0
+                }
+              ],
+              "end": 41,
+              "text": "жил",
+              "begin": 38
+            },
+            {
+              "syllables": [],
+              "end": 43,
+              "text": "в",
+              "begin": 42
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "пу",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "сты",
+                  "accent": 4,
+                  "number": 1
+                },
+                {
+                  "begin": 5,
+                  "end": 7,
+                  "text": "не",
+                  "accent": -1,
+                  "number": 2
+                }
+              ],
+              "end": 51,
+              "text": "пустыне",
+              "begin": 44
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "ры",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "бак",
+                  "accent": 3,
+                  "number": 1
+                }
+              ],
+              "end": 57,
+              "text": "рыбак",
+              "begin": 52
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "мо",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 4,
+                  "text": "ло",
+                  "accent": -1,
+                  "number": 1
+                },
+                {
+                  "begin": 4,
+                  "end": 7,
+                  "text": "дой",
+                  "accent": 5,
+                  "number": 2
+                }
+              ],
+              "end": 65,
+              "text": "молодой",
+              "begin": 58
+            }
+          ],
+          "end": 67,
+          "text": "Один жил в пустыне рыбак молодой.",
+          "begin": 33
+        },
+        {
+          "words": [
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 1,
+                  "text": "О",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 1,
+                  "end": 4,
+                  "text": "дна",
+                  "accent": -1,
+                  "number": 1
+                },
+                {
+                  "begin": 4,
+                  "end": 7,
+                  "text": "жды",
+                  "accent": 6,
+                  "number": 2
+                }
+              ],
+              "end": 74,
+              "text": "Однажды",
+              "begin": 67
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "на",
+                  "accent": 1,
+                  "number": 0
+                }
+              ],
+              "end": 77,
+              "text": "на",
+              "begin": 75
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 3,
+                  "text": "ска",
+                  "accent": 2,
+                  "number": 0
+                },
+                {
+                  "begin": 3,
+                  "end": 5,
+                  "text": "ле",
+                  "accent": -1,
+                  "number": 1
+                }
+              ],
+              "end": 83,
+              "text": "скале",
+              "begin": 78
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 3,
+                  "text": "при",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 3,
+                  "end": 6,
+                  "text": "бре",
+                  "accent": 5,
+                  "number": 1
+                },
+                {
+                  "begin": 6,
+                  "end": 10,
+                  "text": "жной",
+                  "accent": -1,
+                  "number": 2
+                }
+              ],
+              "end": 94,
+              "text": "прибрежной",
+              "begin": 84
+            }
+          ],
+          "end": 96,
+          "text": "Однажды на скале прибрежной,",
+          "begin": 67
+        },
+        {
+          "words": [
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 3,
+                  "text": "Над",
+                  "accent": 1,
+                  "number": 0
+                }
+              ],
+              "end": 99,
+              "text": "Над",
+              "begin": 96
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "ти",
+                  "accent": 1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "хой",
+                  "accent": -1,
+                  "number": 1
+                }
+              ],
+              "end": 105,
+              "text": "тихой",
+              "begin": 100
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 3,
+                  "text": "про",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 3,
+                  "end": 6,
+                  "text": "зра",
+                  "accent": 5,
+                  "number": 1
+                },
+                {
+                  "begin": 6,
+                  "end": 10,
+                  "text": "чной",
+                  "accent": -1,
+                  "number": 2
+                }
+              ],
+              "end": 116,
+              "text": "прозрачной",
+              "begin": 106
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "ре",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "кой",
+                  "accent": 3,
+                  "number": 1
+                }
+              ],
+              "end": 122,
+              "text": "рекой",
+              "begin": 117
+            }
+          ],
+          "end": 123,
+          "text": "Над тихой прозрачной рекой",
+          "begin": 96
+        },
+        {
+          "words": [
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "Он",
+                  "accent": 0,
+                  "number": 0
+                }
+              ],
+              "end": 125,
+              "text": "Он",
+              "begin": 123
+            },
+            {
+              "syllables": [],
+              "end": 127,
+              "text": "с",
+              "begin": 126
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 1,
+                  "text": "у",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 1,
+                  "end": 4,
+                  "text": "дой",
+                  "accent": 2,
+                  "number": 1
+                }
+              ],
+              "end": 132,
+              "text": "удой",
+              "begin": 128
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "бе",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "спе",
+                  "accent": 4,
+                  "number": 1
+                },
+                {
+                  "begin": 5,
+                  "end": 8,
+                  "text": "чно",
+                  "accent": -1,
+                  "number": 2
+                }
+              ],
+              "end": 141,
+              "text": "беспечно",
+              "begin": 133
+            }
+          ],
+          "end": 142,
+          "text": "Он с удой беспечно",
+          "begin": 123
+        },
+        {
+          "words": [
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "Си",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "дел",
+                  "accent": 3,
+                  "number": 1
+                }
+              ],
+              "end": 147,
+              "text": "Сидел",
+              "begin": 142
+            }
+          ],
+          "end": 148,
+          "text": "Сидел",
+          "begin": 142
+        },
+        {
+          "words": [
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 1,
+                  "text": "И",
+                  "accent": 0,
+                  "number": 0
+                }
+              ],
+              "end": 149,
+              "text": "И",
+              "begin": 148
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "ду",
+                  "accent": 1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "мой",
+                  "accent": -1,
+                  "number": 1
+                }
+              ],
+              "end": 155,
+              "text": "думой",
+              "begin": 150
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 3,
+                  "text": "сер",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 3,
+                  "end": 5,
+                  "text": "де",
+                  "accent": 4,
+                  "number": 1
+                },
+                {
+                  "begin": 5,
+                  "end": 9,
+                  "text": "чной",
+                  "accent": -1,
+                  "number": 2
+                }
+              ],
+              "end": 165,
+              "text": "сердечной",
+              "begin": 156
+            }
+          ],
+          "end": 166,
+          "text": "И думой сердечной",
+          "begin": 148
+        },
+        {
+          "words": [
+            {
+              "syllables": [],
+              "end": 167,
+              "text": "К",
+              "begin": 166
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 3,
+                  "text": "про",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 3,
+                  "end": 5,
+                  "text": "ше",
+                  "accent": 4,
+                  "number": 1
+                },
+                {
+                  "begin": 5,
+                  "end": 8,
+                  "text": "дше",
+                  "accent": -1,
+                  "number": 2
+                },
+                {
+                  "begin": 8,
+                  "end": 10,
+                  "text": "му",
+                  "accent": -1,
+                  "number": 3
+                }
+              ],
+              "end": 178,
+              "text": "прошедшему",
+              "begin": 168
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 3,
+                  "text": "сча",
+                  "accent": 2,
+                  "number": 0
+                },
+                {
+                  "begin": 3,
+                  "end": 7,
+                  "text": "стью",
+                  "accent": -1,
+                  "number": 1
+                }
+              ],
+              "end": 186,
+              "text": "счастью",
+              "begin": 179
+            },
+            {
+              "syllables": [
+                {
+                  "begin": 0,
+                  "end": 2,
+                  "text": "ле",
+                  "accent": -1,
+                  "number": 0
+                },
+                {
+                  "begin": 2,
+                  "end": 5,
+                  "text": "тел",
+                  "accent": 3,
+                  "number": 1
+                }
+              ],
+              "end": 192,
+              "text": "летел",
+              "begin": 187
+            }
+          ],
+          "end": 193,
+          "text": "К прошедшему счастью летел.",
+          "begin": 166
+        }
+      ]
+    }
+  ]
+}

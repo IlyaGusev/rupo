@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.main.markup &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c1e08>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.main.markup</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Модуль для описания разметки по ударениям и слогам.</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">etree</span>
+
+<span class="kn">from</span> <span class="nn">dicttoxml</span> <span class="k">import</span> <span class="n">dicttoxml</span>
+
+<span class="kn">from</span> <span class="nn">rupo.util.preprocess</span> <span class="k">import</span> <span class="n">get_first_vowel_position</span>
+<span class="kn">from</span> <span class="nn">rupo.util.mixins</span> <span class="k">import</span> <span class="n">CommonMixin</span>
+
+
+<div class="viewcode-block" id="Annotation"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Annotation">[документация]</a><span class="k">class</span> <span class="nc">Annotation</span><span class="p">(</span><span class="n">CommonMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Класс аннотации.</span>
+<span class="sd">    Содержит начальную и конечную позицию в тексте, а также текст аннотации .</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">begin</span> <span class="o">=</span> <span class="n">begin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span></div>
+
+
+<div class="viewcode-block" id="Syllable"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Syllable">[документация]</a><span class="k">class</span> <span class="nc">Syllable</span><span class="p">(</span><span class="n">Annotation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Разметка слога. Включает в себя аннотацию и номер слога, а также ударение.</span>
+<span class="sd">    Если ударение падает не на этот слог, -1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">accent</span><span class="p">:</span> <span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Syllable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">begin</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accent</span> <span class="o">=</span> <span class="n">accent</span>
+
+<div class="viewcode-block" id="Syllable.vowel"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Syllable.vowel">[документация]</a>    <span class="k">def</span> <span class="nf">vowel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: позиция гласной буквы этого слога в слове (с 0).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">get_first_vowel_position</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">begin</span></div>
+
+<div class="viewcode-block" id="Syllable.from_dict"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Syllable.from_dict">[документация]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Syllable&#39;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+
+
+<div class="viewcode-block" id="Word"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Word">[документация]</a><span class="k">class</span> <span class="nc">Word</span><span class="p">(</span><span class="n">Annotation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Разметка слова. Включает в себя аннотацию слова и его слоги.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">syllables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Syllable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Word</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">begin</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">syllables</span> <span class="o">=</span> <span class="n">syllables</span>
+
+<div class="viewcode-block" id="Word.count_accents"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Word.count_accents">[документация]</a>    <span class="k">def</span> <span class="nf">count_accents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: количество ударений в слове.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">syllable</span><span class="o">.</span><span class="n">accent</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">syllable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">syllables</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Word.accent"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Word.accent">[документация]</a>    <span class="k">def</span> <span class="nf">accent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: последнее ударение в слове, если нет, то -1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">accent</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">syllable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">syllables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">syllable</span><span class="o">.</span><span class="n">accent</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">accent</span> <span class="o">=</span> <span class="n">syllable</span><span class="o">.</span><span class="n">accent</span>
+        <span class="k">return</span> <span class="n">accent</span></div>
+
+<div class="viewcode-block" id="Word.get_accented_syllables_numbers"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Word.get_accented_syllables_numbers">[документация]</a>    <span class="k">def</span> <span class="nf">get_accented_syllables_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: номера слогов, на которые падают ударения.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">syllable</span><span class="o">.</span><span class="n">number</span> <span class="k">for</span> <span class="n">syllable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">syllables</span> <span class="k">if</span> <span class="n">syllable</span><span class="o">.</span><span class="n">accent</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Word.set_accents"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Word.set_accents">[документация]</a>    <span class="k">def</span> <span class="nf">set_accents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Задать ударения, все остальные убираются.</span>
+
+<span class="sd">        :param accents: позиции ударения в слове.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">syllable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">syllables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">syllable</span><span class="o">.</span><span class="n">vowel</span><span class="p">()</span> <span class="ow">in</span> <span class="n">accents</span><span class="p">:</span>
+                <span class="n">syllable</span><span class="o">.</span><span class="n">accent</span> <span class="o">=</span> <span class="n">syllable</span><span class="o">.</span><span class="n">vowel</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">syllable</span><span class="o">.</span><span class="n">accent</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Word.get_short"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Word.get_short">[документация]</a>    <span class="k">def</span> <span class="nf">get_short</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: слово в форме &quot;текст&quot;+&quot;последнее ударение&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accent</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Word.from_dict"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Word.from_dict">[документация]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Word&#39;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">syllables</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;syllables&quot;</span><span class="p">]</span>  <span class="c1"># type: List[dict]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">syllables</span> <span class="o">=</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">syllables</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">syllables</span><span class="p">))]</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: хеш разметки.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_short</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="Line"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Line">[документация]</a><span class="k">class</span> <span class="nc">Line</span><span class="p">(</span><span class="n">Annotation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Разметка строки. Включает в себя аннотацию строки и её слова.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">words</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Word</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Line</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">begin</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">words</span> <span class="o">=</span> <span class="n">words</span>
+
+<div class="viewcode-block" id="Line.from_dict"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Line.from_dict">[документация]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Line&#39;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">]</span>  <span class="c1"># type: List[dict]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">words</span> <span class="o">=</span> <span class="p">[</span><span class="n">Word</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">))]</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+
+
+<div class="viewcode-block" id="Markup"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Markup">[документация]</a><span class="k">class</span> <span class="nc">Markup</span><span class="p">(</span><span class="n">CommonMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Класс данных для разметки в целом с экспортом/импортом в XML и JSON.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Line</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO: При изменении структуры разметки менять десериализацию.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="mi">2</span>
+
+<div class="viewcode-block" id="Markup.to_json"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Markup.to_json">[документация]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Markup.from_json"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Markup.from_json">[документация]</a>    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">st</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Markup&#39;</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Markup.from_dict"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Markup.from_dict">[документация]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Markup&#39;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">]</span>  <span class="c1"># type: List[dict]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">Line</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">))]</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Markup.to_xml"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Markup.to_xml">[документация]</a>    <span class="k">def</span> <span class="nf">to_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Экспорт в XML.</span>
+
+<span class="sd">        :return self: строка в формате XML</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">dicttoxml</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">custom_root</span><span class="o">=</span><span class="s1">&#39;markup&#39;</span><span class="p">,</span> <span class="n">attr_type</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Markup.from_xml"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.markup.Markup.from_xml">[документация]</a>    <span class="k">def</span> <span class="nf">from_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Markup&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Импорт из XML.</span>
+
+<span class="sd">        :param xml: XML-разметка</span>
+<span class="sd">        :return self: получившийся объект Markup</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Другая версия разметки&quot;</span><span class="p">)</span>
+        <span class="n">lines_node</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;lines&quot;</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line_node</span> <span class="ow">in</span> <span class="n">lines_node</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;item&quot;</span><span class="p">):</span>
+            <span class="n">words_node</span> <span class="o">=</span> <span class="n">line_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;words&quot;</span><span class="p">)</span>
+            <span class="n">words</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">word_node</span> <span class="ow">in</span> <span class="n">words_node</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;item&quot;</span><span class="p">):</span>
+                <span class="n">syllables_node</span> <span class="o">=</span> <span class="n">word_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;syllables&quot;</span><span class="p">)</span>
+                <span class="n">syllables</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">syllable_node</span> <span class="ow">in</span> <span class="n">syllables_node</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;item&quot;</span><span class="p">):</span>
+                    <span class="n">syllables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Syllable</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">syllable_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;begin&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">),</span>
+                                              <span class="nb">int</span><span class="p">(</span><span class="n">syllable_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;end&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">),</span>
+                                              <span class="nb">int</span><span class="p">(</span><span class="n">syllable_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;number&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">),</span>
+                                              <span class="n">syllable_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                                              <span class="nb">int</span><span class="p">(</span><span class="n">syllable_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;accent&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)))</span>
+                <span class="n">words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">word_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;begin&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">word_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;end&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">),</span>
+                                  <span class="n">word_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">syllables</span><span class="p">))</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Line</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">line_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;begin&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;end&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">),</span>
+                              <span class="n">line_node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">words</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c16d0>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c1e08>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

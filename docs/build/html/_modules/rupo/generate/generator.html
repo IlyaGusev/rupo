@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.generate.generator &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c1f10>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.generate.generator</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Модуль создания стихотворений.</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">choice</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">rupo.generate.filters</span> <span class="k">import</span> <span class="n">Filter</span><span class="p">,</span> <span class="n">MetreFilter</span><span class="p">,</span> <span class="n">RhymeFilter</span>
+<span class="kn">from</span> <span class="nn">rupo.main.phonetics</span> <span class="k">import</span> <span class="n">Phonetics</span>
+<span class="kn">from</span> <span class="nn">rupo.metre.metre_classifier</span> <span class="k">import</span> <span class="n">MetreClassifier</span><span class="p">,</span> <span class="n">CompilationsSingleton</span>
+<span class="kn">from</span> <span class="nn">rupo.util.vocabulary</span> <span class="k">import</span> <span class="n">Vocabulary</span>
+<span class="kn">from</span> <span class="nn">rupo.accents.dict</span> <span class="k">import</span> <span class="n">AccentDict</span>
+<span class="kn">from</span> <span class="nn">rupo.accents.classifier</span> <span class="k">import</span> <span class="n">MLAccentClassifier</span>
+
+
+<div class="viewcode-block" id="Generator"><a class="viewcode-back" href="../../../rupo.generate.html#rupo.generate.generator.Generator">[документация]</a><span class="k">class</span> <span class="nc">Generator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Генератор стихов</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_container</span><span class="p">,</span> <span class="n">vocabulary</span><span class="p">:</span> <span class="n">Vocabulary</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param model_container: модель с методом get_model(list)</span>
+<span class="sd">        :param vocabulary: словарь с индексами.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_container</span> <span class="o">=</span> <span class="n">model_container</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vocabulary</span> <span class="o">=</span> <span class="n">vocabulary</span>
+
+<div class="viewcode-block" id="Generator.generate_poem"><a class="viewcode-back" href="../../../rupo.generate.html#rupo.generate.generator.Generator.generate_poem">[документация]</a>    <span class="k">def</span> <span class="nf">generate_poem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metre_schema</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;-+&quot;</span><span class="p">,</span> <span class="n">rhyme_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;abab&quot;</span><span class="p">,</span> <span class="n">n_syllables</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                      <span class="n">letters_to_rhymes</span><span class="p">:</span> <span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Генерация стихотворения с выбранными параметрами.</span>
+
+<span class="sd">        :param metre_schema: схема метра.</span>
+<span class="sd">        :param rhyme_pattern: схема рифмы.</span>
+<span class="sd">        :param n_syllables: количество слогов в строке.</span>
+<span class="sd">        :param letters_to_rhymes: заданные рифмы.</span>
+<span class="sd">        :return: стихотворение.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metre_pattern</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">metre_pattern</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">n_syllables</span><span class="p">:</span>
+            <span class="n">metre_pattern</span> <span class="o">+=</span> <span class="n">metre_schema</span>
+        <span class="n">metre_pattern</span> <span class="o">=</span> <span class="n">metre_pattern</span><span class="p">[:</span><span class="n">n_syllables</span><span class="p">]</span>
+        <span class="n">metre_filter</span> <span class="o">=</span> <span class="n">MetreFilter</span><span class="p">(</span><span class="n">metre_pattern</span><span class="p">)</span>
+
+        <span class="n">rhyme_filter</span> <span class="o">=</span> <span class="n">RhymeFilter</span><span class="p">(</span><span class="n">rhyme_pattern</span><span class="p">,</span> <span class="n">letters_to_rhymes</span><span class="p">)</span>
+
+        <span class="n">prev_word_indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">rhyme_filter</span><span class="o">.</span><span class="n">position</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">words</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_line</span><span class="p">(</span><span class="n">metre_filter</span><span class="p">,</span> <span class="n">rhyme_filter</span><span class="p">,</span> <span class="n">prev_word_indices</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">words</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+
+<div class="viewcode-block" id="Generator.generate_line"><a class="viewcode-back" href="../../../rupo.generate.html#rupo.generate.generator.Generator.generate_line">[документация]</a>    <span class="k">def</span> <span class="nf">generate_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metre_filter</span><span class="p">:</span> <span class="n">MetreFilter</span><span class="p">,</span> <span class="n">rhyme_filter</span><span class="p">:</span> <span class="n">RhymeFilter</span><span class="p">,</span>
+                      <span class="n">prev_word_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Генерация одной строки с заданными шаблонами метра и рифмы.</span>
+
+<span class="sd">        :param metre_filter: фильтр по метру.</span>
+<span class="sd">        :param rhyme_filter: фильтр по рифме.</span>
+<span class="sd">        :param prev_word_indices: индексы предыдущих слов.</span>
+<span class="sd">        :return: слова строка.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metre_filter</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">word_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_word</span><span class="p">(</span><span class="n">prev_word_indices</span><span class="p">,</span> <span class="p">[</span><span class="n">metre_filter</span><span class="p">,</span> <span class="n">rhyme_filter</span><span class="p">])</span>
+        <span class="n">prev_word_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word_index</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocabulary</span><span class="o">.</span><span class="n">get_word</span><span class="p">(</span><span class="n">word_index</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="k">while</span> <span class="n">metre_filter</span><span class="o">.</span><span class="n">position</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">word_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_word</span><span class="p">(</span><span class="n">prev_word_indices</span><span class="p">,</span> <span class="p">[</span><span class="n">metre_filter</span><span class="p">])</span>
+            <span class="n">prev_word_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word_index</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocabulary</span><span class="o">.</span><span class="n">get_word</span><span class="p">(</span><span class="n">word_index</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="Generator.generate_word"><a class="viewcode-back" href="../../../rupo.generate.html#rupo.generate.generator.Generator.generate_word">[документация]</a>    <span class="k">def</span> <span class="nf">generate_word</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_word_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Filter</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Генерация нового слова на основе предыдущих с учётом фильтров.</span>
+
+<span class="sd">        :param prev_word_indices: индексы предыдущих слов.</span>
+<span class="sd">        :param filters: фильтры модели.</span>
+<span class="sd">        :return: индекс нового слова.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_container</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="n">prev_word_indices</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">filter_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocabulary</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed: step 1&quot;</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_container</span><span class="o">.</span><span class="n">get_model</span><span class="p">([])</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">:</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">filter_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocabulary</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed: step 2&quot;</span><span class="p">)</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_container</span><span class="o">.</span><span class="n">get_model</span><span class="p">([])</span>
+        <span class="n">word_index</span> <span class="o">=</span> <span class="n">Generator</span><span class="o">.</span><span class="n">__choose</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocabulary</span><span class="o">.</span><span class="n">get_word</span><span class="p">(</span><span class="n">word_index</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">pass_word</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">word_index</span></div>
+
+<div class="viewcode-block" id="Generator.generate_poem_by_line"><a class="viewcode-back" href="../../../rupo.generate.html#rupo.generate.generator.Generator.generate_poem_by_line">[документация]</a>    <span class="k">def</span> <span class="nf">generate_poem_by_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rhyme_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                              <span class="n">accent_dict</span><span class="p">:</span> <span class="n">AccentDict</span><span class="p">,</span> <span class="n">accents_classifier</span><span class="p">:</span> <span class="n">MLAccentClassifier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Генерация стихотвторения по одной строчке.</span>
+
+<span class="sd">        :param accent_dict: словарь ударений.</span>
+<span class="sd">        :param accents_classifier: классификатор.</span>
+<span class="sd">        :param line: строчка.</span>
+<span class="sd">        :param rhyme_pattern: шаблон рифмы.</span>
+<span class="sd">        :return: стихотворение</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">markup</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="n">MetreClassifier</span><span class="o">.</span><span class="n">improve_markup</span><span class="p">(</span><span class="n">Phonetics</span><span class="o">.</span><span class="n">process_text</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">accent_dict</span><span class="p">),</span> <span class="n">accents_classifier</span><span class="p">)</span>
+        <span class="n">rhyme_word</span> <span class="o">=</span> <span class="n">markup</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">count_syllables</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">syllables</span><span class="p">)</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">markup</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">])</span>
+        <span class="n">metre_pattern</span> <span class="o">=</span> <span class="n">CompilationsSingleton</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">get_patterns</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">metre</span><span class="p">,</span> <span class="n">count_syllables</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">metre_pattern</span> <span class="o">=</span> <span class="n">metre_pattern</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+        <span class="n">letters_to_rhymes</span> <span class="o">=</span> <span class="p">{</span><span class="n">rhyme_pattern</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="p">{</span><span class="n">rhyme_word</span><span class="p">}}</span>
+        <span class="n">generated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_poem</span><span class="p">(</span><span class="n">metre_pattern</span><span class="p">,</span> <span class="n">rhyme_pattern</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">metre_pattern</span><span class="p">),</span> <span class="n">letters_to_rhymes</span><span class="p">)</span>
+        <span class="n">poem</span> <span class="o">=</span> <span class="n">line</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">generated</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="n">poem</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__choose</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Выбор слова из языковой модели.</span>
+
+<span class="sd">        :param model: языковая модель.</span>
+<span class="sd">        :return: слово из модели.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">choice</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="p">)),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">model</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c1b48>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c1f10>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>
