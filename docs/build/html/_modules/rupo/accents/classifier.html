@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.accents.classifier &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c1620>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.accents.classifier</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Расстановка ударений на основе машинного обучения.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">joblib</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">ShuffleSplit</span><span class="p">,</span> <span class="n">cross_val_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.tree</span> <span class="k">import</span> <span class="n">DecisionTreeClassifier</span>
+
+<span class="kn">from</span> <span class="nn">rupo.accents.dict</span> <span class="k">import</span> <span class="n">AccentDict</span>
+<span class="kn">from</span> <span class="nn">rupo.main.markup</span> <span class="k">import</span> <span class="n">Syllable</span>
+<span class="kn">from</span> <span class="nn">rupo.main.phonetics</span> <span class="k">import</span> <span class="n">Phonetics</span>
+<span class="kn">from</span> <span class="nn">rupo.util.preprocess</span> <span class="k">import</span> <span class="n">CYRRILIC_LOWER_CONSONANTS</span><span class="p">,</span> <span class="n">CYRRILIC_LOWER_VOWELS</span><span class="p">,</span> <span class="n">VOWELS</span>
+<span class="kn">from</span> <span class="nn">rupo.util.preprocess</span> <span class="k">import</span> <span class="n">get_first_vowel_position</span>
+<span class="kn">from</span> <span class="nn">rupo.settings</span> <span class="k">import</span> <span class="n">CLASSIFIER_PATH</span>
+
+
+<div class="viewcode-block" id="MLAccentClassifier"><a class="viewcode-back" href="../../../rupo.accents.html#rupo.accents.classifier.MLAccentClassifier">[документация]</a><span class="k">class</span> <span class="nc">MLAccentClassifier</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Классификатор ударений на основе машинного обучения.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">clf_filename</span> <span class="o">=</span> <span class="s2">&quot;clf_</span><span class="si">{}</span><span class="s2">.pickle&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accents_dict</span><span class="p">:</span> <span class="n">AccentDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param accents_dict: словарь ударений.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">CLASSIFIER_PATH</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">CLASSIFIER_PATH</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CLASSIFIER_PATH</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf_filename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">l</span><span class="p">))):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__build_accent_classifier</span><span class="p">(</span><span class="n">CLASSIFIER_PATH</span><span class="p">,</span> <span class="n">accents_dict</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classifiers</span> <span class="o">=</span> <span class="p">{</span><span class="n">l</span><span class="p">:</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CLASSIFIER_PATH</span><span class="p">,</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">clf_filename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">l</span><span class="p">)))</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">)}</span>
+
+<div class="viewcode-block" id="MLAccentClassifier.do_cross_val"><a class="viewcode-back" href="../../../rupo.accents.html#rupo.accents.classifier.MLAccentClassifier.do_cross_val">[документация]</a>    <span class="k">def</span> <span class="nf">do_cross_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accents_dict</span><span class="p">:</span> <span class="n">AccentDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Кроссвалидация классификаторов.</span>
+
+<span class="sd">        :param accents_dict: словарь ударений.</span>
+<span class="sd">        :return result: среднее по кроссвалидации каждого классификатора.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">):</span>
+            <span class="n">train_data</span><span class="p">,</span> <span class="n">answers</span> <span class="o">=</span> <span class="n">MLAccentClassifier</span><span class="o">.</span><span class="n">__prepare_data</span><span class="p">(</span><span class="n">accents_dict</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+            <span class="n">cv</span> <span class="o">=</span> <span class="n">ShuffleSplit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cross-validating classifier with &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; syllables...&quot;</span><span class="p">)</span>
+            <span class="n">cv_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classifiers</span><span class="p">[</span><span class="n">l</span><span class="p">],</span> <span class="n">train_data</span><span class="p">,</span> <span class="n">answers</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s1">&#39;accuracy&#39;</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cv_scores</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="MLAccentClassifier.classify_accent"><a class="viewcode-back" href="../../../rupo.accents.html#rupo.accents.classifier.MLAccentClassifier.classify_accent">[документация]</a>    <span class="k">def</span> <span class="nf">classify_accent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Проставление ударения в слове на основе классификатора.</span>
+
+<span class="sd">        :param word: слово, в котором надо поставить ударение.</span>
+<span class="sd">        :return: позиция буквы, на которую падает ударение.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">syllables</span> <span class="o">=</span> <span class="n">Phonetics</span><span class="o">.</span><span class="n">get_word_syllables</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifiers</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">syllables</span><span class="p">)]</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__generate_sample</span><span class="p">(</span><span class="n">syllables</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">syllable</span> <span class="o">=</span> <span class="n">syllables</span><span class="p">[</span><span class="n">answer</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">get_first_vowel_position</span><span class="p">(</span><span class="n">syllable</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="o">+</span> <span class="n">syllable</span><span class="o">.</span><span class="n">begin</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__build_accent_classifier</span><span class="p">(</span><span class="n">model_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">accents_dict</span><span class="p">:</span> <span class="n">AccentDict</span><span class="p">,</span> <span class="n">syllables_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Построение классификатора для заданного количества слогов.</span>
+
+<span class="sd">        :param model_dir: папка, куда сохранить дамп.</span>
+<span class="sd">        :param accents_dict: словарь ударений.</span>
+<span class="sd">        :param syllables_count: количество слогов в обучающих примерах.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">train_data</span><span class="p">,</span> <span class="n">answers</span> <span class="o">=</span> <span class="n">MLAccentClassifier</span><span class="o">.</span><span class="n">__prepare_data</span><span class="p">(</span><span class="n">accents_dict</span><span class="p">,</span> <span class="n">syllables_count</span><span class="p">)</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">()</span>
+        <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">answers</span><span class="p">)</span>
+        <span class="n">joblib</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="n">MLAccentClassifier</span><span class="o">.</span><span class="n">clf_filename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">syllables_count</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Built accent classifier for </span><span class="si">{syllables_count}</span><span class="s2"> syllables&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">syllables_count</span><span class="o">=</span><span class="n">syllables_count</span><span class="p">))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__prepare_data</span><span class="p">(</span><span class="n">accents_dict</span><span class="p">:</span> <span class="n">AccentDict</span><span class="p">,</span> <span class="n">syllables_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Подготовка данных для машинного обучения на оснвое словаря.</span>
+
+<span class="sd">        :param accents_dict: словарь ударений.</span>
+<span class="sd">        :param syllables_count: количество слогов, которое определяет классификатор.</span>
+<span class="sd">        :return: X и y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">answers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">train_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">accents</span> <span class="ow">in</span> <span class="n">accents_dict</span><span class="o">.</span><span class="n">get_all</span><span class="p">():</span>
+            <span class="n">syllables</span> <span class="o">=</span> <span class="n">Phonetics</span><span class="o">.</span><span class="n">get_word_syllables</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">syllables</span><span class="p">)</span> <span class="o">!=</span> <span class="n">syllables_count</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">syllable</span> <span class="ow">in</span> <span class="n">syllables</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;ё&quot;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">primary_accents</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">accents</span> <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">AccentDict</span><span class="o">.</span><span class="n">AccentType</span><span class="o">.</span><span class="n">PRIMARY</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">primary_accents</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">for</span> <span class="n">accent</span> <span class="ow">in</span> <span class="n">primary_accents</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">syllable</span><span class="o">.</span><span class="n">begin</span> <span class="o">&lt;=</span> <span class="n">accent</span> <span class="o">&lt;</span> <span class="n">syllable</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+                        <span class="n">syllable</span><span class="o">.</span><span class="n">accent</span> <span class="o">=</span> <span class="n">accent</span>
+                        <span class="n">answers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">syllable</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+                        <span class="n">train_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MLAccentClassifier</span><span class="o">.</span><span class="n">__generate_sample</span><span class="p">(</span><span class="n">syllables</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">train_data</span><span class="p">,</span> <span class="n">answers</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__generate_sample</span><span class="p">(</span><span class="n">syllables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Syllable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        По данному списку слогов формируется пример для машинного обучения.</span>
+
+<span class="sd">        :param syllables: список слогов.</span>
+<span class="sd">        :return: признаки.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">syllables</span><span class="p">)</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">syllables</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">VOWELS</span><span class="p">:</span>
+                    <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">ch1</span> <span class="ow">in</span> <span class="n">CYRRILIC_LOWER_CONSONANTS</span> <span class="o">+</span> <span class="n">CYRRILIC_LOWER_VOWELS</span><span class="p">:</span>
+                <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">ch1</span> <span class="o">==</span> <span class="n">ch2</span> <span class="k">for</span> <span class="n">ch2</span> <span class="ow">in</span> <span class="n">text</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">features</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c1ca8>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c1620>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

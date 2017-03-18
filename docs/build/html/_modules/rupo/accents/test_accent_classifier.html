@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.accents.test_accent_classifier &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c1620>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.accents.test_accent_classifier</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Тесты для модуля классификации ударений.</span>
+
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">rupo.accents.classifier</span> <span class="k">import</span> <span class="n">MLAccentClassifier</span>
+<span class="kn">from</span> <span class="nn">rupo.accents.dict</span> <span class="k">import</span> <span class="n">AccentDict</span>
+
+
+<div class="viewcode-block" id="TestAccentClassifier"><a class="viewcode-back" href="../../../rupo.accents.html#rupo.accents.test_accent_classifier.TestAccentClassifier">[документация]</a><span class="k">class</span> <span class="nc">TestAccentClassifier</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TestAccentClassifier.setUpClass"><a class="viewcode-back" href="../../../rupo.accents.html#rupo.accents.test_accent_classifier.TestAccentClassifier.setUpClass">[документация]</a>    <span class="k">def</span> <span class="nf">setUpClass</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">accent_dict</span> <span class="o">=</span> <span class="n">AccentDict</span><span class="p">()</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">accent_classifier</span> <span class="o">=</span> <span class="n">MLAccentClassifier</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">accent_dict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestAccentClassifier.test_accent_classifier"><a class="viewcode-back" href="../../../rupo.accents.html#rupo.accents.test_accent_classifier.TestAccentClassifier.test_accent_classifier">[документация]</a>    <span class="k">def</span> <span class="nf">test_accent_classifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing ML accent classifier...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span>
+                         <span class="nb">len</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">accent_classifier</span><span class="o">.</span><span class="n">classify_accent</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span>
+                             <span class="p">[</span><span class="s2">&quot;волки&quot;</span><span class="p">,</span> <span class="s2">&quot;перелив&quot;</span><span class="p">,</span> <span class="s2">&quot;карачун&quot;</span><span class="p">,</span> <span class="s2">&quot;пипярка&quot;</span><span class="p">,</span> <span class="s2">&quot;пепелац&quot;</span><span class="p">,</span> <span class="s2">&quot;гиппогриф&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;хвосторог&quot;</span><span class="p">,</span> <span class="s2">&quot;стартап&quot;</span><span class="p">,</span> <span class="s2">&quot;квинтолап&quot;</span><span class="p">]]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing ML accent classifier... OK&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c16d0>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c1620>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

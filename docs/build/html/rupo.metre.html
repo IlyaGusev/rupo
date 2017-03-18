@@ -1,0 +1,421 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.metre package &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="genindex.html" />
+    <link rel="search" title="Поиск" href="search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c272c50>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="rupo-metre-package">
+<h1>rupo.metre package<a class="headerlink" href="#rupo-metre-package" title="Ссылка на этот заголовок">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Ссылка на этот заголовок">¶</a></h2>
+</div>
+<div class="section" id="module-rupo.metre.metre_classifier">
+<span id="rupo-metre-metre-classifier-module"></span><h2>rupo.metre.metre_classifier module<a class="headerlink" href="#module-rupo.metre.metre_classifier" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="class">
+<dt id="rupo.metre.metre_classifier.AccentCorrection">
+<em class="property">class </em><code class="descclassname">rupo.metre.metre_classifier.</code><code class="descname">AccentCorrection</code><span class="sig-paren">(</span><em>line_number: int</em>, <em>word_number: int</em>, <em>syllable_number: int</em>, <em>word_text: str</em>, <em>accent: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#AccentCorrection"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.AccentCorrection" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <a class="reference internal" href="rupo.util.html#rupo.util.mixins.CommonMixin" title="rupo.util.mixins.CommonMixin"><code class="xref py py-class docutils literal"><span class="pre">rupo.util.mixins.CommonMixin</span></code></a></div></blockquote>
+<p>Исправление ударения.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="rupo.metre.metre_classifier.ClassificationResult">
+<em class="property">class </em><code class="descclassname">rupo.metre.metre_classifier.</code><code class="descname">ClassificationResult</code><span class="sig-paren">(</span><em>count_lines: int = 0</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#ClassificationResult"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.ClassificationResult" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <a class="reference internal" href="rupo.util.html#rupo.util.mixins.CommonMixin" title="rupo.util.mixins.CommonMixin"><code class="xref py py-class docutils literal"><span class="pre">rupo.util.mixins.CommonMixin</span></code></a></div></blockquote>
+<p>Результат классификации стихотворения по метру.</p>
+<dl class="method">
+<dt id="rupo.metre.metre_classifier.ClassificationResult.get_metre_errors_count">
+<code class="descname">get_metre_errors_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#ClassificationResult.get_metre_errors_count"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.ClassificationResult.get_metre_errors_count" title="Ссылка на это определение">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Результат:</th><td class="field-body">получить количество ошибок на заданном метре.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="rupo.metre.metre_classifier.ClassificationResult.str_corrections">
+<em class="property">static </em><code class="descname">str_corrections</code><span class="sig-paren">(</span><em>collection: typing.List[rupo.metre.metre_classifier.AccentCorrection]</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#ClassificationResult.str_corrections"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.ClassificationResult.str_corrections" title="Ссылка на это определение">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><strong>collection</strong> &#8211; список исправлений.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Результат:</th><td class="field-body">его строковое представление.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rupo.metre.metre_classifier.ClassificationResult.to_json">
+<code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#ClassificationResult.to_json"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.ClassificationResult.to_json" title="Ссылка на это определение">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Результат:</th><td class="field-body">сериализация в json.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rupo.metre.metre_classifier.CompilationsSingleton">
+<em class="property">class </em><code class="descclassname">rupo.metre.metre_classifier.</code><code class="descname">CompilationsSingleton</code><a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#CompilationsSingleton"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.CompilationsSingleton" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></div></blockquote>
+<dl class="attribute">
+<dt id="rupo.metre.metre_classifier.CompilationsSingleton.compilations">
+<code class="descname">compilations</code><em class="property"> = None</em><a class="headerlink" href="#rupo.metre.metre_classifier.CompilationsSingleton.compilations" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="rupo.metre.metre_classifier.CompilationsSingleton.get">
+<em class="property">classmethod </em><code class="descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#CompilationsSingleton.get"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.CompilationsSingleton.get" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rupo.metre.metre_classifier.LineClassificationResult">
+<em class="property">class </em><code class="descclassname">rupo.metre.metre_classifier.</code><code class="descname">LineClassificationResult</code> &#x2192; None<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#LineClassificationResult"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.LineClassificationResult" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <a class="reference internal" href="rupo.util.html#rupo.util.mixins.CommonMixin" title="rupo.util.mixins.CommonMixin"><code class="xref py py-class docutils literal"><span class="pre">rupo.util.mixins.CommonMixin</span></code></a></div></blockquote>
+<p>Результат классификации строки.</p>
+<dl class="method">
+<dt id="rupo.metre.metre_classifier.LineClassificationResult.get_best_metres">
+<code class="descname">get_best_metres</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; typing.List[str]<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#LineClassificationResult.get_best_metres"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.LineClassificationResult.get_best_metres" title="Ссылка на это определение">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Результат:</th><td class="field-body">метры с наименьшим количеством ошибок.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rupo.metre.metre_classifier.LineClassificationResult.get_best_pattern">
+<code class="descname">get_best_pattern</code><span class="sig-paren">(</span><em>metre_name: str</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#LineClassificationResult.get_best_pattern"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.LineClassificationResult.get_best_pattern" title="Ссылка на это определение">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Результат:</th><td class="field-body">лучший шаблон метра.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rupo.metre.metre_classifier.LineClassificationResult.store_best_result">
+<code class="descname">store_best_result</code><span class="sig-paren">(</span><em>metre_name: str</em>, <em>pattern: str</em>, <em>error_count: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#LineClassificationResult.store_best_result"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.LineClassificationResult.store_best_result" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Сохранить результат сравнения строки с шаблоном метра.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><ul class="first last simple">
+<li><strong>metre_name</strong> &#8211; имя метра.</li>
+<li><strong>pattern</strong> &#8211; шаблон метра.</li>
+<li><strong>error_count</strong> &#8211; количество ошибок.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rupo.metre.metre_classifier.MetreClassifier">
+<em class="property">class </em><code class="descclassname">rupo.metre.metre_classifier.</code><code class="descname">MetreClassifier</code><a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#MetreClassifier"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.MetreClassifier" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></div></blockquote>
+<p>Классификатор, считает отклонения от стандартных шаблонов ритма(метров).</p>
+<dl class="attribute">
+<dt id="rupo.metre.metre_classifier.MetreClassifier.border_syllables_count">
+<code class="descname">border_syllables_count</code><em class="property"> = 18</em><a class="headerlink" href="#rupo.metre.metre_classifier.MetreClassifier.border_syllables_count" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="rupo.metre.metre_classifier.MetreClassifier.classify_metre">
+<em class="property">static </em><code class="descname">classify_metre</code><span class="sig-paren">(</span><em>markup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#MetreClassifier.classify_metre"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.MetreClassifier.classify_metre" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Классифицируем стихотворный метр.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><strong>markup</strong> &#8211; разметка.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Результат:</th><td class="field-body">результат классификации.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="rupo.metre.metre_classifier.MetreClassifier.get_improved_markup">
+<em class="property">static </em><code class="descname">get_improved_markup</code><span class="sig-paren">(</span><em>markup: rupo.main.markup.Markup</em>, <em>result: rupo.metre.metre_classifier.ClassificationResult</em><span class="sig-paren">)</span> &#x2192; rupo.main.markup.Markup<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#MetreClassifier.get_improved_markup"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.MetreClassifier.get_improved_markup" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Улучшаем разметку после классификации метра.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><ul class="first simple">
+<li><strong>markup</strong> &#8211; начальная разметка.</li>
+<li><strong>result</strong> &#8211; результат классификации.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Результат:</th><td class="field-body"><p class="first last">улучшенная разметка.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="rupo.metre.metre_classifier.MetreClassifier.get_ml_resolutions">
+<em class="property">static </em><code class="descname">get_ml_resolutions</code><span class="sig-paren">(</span><em>result: rupo.metre.metre_classifier.ClassificationResult</em>, <em>accent_classifier: rupo.accents.classifier.MLAccentClassifier</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#MetreClassifier.get_ml_resolutions"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.MetreClassifier.get_ml_resolutions" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Пытаемся снять омонимию с предыдущих этапов древесным классификатором.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><ul class="first last simple">
+<li><strong>result</strong> &#8211; результат классификации.</li>
+<li><strong>accent_classifier</strong> &#8211; древесный классификатор ударений.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="rupo.metre.metre_classifier.MetreClassifier.improve_markup">
+<em class="property">static </em><code class="descname">improve_markup</code><span class="sig-paren">(</span><em>markup: rupo.main.markup.Markup</em>, <em>accents_classifier: rupo.accents.classifier.MLAccentClassifier = None</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[rupo.main.markup.Markup, rupo.metre.metre_classifier.ClassificationResult]<a class="reference internal" href="_modules/rupo/metre/metre_classifier.html#MetreClassifier.improve_markup"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.metre_classifier.MetreClassifier.improve_markup" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Улучшение разметки метрическим и машинным классификатором.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><ul class="first last simple">
+<li><strong>markup</strong> &#8211; начальная разметка.</li>
+<li><strong>accents_classifier</strong> &#8211; классификатор ударений.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="rupo.metre.metre_classifier.MetreClassifier.line_inner_coef">
+<code class="descname">line_inner_coef</code><em class="property"> = OrderedDict([('iambos', 1.0), ('choreios', 1.0), ('daktylos', 1.2), ('amphibrachys', 1.2), ('anapaistos', 1.2), ('dolnik3', 2.0), ('dolnik2', 2.0), ('taktovik3', 3.0), ('taktovik2', 3.0)])</em><a class="headerlink" href="#rupo.metre.metre_classifier.MetreClassifier.line_inner_coef" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="rupo.metre.metre_classifier.MetreClassifier.line_outer_coef">
+<code class="descname">line_outer_coef</code><em class="property"> = OrderedDict([('iambos', 1.0), ('choreios', 1.0), ('daktylos', 1.0), ('amphibrachys', 1.0), ('anapaistos', 1.0), ('dolnik3', 0.8), ('dolnik2', 0.8), ('taktovik3', 0.6), ('taktovik2', 0.6)])</em><a class="headerlink" href="#rupo.metre.metre_classifier.MetreClassifier.line_outer_coef" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="rupo.metre.metre_classifier.MetreClassifier.metres">
+<code class="descname">metres</code><em class="property"> = OrderedDict([('iambos', '(us)*(us)(u)?(u)?'), ('choreios', '(su)*(s)(u)?(u)?'), ('daktylos', '(suu)*(s)(u)?(u)?'), ('amphibrachys', '(usu)*(us)(u)?(u)?'), ('anapaistos', '(uus)*(uus)(u)?(u)?'), ('dolnik3', '(u)?(u)?((su)(u)?)*(s)(u)?(u)?'), ('dolnik2', '(u)?(u)?((s)(u)?)*(s)(u)?(u)?'), ('taktovik3', '(u)?(u)?((su)(u)?(u)?)*(s)(u)?(u)?'), ('taktovik2', '(u)?(u)?((s)(u)?(u)?)*(s)(u)?(u)?')])</em><a class="headerlink" href="#rupo.metre.metre_classifier.MetreClassifier.metres" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rupo.metre.patterns">
+<span id="rupo-metre-patterns-module"></span><h2>rupo.metre.patterns module<a class="headerlink" href="#module-rupo.metre.patterns" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="class">
+<dt id="rupo.metre.patterns.CompiledPatterns">
+<em class="property">class </em><code class="descclassname">rupo.metre.patterns.</code><code class="descname">CompiledPatterns</code><span class="sig-paren">(</span><em>metres: typing.Dict[str, str], border: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/rupo/metre/patterns.html#CompiledPatterns"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.patterns.CompiledPatterns" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></div></blockquote>
+<p>Скомпилированные шаблоны (нужно, чтобы не пересчитывать их каждый раз).</p>
+<dl class="method">
+<dt id="rupo.metre.patterns.CompiledPatterns.get_patterns">
+<code class="descname">get_patterns</code><span class="sig-paren">(</span><em>metre_name: str</em>, <em>syllables_count: int</em><span class="sig-paren">)</span> &#x2192; typing.List[str]<a class="reference internal" href="_modules/rupo/metre/patterns.html#CompiledPatterns.get_patterns"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.patterns.CompiledPatterns.get_patterns" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Получить или посчитать шаблоны метра для заданного метра.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><ul class="first simple">
+<li><strong>metre_name</strong> &#8211; название метра.</li>
+<li><strong>syllables_count</strong> &#8211; количество слогов в шаблоне.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Результат:</th><td class="field-body"><p class="first last">итоговые скомпилированные шаблоны метра.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rupo.metre.patterns.FlagEnum">
+<em class="property">class </em><code class="descclassname">rupo.metre.patterns.</code><code class="descname">FlagEnum</code><a class="reference internal" href="_modules/rupo/metre/patterns.html#FlagEnum"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.patterns.FlagEnum" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">enum.Enum</span></code></div></blockquote>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="rupo.metre.patterns.FlagEnum.ONE">
+<code class="descname">ONE</code><em class="property"> = ''</em><a class="headerlink" href="#rupo.metre.patterns.FlagEnum.ONE" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="rupo.metre.patterns.FlagEnum.ZERO_OR_ONE">
+<code class="descname">ZERO_OR_ONE</code><em class="property"> = '?'</em><a class="headerlink" href="#rupo.metre.patterns.FlagEnum.ZERO_OR_ONE" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="rupo.metre.patterns.FlagEnum.ZERO_TO_INF">
+<code class="descname">ZERO_TO_INF</code><em class="property"> = '*'</em><a class="headerlink" href="#rupo.metre.patterns.FlagEnum.ZERO_TO_INF" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rupo.metre.patterns.Group">
+<em class="property">class </em><code class="descclassname">rupo.metre.patterns.</code><code class="descname">Group</code><span class="sig-paren">(</span><em>exp: str</em>, <em>flag: rupo.metre.patterns.FlagEnum</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/rupo/metre/patterns.html#Group"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.patterns.Group" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></div></blockquote>
+<p>Группа - выражение в круглых скобках и её модификатор.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="rupo.metre.patterns.Patterns">
+<em class="property">class </em><code class="descclassname">rupo.metre.patterns.</code><code class="descname">Patterns</code><a class="reference internal" href="_modules/rupo/metre/patterns.html#Patterns"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.patterns.Patterns" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></div></blockquote>
+<dl class="staticmethod">
+<dt id="rupo.metre.patterns.Patterns.compile_pattern">
+<em class="property">static </em><code class="descname">compile_pattern</code><span class="sig-paren">(</span><em>metre_pattern: str</em>, <em>l: int</em><span class="sig-paren">)</span> &#x2192; typing.List[str]<a class="reference internal" href="_modules/rupo/metre/patterns.html#Patterns.compile_pattern"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.patterns.Patterns.compile_pattern" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Скомпилировать заданное выражение.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Параметры:</th><td class="field-body"><ul class="first simple">
+<li><strong>metre_pattern</strong> &#8211; выражение.</li>
+<li><strong>l</strong> &#8211; итоговое количество символов.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Результат:</th><td class="field-body"><p class="first last">скомпилированные шаблоны.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rupo.metre.test_metre_classifier">
+<span id="rupo-metre-test-metre-classifier-module"></span><h2>rupo.metre.test_metre_classifier module<a class="headerlink" href="#module-rupo.metre.test_metre_classifier" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="class">
+<dt id="rupo.metre.test_metre_classifier.TestMetreClassifier">
+<em class="property">class </em><code class="descclassname">rupo.metre.test_metre_classifier.</code><code class="descname">TestMetreClassifier</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/test_metre_classifier.html#TestMetreClassifier"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.test_metre_classifier.TestMetreClassifier" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">unittest.case.TestCase</span></code></div></blockquote>
+<dl class="classmethod">
+<dt id="rupo.metre.test_metre_classifier.TestMetreClassifier.setUpClass">
+<em class="property">classmethod </em><code class="descname">setUpClass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/test_metre_classifier.html#TestMetreClassifier.setUpClass"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.test_metre_classifier.TestMetreClassifier.setUpClass" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="rupo.metre.test_metre_classifier.TestMetreClassifier.test_classification_result">
+<code class="descname">test_classification_result</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/test_metre_classifier.html#TestMetreClassifier.test_classification_result"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.test_metre_classifier.TestMetreClassifier.test_classification_result" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="rupo.metre.test_metre_classifier.TestMetreClassifier.test_metre_classifier">
+<code class="descname">test_metre_classifier</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/test_metre_classifier.html#TestMetreClassifier.test_metre_classifier"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.test_metre_classifier.TestMetreClassifier.test_metre_classifier" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rupo.metre.test_patterns">
+<span id="rupo-metre-test-patterns-module"></span><h2>rupo.metre.test_patterns module<a class="headerlink" href="#module-rupo.metre.test_patterns" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="class">
+<dt id="rupo.metre.test_patterns.TestPatterns">
+<em class="property">class </em><code class="descclassname">rupo.metre.test_patterns.</code><code class="descname">TestPatterns</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/test_patterns.html#TestPatterns"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.test_patterns.TestPatterns" title="Ссылка на это определение">¶</a></dt>
+<dd><blockquote>
+<div>Базовые классы: <code class="xref py py-class docutils literal"><span class="pre">unittest.case.TestCase</span></code></div></blockquote>
+<dl class="method">
+<dt id="rupo.metre.test_patterns.TestPatterns.test_patterns">
+<code class="descname">test_patterns</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rupo/metre/test_patterns.html#TestPatterns.test_patterns"><span class="viewcode-link">[исходный код]</span></a><a class="headerlink" href="#rupo.metre.test_patterns.TestPatterns.test_patterns" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rupo.metre">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-rupo.metre" title="Ссылка на этот заголовок">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c272d58>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c272c50>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

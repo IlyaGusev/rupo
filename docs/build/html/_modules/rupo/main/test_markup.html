@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.main.test_markup &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c1af0>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.main.test_markup</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Тесты для разметки.</span>
+
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">rupo.util.data</span> <span class="k">import</span> <span class="n">MARKUP_EXAMPLE</span>
+<span class="kn">from</span> <span class="nn">rupo.main.markup</span> <span class="k">import</span> <span class="n">Markup</span>
+
+
+<div class="viewcode-block" id="TestMarkup"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.test_markup.TestMarkup">[документация]</a><span class="k">class</span> <span class="nc">TestMarkup</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="TestMarkup.test_from_to"><a class="viewcode-back" href="../../../rupo.main.html#rupo.main.test_markup.TestMarkup.test_from_to">[документация]</a>    <span class="k">def</span> <span class="nf">test_from_to</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">clean_markup</span> <span class="o">=</span> <span class="n">Markup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">MARKUP_EXAMPLE</span><span class="p">,</span> <span class="n">clean_markup</span><span class="o">.</span><span class="n">from_xml</span><span class="p">(</span><span class="n">MARKUP_EXAMPLE</span><span class="o">.</span><span class="n">to_xml</span><span class="p">()))</span>
+        <span class="n">clean_markup</span> <span class="o">=</span> <span class="n">Markup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">MARKUP_EXAMPLE</span><span class="p">,</span> <span class="n">clean_markup</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">MARKUP_EXAMPLE</span><span class="o">.</span><span class="n">to_json</span><span class="p">()))</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c15c8>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c1af0>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

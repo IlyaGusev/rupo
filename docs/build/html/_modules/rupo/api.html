@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.api &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c1ba0>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.api</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Набор внешних методов для работы с библиотекой.</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">rupo.main.phonetics</span> <span class="k">import</span> <span class="n">Phonetics</span>
+<span class="kn">from</span> <span class="nn">rupo.main.markup</span> <span class="k">import</span> <span class="n">Markup</span>
+<span class="kn">from</span> <span class="nn">rupo.accents.dict</span> <span class="k">import</span> <span class="n">AccentDict</span>
+<span class="kn">from</span> <span class="nn">rupo.accents.classifier</span> <span class="k">import</span> <span class="n">MLAccentClassifier</span>
+<span class="kn">from</span> <span class="nn">rupo.metre.metre_classifier</span> <span class="k">import</span> <span class="n">MetreClassifier</span>
+<span class="kn">from</span> <span class="nn">rupo.files.reader</span> <span class="k">import</span> <span class="n">FileTypeEnum</span><span class="p">,</span> <span class="n">Reader</span>
+<span class="kn">from</span> <span class="nn">rupo.files.writer</span> <span class="k">import</span> <span class="n">Writer</span>
+<span class="kn">from</span> <span class="nn">rupo.rhymes.rhymes</span> <span class="k">import</span> <span class="n">Rhymes</span>
+<span class="kn">from</span> <span class="nn">rupo.generate.markov</span> <span class="k">import</span> <span class="n">MarkovModelContainer</span>
+<span class="kn">from</span> <span class="nn">rupo.generate.generator</span> <span class="k">import</span> <span class="n">Generator</span>
+
+
+<div class="viewcode-block" id="Global"><a class="viewcode-back" href="../../rupo.html#rupo.api.Global">[документация]</a><span class="k">class</span> <span class="nc">Global</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Глобальные ресурсы.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">accent_dict</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">accent_classifier</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">markov</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">generator</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Global.get_dict"><a class="viewcode-back" href="../../rupo.html#rupo.api.Global.get_dict">[документация]</a>    <span class="k">def</span> <span class="nf">get_dict</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cls</span><span class="o">.</span><span class="n">accent_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">accent_dict</span> <span class="o">=</span> <span class="n">AccentDict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">accent_dict</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Global.get_classifier"><a class="viewcode-back" href="../../rupo.html#rupo.api.Global.get_classifier">[документация]</a>    <span class="k">def</span> <span class="nf">get_classifier</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cls</span><span class="o">.</span><span class="n">accent_classifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">accent_classifier</span> <span class="o">=</span> <span class="n">MLAccentClassifier</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">get_dict</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">accent_classifier</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Global.get_markov"><a class="viewcode-back" href="../../rupo.html#rupo.api.Global.get_markov">[документация]</a>    <span class="k">def</span> <span class="nf">get_markov</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">markup_path</span><span class="p">,</span> <span class="n">dump_path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cls</span><span class="o">.</span><span class="n">markov</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">markov</span> <span class="o">=</span> <span class="n">MarkovModelContainer</span><span class="p">(</span><span class="n">dump_path</span><span class="p">,</span> <span class="n">markup_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">markov</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Global.get_generator"><a class="viewcode-back" href="../../rupo.html#rupo.api.Global.get_generator">[документация]</a>    <span class="k">def</span> <span class="nf">get_generator</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">markup_path</span><span class="p">,</span> <span class="n">dump_path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cls</span><span class="o">.</span><span class="n">generator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">get_markov</span><span class="p">(</span><span class="n">markup_path</span><span class="p">,</span> <span class="n">dump_path</span><span class="p">),</span>
+                                      <span class="n">cls</span><span class="o">.</span><span class="n">get_markov</span><span class="p">(</span><span class="n">markup_path</span><span class="p">,</span> <span class="n">dump_path</span><span class="p">)</span><span class="o">.</span><span class="n">vocabulary</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">generator</span></div></div>
+
+
+<div class="viewcode-block" id="get_accent"><a class="viewcode-back" href="../../rupo.html#rupo.api.get_accent">[документация]</a><span class="k">def</span> <span class="nf">get_accent</span><span class="p">(</span><span class="n">word</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param word: слово.</span>
+<span class="sd">    :return: ударение слова.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Phonetics</span><span class="o">.</span><span class="n">get_improved_word_accent</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_dict</span><span class="p">(),</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_classifier</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="get_word_syllables"><a class="viewcode-back" href="../../rupo.html#rupo.api.get_word_syllables">[документация]</a><span class="k">def</span> <span class="nf">get_word_syllables</span><span class="p">(</span><span class="n">word</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param word: слово.</span>
+<span class="sd">    :return: его слоги.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">syllable</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">syllable</span> <span class="ow">in</span> <span class="n">Phonetics</span><span class="o">.</span><span class="n">get_word_syllables</span><span class="p">(</span><span class="n">word</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="count_syllables"><a class="viewcode-back" href="../../rupo.html#rupo.api.count_syllables">[документация]</a><span class="k">def</span> <span class="nf">count_syllables</span><span class="p">(</span><span class="n">word</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param word: слово.</span>
+<span class="sd">    :return: количество слогов в нём.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">Phonetics</span><span class="o">.</span><span class="n">get_word_syllables</span><span class="p">(</span><span class="n">word</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_markup"><a class="viewcode-back" href="../../rupo.html#rupo.api.get_markup">[документация]</a><span class="k">def</span> <span class="nf">get_markup</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Markup</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param text: текст.</span>
+<span class="sd">    :return: его разметка по словарю.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Phonetics</span><span class="o">.</span><span class="n">process_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_dict</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="get_improved_markup"><a class="viewcode-back" href="../../rupo.html#rupo.api.get_improved_markup">[документация]</a><span class="k">def</span> <span class="nf">get_improved_markup</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Markup</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param text: текст.</span>
+<span class="sd">    :return: его разметка по словарю, классификатору метру и  ML классификатору.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">markup</span> <span class="o">=</span> <span class="n">Phonetics</span><span class="o">.</span><span class="n">process_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_dict</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">MetreClassifier</span><span class="o">.</span><span class="n">improve_markup</span><span class="p">(</span><span class="n">markup</span><span class="p">,</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_classifier</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="classify_metre"><a class="viewcode-back" href="../../rupo.html#rupo.api.classify_metre">[документация]</a><span class="k">def</span> <span class="nf">classify_metre</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param text: текст.</span>
+<span class="sd">    :return: его метр.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">MetreClassifier</span><span class="o">.</span><span class="n">classify_metre</span><span class="p">(</span><span class="n">Phonetics</span><span class="o">.</span><span class="n">process_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()))</span><span class="o">.</span><span class="n">metre</span></div>
+
+
+<div class="viewcode-block" id="generate_markups"><a class="viewcode-back" href="../../rupo.html#rupo.api.generate_markups">[документация]</a><span class="k">def</span> <span class="nf">generate_markups</span><span class="p">(</span><span class="n">input_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_type</span><span class="p">:</span> <span class="n">FileTypeEnum</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_type</span><span class="p">:</span> <span class="n">FileTypeEnum</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Генерация разметок по текстам.</span>
+
+<span class="sd">    :param input_path: путь к папке/файлу с текстом.</span>
+<span class="sd">    :param input_type: тип файлов с текстов.</span>
+<span class="sd">    :param output_path: путь к файлу с итоговыми разметками.</span>
+<span class="sd">    :param output_type: тип итогового файла.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">markups</span> <span class="o">=</span> <span class="n">Reader</span><span class="o">.</span><span class="n">read_markups</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">input_type</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_dict</span><span class="p">(),</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_classifier</span><span class="p">())</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">Writer</span><span class="p">(</span><span class="n">output_type</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">markup</span> <span class="ow">in</span> <span class="n">markups</span><span class="p">:</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">write_markup</span><span class="p">(</span><span class="n">markup</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="is_rhyme"><a class="viewcode-back" href="../../rupo.html#rupo.api.is_rhyme">[документация]</a><span class="k">def</span> <span class="nf">is_rhyme</span><span class="p">(</span><span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param word1: первое слово.</span>
+<span class="sd">    :param word2: второе слово.</span>
+<span class="sd">    :return: рифмуются ли слова.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">markup_word1</span> <span class="o">=</span> <span class="n">get_markup</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">markup_word1</span><span class="o">.</span><span class="n">set_accents</span><span class="p">([</span><span class="n">get_accent</span><span class="p">(</span><span class="n">word1</span><span class="p">)])</span>
+    <span class="n">markup_word2</span> <span class="o">=</span> <span class="n">get_markup</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">markup_word2</span><span class="o">.</span><span class="n">set_accents</span><span class="p">([</span><span class="n">get_accent</span><span class="p">(</span><span class="n">word2</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">Rhymes</span><span class="o">.</span><span class="n">is_rhyme</span><span class="p">(</span><span class="n">markup_word1</span><span class="p">,</span> <span class="n">markup_word2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_poem"><a class="viewcode-back" href="../../rupo.html#rupo.api.generate_poem">[документация]</a><span class="k">def</span> <span class="nf">generate_poem</span><span class="p">(</span><span class="n">markup_path</span><span class="p">,</span> <span class="n">dump_path</span><span class="p">,</span> <span class="n">metre_schema</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;-+&quot;</span><span class="p">,</span>
+                  <span class="n">rhyme_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;abab&quot;</span><span class="p">,</span> <span class="n">n_syllables</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Сгенерировать стих по данным из разметок.</span>
+
+<span class="sd">    :param markup_path: путь к разметкам.</span>
+<span class="sd">    :param dump_path: путь, куда сохранять модель.</span>
+<span class="sd">    :param metre_schema: схема метра.</span>
+<span class="sd">    :param rhyme_pattern: схема рифм.</span>
+<span class="sd">    :param n_syllables: количество слогов в строке.</span>
+<span class="sd">    :return: стих.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">generator</span> <span class="o">=</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_generator</span><span class="p">(</span><span class="n">dump_path</span><span class="p">,</span> <span class="n">markup_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">generator</span><span class="o">.</span><span class="n">generate_poem</span><span class="p">(</span><span class="n">metre_schema</span><span class="p">,</span> <span class="n">rhyme_pattern</span><span class="p">,</span> <span class="n">n_syllables</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_poem_by_line"><a class="viewcode-back" href="../../rupo.html#rupo.api.generate_poem_by_line">[документация]</a><span class="k">def</span> <span class="nf">generate_poem_by_line</span><span class="p">(</span><span class="n">markup_path</span><span class="p">,</span> <span class="n">dump_path</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">rhyme_pattern</span><span class="o">=</span><span class="s2">&quot;abab&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Сгенерировать стих по первой строчке.</span>
+
+<span class="sd">    :param markup_path: путь к разметкам.</span>
+<span class="sd">    :param dump_path: путь, куда сохранять модель.</span>
+<span class="sd">    :param line: первая строчка</span>
+<span class="sd">    :param rhyme_pattern: схема рифм.</span>
+<span class="sd">    :return: стих.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">generator</span> <span class="o">=</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_generator</span><span class="p">(</span><span class="n">dump_path</span><span class="p">,</span> <span class="n">markup_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">generator</span><span class="o">.</span><span class="n">generate_poem_by_line</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">rhyme_pattern</span><span class="p">,</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_dict</span><span class="p">(),</span> <span class="n">Global</span><span class="o">.</span><span class="n">get_classifier</span><span class="p">())</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c1ca8>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c1ba0>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

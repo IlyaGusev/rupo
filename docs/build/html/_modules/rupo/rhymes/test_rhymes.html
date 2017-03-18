@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rupo.rhymes.test_rhymes &#8212; Документация rupo 0.0.2</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../../../genindex.html" />
+    <link rel="search" title="Поиск" href="../../../search.html" /> 
+  </head>
+  <body role="document"><generator object macro at 0x7fe09c1c1ca8>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Исходный код rupo.rhymes.test_rhymes</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Автор: Гусев Илья</span>
+<span class="c1"># Описание: Тесты для модуля фонетики.</span>
+
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">rupo.main.markup</span> <span class="k">import</span> <span class="n">Syllable</span><span class="p">,</span> <span class="n">Word</span>
+<span class="kn">from</span> <span class="nn">rupo.rhymes.rhymes</span> <span class="k">import</span> <span class="n">Rhymes</span>
+
+
+<div class="viewcode-block" id="TestRhymes"><a class="viewcode-back" href="../../../rupo.rhymes.html#rupo.rhymes.test_rhymes.TestRhymes">[документация]</a><span class="k">class</span> <span class="nc">TestRhymes</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="TestRhymes.test_rhyme"><a class="viewcode-back" href="../../../rupo.rhymes.html#rupo.rhymes.test_rhymes.TestRhymes.test_rhyme">[документация]</a>    <span class="k">def</span> <span class="nf">test_rhyme</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">Rhymes</span><span class="o">.</span><span class="n">is_rhyme</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;тишь&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;тишь&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]),</span>
+                                        <span class="n">Word</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;грустишь&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;гру&quot;</span><span class="p">),</span>
+                                                                <span class="n">Syllable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;стишь&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)])))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">Rhymes</span><span class="o">.</span><span class="n">is_rhyme</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;наизусть&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;на&quot;</span><span class="p">),</span> <span class="n">Syllable</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;из&quot;</span><span class="p">),</span>
+                                                                 <span class="n">Syllable</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;усть&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)]),</span>
+                                         <span class="n">Word</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;сестра&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">Syllable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;сест&quot;</span><span class="p">),</span>
+                                                               <span class="n">Syllable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;ра&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)])))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div><generator object macro at 0x7fe09c1c1620>
+      <div class="clearer"></div>
+    </div><generator object macro at 0x7fe09c1c1ca8>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Ilya Gusev.
+      Создано с помощью <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>
