@@ -29,13 +29,15 @@ class MLAccentClassifier:
         """
         :param accents_dict: словарь ударений.
         """
+        self.max_syllables = 12
         if not os.path.exists(CLASSIFIER_PATH):
             os.mkdir(CLASSIFIER_PATH)
-        for l in range(2, 13):
+        for l in range(2, self.max_syllables + 1):
             if not os.path.isfile(os.path.join(CLASSIFIER_PATH, self.clf_filename.format(l))):
                 self.__build_accent_classifier(CLASSIFIER_PATH, accents_dict, l)
         self.classifiers = {l: joblib.load(os.path.join(CLASSIFIER_PATH,
-                                                        self.clf_filename.format(l))) for l in range(2, 13)}
+                                                        self.clf_filename.format(l)))
+                            for l in range(2, self.max_syllables + 1)}
 
     def do_cross_val(self, accents_dict: AccentDict) -> List[float]:
         """
@@ -45,7 +47,7 @@ class MLAccentClassifier:
         :return result: среднее по кроссвалидации каждого классификатора.
         """
         result = []
-        for l in range(2, 13):
+        for l in range(2, self.max_syllables + 1):
             train_data, answers = MLAccentClassifier.__prepare_data(accents_dict, l)
             cv = ShuffleSplit(2, test_size=0.2, random_state=10)
             print("Cross-validating classifier with " + str(l) + " syllables...")
