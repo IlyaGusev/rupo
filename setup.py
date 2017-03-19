@@ -1,12 +1,12 @@
 from setuptools import find_packages, setup
 from setuptools.command.develop import develop
 from setuptools.command.install import install
-from rupo.accents.dict import AccentDict
-from rupo.accents.classifier import MLAccentClassifier
 
 
 class PostDevelopCommand(develop):
     def run(self):
+        from rupo.accents.dict import AccentDict
+        from rupo.accents.classifier import MLAccentClassifier
         d = AccentDict()
         MLAccentClassifier(d)
         develop.run(self)
@@ -14,6 +14,8 @@ class PostDevelopCommand(develop):
 
 class PostInstallCommand(install):
     def run(self):
+        from rupo.accents.dict import AccentDict
+        from rupo.accents.classifier import MLAccentClassifier
         d = AccentDict()
         MLAccentClassifier(d)
         install.run(self)
