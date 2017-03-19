@@ -25,7 +25,6 @@ class FileTypeEnum(Enum):
     RAW = ".txt"
     XML = ".xml"
     JSON = ".json"
-    STIHI = ""
 
 
 class Reader(object):
@@ -44,7 +43,7 @@ class Reader(object):
         :param accents_dict: словарь ударений (для неразмеченных текстов).
         :param accents_classifier: классификатор ударений (для неразмеченных текстов).
         """
-        paths = Reader.__get_paths(path, source_type.value)
+        paths = Reader.get_paths(path, source_type.value)
         for filename in paths:
             with open(filename, "r", encoding="utf-8") as file:
                 if is_processed:
@@ -75,7 +74,7 @@ class Reader(object):
         :param path: путь к файлу/папке.
         :param source_type: тип файлов.
         """
-        paths = Reader.__get_paths(path, source_type.value)
+        paths = Reader.get_paths(path, source_type.value)
         for filename in paths:
             with open(filename, "r", encoding="utf-8") as file:
                 if source_type == FileTypeEnum.XML:
@@ -90,20 +89,9 @@ class Reader(object):
                     text = file.read()
                     for t in text.split(RAW_SEPARATOR):
                         yield t
-                elif source_type == FileTypeEnum.STIHI:
-                    text = ""
-                    is_text = False
-                    for line in file:
-                        if "<div" in line:
-                            is_text = True
-                        elif "</div>" in line:
-                            is_text = False
-                            yield text
-                        elif is_text:
-                            text += line + "\n"
 
     @staticmethod
-    def __get_paths(path: str, ext: str) -> Iterator[str]:
+    def get_paths(path: str, ext: str) -> Iterator[str]:
         """
         Получение всех файлов заданного типа по заданному пути.
 
@@ -119,7 +107,7 @@ class Reader(object):
                     if ext == os.path.splitext(file)[1]:
                         yield os.path.join(root, file)
                 for folder in folders:
-                    return Reader.__get_paths(folder, ext)
+                    return Reader.get_paths(folder, ext)
 
     @staticmethod
     def __markup_text(text: str, accents_dict: AccentDict=None,
