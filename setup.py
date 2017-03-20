@@ -31,7 +31,6 @@ setup(
     url='https://github.com/IlyaGusev/rupo',
     download_url='https://github.com/IlyaGusev/rupo/archive/0.1.3.tar.gz',
     keywords=['poetry', 'nlp', 'russian'],
-    classifiers=[],
     package_data={
         'rupo': ['data/dict/*.txt', 'data/examples/*'],
     },
@@ -47,4 +46,18 @@ setup(
         'develop': PostDevelopCommand,
         'install': PostInstallCommand,
     },
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+
+        'Topic :: Text Processing :: Linguistic',
+
+        'License :: OSI Approved :: Apache Software License',
+
+        'Natural Language :: Russian',
+
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+    ],
 )
