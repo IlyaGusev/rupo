@@ -21,39 +21,39 @@ class Global:
     """
     Глобальные ресурсы.
     """
-    accent_dict = None
-    accent_classifier = None
-    vocabulary = None
-    markov = None
-    generator = None
+    accent_dict = None  # type: AccentDict
+    accent_classifier = None  # type: MLAccentClassifier
+    vocabulary = None  # type: Vocabulary
+    markov = None  # type: MarkovModelContainer
+    generator = None  # type: Generator
 
     @classmethod
-    def get_dict(cls):
+    def get_dict(cls) -> AccentDict:
         if cls.accent_dict is None:
             cls.accent_dict = AccentDict()
         return cls.accent_dict
 
     @classmethod
-    def get_classifier(cls):
+    def get_classifier(cls) -> MLAccentClassifier:
         if cls.accent_classifier is None:
             cls.accent_classifier = MLAccentClassifier(cls.get_dict())
         return cls.accent_classifier
 
     @classmethod
-    def get_vocabulary(cls, dump_path, markup_path):
+    def get_vocabulary(cls, dump_path: str, markup_path: str) -> Vocabulary:
         if cls.vocabulary is None:
             cls.vocabulary = Vocabulary(dump_path, markup_path)
         return cls.vocabulary
 
     @classmethod
-    def get_markov(cls, dump_path, vocab_dump_path, markup_path):
+    def get_markov(cls, dump_path: str, vocab_dump_path: str, markup_path: str) -> MarkovModelContainer:
         if cls.markov is None:
             vocab = cls.get_vocabulary(vocab_dump_path, markup_path)
             cls.markov = MarkovModelContainer(dump_path, vocab, markup_path)
         return cls.markov
 
     @classmethod
-    def get_generator(cls, dump_path, vocab_dump_path, markup_path):
+    def get_generator(cls, dump_path: str, vocab_dump_path: str, markup_path: str) -> Generator:
         if cls.generator is None:
             cls.generator = Generator(cls.get_markov(dump_path, vocab_dump_path, markup_path),
                                       cls.get_vocabulary(vocab_dump_path, markup_path))

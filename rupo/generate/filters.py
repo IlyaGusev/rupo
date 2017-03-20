@@ -80,7 +80,7 @@ class MetreFilter(Filter):
         """
         Сдвинуть позицию в шаблоне метра на слово.
 
-        :param word: слово (Word).
+        :param word: слово.
         """
         self.position -= len(word.syllables)
 
@@ -108,7 +108,7 @@ class RhymeFilter(Filter):
         """
         Фильтрация слова по рифме в текущей позиции.
 
-        :param word: слово (Word).
+        :param word: слово.
         :return: подходит слово или нет.
         """
         if len(word.syllables) <= 1:
@@ -125,7 +125,7 @@ class RhymeFilter(Filter):
         """
         Сдвинуть позицию в шаблоне рифмы на строчку.
 
-        :param word: рифмующееся слово (Word).
+        :param word: рифмующееся слово.
         """
         self.letters_to_rhymes[self.rhyme_pattern[self.position]].add(word)
         self.position -= 1

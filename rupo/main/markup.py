@@ -15,7 +15,7 @@ from rupo.util.mixins import CommonMixin
 class Annotation(CommonMixin):
     """
     Класс аннотации.
-    Содержит начальную и конечную позицию в тексте, а также текст аннотации .
+    Содержит начальную и конечную позицию в тексте, а также текст аннотации.
     """
     def __init__(self, begin: int, end: int, text: str) -> None:
         self.begin = begin

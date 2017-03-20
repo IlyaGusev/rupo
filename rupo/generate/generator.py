@@ -20,7 +20,7 @@ class Generator(object):
     """
     def __init__(self, model_container, vocabulary: Vocabulary):
         """
-        :param model_container: модель с методом get_model(list)
+        :param model_container: модель с методом get_model.
         :param vocabulary: словарь с индексами.
         """
         self.model_container = model_container

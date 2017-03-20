@@ -14,7 +14,7 @@ from rupo.settings import DICT_TRIE_PATH
 
 class AccentDict:
     """
-    Класс данных, для сериализации словаря как dict'а и быстрой загрузки в память.
+    Класс данных, для сериализации словаря как префиксного дерева и быстрой загрузки в память.
     """
 
     class AccentType(Enum):
@@ -61,7 +61,7 @@ class AccentDict:
                         pos += 1
                         if word[i] == "ё":
                             accents.append((pos, AccentDict.AccentType.PRIMARY))
-                    self.__update(clean_word, accents)
+                    self.update(clean_word, accents)
         self.data.save(dst_filename)
 
     def save(self, dst_filename: str) -> None:
@@ -74,7 +74,7 @@ class AccentDict:
 
     def get_accents(self, word: str, accent_type: AccentType=AccentType.ANY) -> List[int]:
         """
-        Обёртка над data.get().
+        Получение ударений нужного типа у слова.
 
         :param word: слово, которое мы хотим посмотреть в словаре.
         :param accent_type: тип ударения.
@@ -93,7 +93,7 @@ class AccentDict:
         """
         return self.data.items()
 
-    def __update(self, word: str, accent_pairs: List[Tuple[int, AccentType]]) -> None:
+    def update(self, word: str, accent_pairs: List[Tuple[int, AccentType]]) -> None:
         """
         Обновление словаря.
 
