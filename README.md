@@ -1,5 +1,7 @@
 # Библиотека для анализа и генерации стихов на русском языке. #
 
+[![Current version on PyPI](http://img.shields.io/pypi/v/rupo.svg)](https://pypi.python.org/pypi/rupo)
+[![Python versions](https://img.shields.io/pypi/pyversions/rupo.svg)](https://pypi.python.org/pypi/rupo)
 [![Build Status](https://travis-ci.org/IlyaGusev/rupo.svg?branch=master)](https://travis-ci.org/IlyaGusev/rupo)
 [![Code Climate](https://codeclimate.com/github/IlyaGusev/rupo/badges/gpa.svg)](https://codeclimate.com/github/IlyaGusev/rupo)
 [![Documentation Status](https://readthedocs.org/projects/rupo/badge/?version=latest)](http://rupo.readthedocs.io/en/latest/?badge=latest)
@@ -7,6 +9,20 @@
 ### Установка ###
 ```
 pip install rupo
+```
+
+### Использование ###
+```
+>>> from rupo.api import get_accent, get_word_syllables, is_rhyme
+
+>>> get_accent("корова")
+3
+
+>>> get_word_syllables("корова")
+["ко", "ро", "ва"]
+
+>>> is_rhyme("корова", "здорова")
+True
 ```
 
 ### Литература ###
