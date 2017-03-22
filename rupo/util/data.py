@@ -1,7 +1,7 @@
 from rupo.main.markup import Markup, Line, Word, Syllable
 
 MARKUP_EXAMPLE = Markup("Соломка изжила себя.\n Пора виться майкой в.", [
-            Line(0, 21, "Соломка изжила себя.", [
+            Line(0, 20, "Соломка изжила себя.", [
                 Word(0, 7, "Соломка",
                      [Syllable(0, 2, 0, "Со"),
                       Syllable(2, 5, 1, "лом", 3),

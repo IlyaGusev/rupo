@@ -8,6 +8,7 @@ from rupo.accents.dict import AccentDict
 from rupo.main.markup import Syllable
 from rupo.main.phonetics import Phonetics
 from rupo.util.data import MARKUP_EXAMPLE
+from rupo.main.tokenizer import Tokenizer
 
 
 class TestPhonetics(unittest.TestCase):
@@ -42,6 +43,8 @@ class TestPhonetics(unittest.TestCase):
             'полный': [Syllable(0, 2, 0, 'по'), Syllable(2, 6, 1, 'лный')],
             'зародыш': [Syllable(0, 2, 0, 'за'), Syllable(2, 4, 1, 'ро'), Syllable(4, 7, 2, 'дыш')],
             'война': [Syllable(0, 3, 0, 'вой'), Syllable(3, 5, 1, 'на')],
+            'когда-нибудь': [Syllable(0, 2, 0, 'ко'), Syllable(2, 5, 1, 'гда'),
+                             Syllable(6, 8, 2, 'ни'), Syllable(8, 12, 3, 'будь')],
         }
 
         for word, borders in checks.items():

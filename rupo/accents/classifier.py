@@ -50,9 +50,9 @@ class MLAccentClassifier:
         for l in range(2, self.max_syllables + 1):
             train_data, answers = MLAccentClassifier.__prepare_data(accents_dict, l)
             cv = ShuffleSplit(2, test_size=0.2, random_state=10)
-            print("Cross-validating classifier with " + str(l) + " syllables...")
             cv_scores = cross_val_score(self.classifiers[l], train_data, answers, cv=cv, scoring='accuracy')
             result.append(cv_scores.mean())
+            print("Cross-validation with " + str(l) + " syllables: " + str(cv_scores.mean()))
         return result
 
     def classify_accent(self, word: str) -> int:

@@ -163,10 +163,10 @@ class MetreClassifier(object):
          ("daktylos", 1.0),
          ("amphibrachys", 1.0),
          ("anapaistos",  1.0),
-         ("dolnik3", 0.8),
-         ("dolnik2", 0.8),
-         ("taktovik3", 0.6),
-         ("taktovik2", 0.6)
+         ("dolnik3", 0.9),
+         ("dolnik2", 0.9),
+         ("taktovik3", 0.8),
+         ("taktovik2", 0.8)
          ])
 
     border_syllables_count = 18

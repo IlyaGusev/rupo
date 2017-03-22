@@ -14,6 +14,7 @@ from rupo.api import get_accent, get_word_syllables, count_syllables, get_markup
 class TestApi(unittest.TestCase):
     def test_accent(self):
         self.assertEqual(get_accent("корова"), 3)
+        self.assertEqual(get_accent("когда-нибудь"), 9)
 
     def test_get_word_syllables(self):
         self.assertEqual(get_word_syllables("корова"), ["ко", "ро", "ва"])
@@ -50,5 +51,5 @@ class TestApi(unittest.TestCase):
 
     def test_get_word_rhymes(self):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
-        self.assertEqual(get_word_rhymes("глядел", vocab_dump_file, MARKUP_XML_EXAMPLE), ["сидел"])
+        self.assertEqual(get_word_rhymes("глядел", vocab_dump_file, MARKUP_XML_EXAMPLE), ["сидел", "летел"])
         os.remove(vocab_dump_file)

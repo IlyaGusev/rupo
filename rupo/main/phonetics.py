@@ -6,6 +6,7 @@ from typing import List
 
 from rupo.accents.dict import AccentDict
 from rupo.main.markup import Syllable, Word, Markup, Line
+from rupo.main.tokenizer import Tokenizer, Token
 from rupo.util.preprocess import count_vowels, get_first_vowel_position, \
     VOWELS, CLOSED_SYLLABLE_CHARS
 
@@ -25,6 +26,25 @@ class Phonetics:
         syllables = []
         begin = 0
         number = 0
+
+        # В случае наличия дефиса разбиваем слова на подслова, находим слоги в них, объединяем.
+        if "-" in word:
+            word_parts = word.split("-")
+            word_syllables = []
+            last_part_end = 0
+            for part in word_parts:
+                part_syllables = Phonetics.get_word_syllables(part)
+                if len(part_syllables) == 0:
+                    continue
+                for i in range(len(part_syllables)):
+                    part_syllables[i].begin += last_part_end
+                    part_syllables[i].end += last_part_end
+                    part_syllables[i].number += len(word_syllables)
+                word_syllables += part_syllables
+                last_part_end = part_syllables[-1].end + 1
+            return word_syllables
+
+        # Для слов или подслов, в которых нет дефиса.
         for i in range(len(word)):
             if word[i] not in VOWELS:
                 continue
@@ -104,31 +124,24 @@ class Phonetics:
         :param accents_dict: экземпляр обёртки для словаря ударений
         :return markup: разметка по слогам и ударениям
         """
-        begin_word = -1
         begin_line = 0
         lines = []
         words = []
-        # TODO: Нормальная токенизация.
-        for i in range(len(text)):
-            valid_word_symbol = text[i].isalpha() and i != len(text) - 1
-            if valid_word_symbol and begin_word == -1:
-                begin_word = i
-            if not valid_word_symbol and begin_word != -1:
-                # Каждое слово разбиваем на слоги.
-                word = Word(begin_word, i, text[begin_word:i], Phonetics.get_word_syllables(text[begin_word:i]))
+        text_lines = text.split("\n")
+        for text_line in text_lines:
+            tokens = [token for token in Tokenizer.tokenize(text_line) if token.token_type == Token.TokenType.WORD]
+            for token in tokens:
+                word = Word(begin_line + token.begin, begin_line + token.end, token.text,
+                            Phonetics.get_word_syllables(token.text))
                 # Проставляем ударения.
                 accents = Phonetics.get_word_accents(word.text.lower(), accents_dict)
                 # Сопоставляем ударения слогам.
                 word.set_accents(accents)
                 words.append(word)
-                begin_word = -1
-            if text[i] == "\n":
-                # Разбиваем по строкам.
-                lines.append(Line(begin_line, i+1, text[begin_line:i], words))
-                words = []
-                begin_line = i+1
-        if begin_line != len(text):
-            lines.append(Line(begin_line, len(text), text[begin_line:len(text)], words))
+            end_line = begin_line + len(text_line)
+            lines.append(Line(begin_line, end_line, text_line, words))
+            words = []
+            begin_line = end_line + 1
         return Markup(text, lines)
 
     @staticmethod
