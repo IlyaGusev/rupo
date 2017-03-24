@@ -2,13 +2,14 @@
 # Автор: Гусев Илья
 # Описание: Модуль фильтров языковой модели по разным признакам.
 
-import numpy as np
-from typing import List
 from collections import defaultdict
+from typing import List
 
-from rupo.rhymes.rhymes import Rhymes
+import numpy as np
+
 from rupo.main.markup import Word
-from rupo.util.vocabulary import Vocabulary
+from rupo.main.vocabulary import Vocabulary
+from rupo.rhymes.rhymes import Rhymes
 
 
 class Filter(object):

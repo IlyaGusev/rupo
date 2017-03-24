@@ -2,16 +2,17 @@
 # Автор: Гусев Илья
 # Описание: Модуль создания стихотворений.
 
-import numpy as np
-from numpy.random import choice
 from typing import List
 
+import numpy as np
+from numpy.random import choice
+
+from rupo.accents.classifier import MLAccentClassifier
+from rupo.accents.dict import AccentDict
 from rupo.generate.filters import Filter, MetreFilter, RhymeFilter
 from rupo.main.phonetics import Phonetics
+from rupo.main.vocabulary import Vocabulary
 from rupo.metre.metre_classifier import MetreClassifier, CompilationsSingleton
-from rupo.util.vocabulary import Vocabulary
-from rupo.accents.dict import AccentDict
-from rupo.accents.classifier import MLAccentClassifier
 
 
 class Generator(object):

@@ -9,9 +9,9 @@ from typing import List
 
 import numpy as np
 
+from rupo.files.reader import Reader, FileType
 from rupo.main.markup import Markup
-from rupo.util.vocabulary import Vocabulary
-from rupo.files.reader import Reader, FileTypeEnum
+from rupo.main.vocabulary import Vocabulary
 
 
 class MarkovModelContainer(object):
@@ -30,7 +30,7 @@ class MarkovModelContainer(object):
             for i in range(len(self.vocabulary.words)):
                 self.transitions.append(Counter())
             i = 0
-            markups = Reader.read_markups(markup_dump_path, FileTypeEnum.XML, is_processed=True)
+            markups = Reader.read_markups(markup_dump_path, FileType.XML, is_processed=True)
             for markup in markups:
                 self.add_markup(markup)
                 i += 1

@@ -7,14 +7,14 @@ from typing import List
 
 from rupo.files.reader import RAW_SEPARATOR
 from rupo.main.markup import Markup
-from rupo.files.reader import FileTypeEnum
+from rupo.files.reader import FileType
 
 
 class Writer(object):
     """
     Запись в файл.
     """
-    def __init__(self, destination_type: FileTypeEnum, path: str) -> None:
+    def __init__(self, destination_type: FileType, path: str) -> None:
         """
         Нужно, когда хотим записывать разметки по одной (экономия памяти).
 
@@ -34,7 +34,7 @@ class Writer(object):
         Открываем файл, вызывать до начала записи.
         """
         self.file = open(self.path, "w", encoding="utf-8")
-        if self.type == FileTypeEnum.XML:
+        if self.type == FileType.XML:
             self.file.write('<?xml version="1W.0" encoding="UTF-8"?><items>')
 
     def write_markup(self, markup: Markup) -> None:
@@ -43,23 +43,23 @@ class Writer(object):
         :param markup: разметка.
         """
         assert self.file is not None
-        if self.type == FileTypeEnum.XML:
+        if self.type == FileType.XML:
             xml = markup.to_xml().encode('utf-8')\
                 .replace(b'<?xml version="1.0" encoding="UTF-8" ?>', b'').decode('utf-8')
             self.file.write(xml)
-        elif self.type == FileTypeEnum.RAW:
+        elif self.type == FileType.RAW:
             Writer.__write_markup_raw(markup, self.file)
 
     def close(self) -> None:
         """
         Закрываем файл.
         """
-        if self.type == FileTypeEnum.XML:
+        if self.type == FileType.XML:
             self.file.write('</items>')
         self.file.close()
 
     @staticmethod
-    def write_markups(destination_type: FileTypeEnum, markups: List[Markup], path: str) -> None:
+    def write_markups(destination_type: FileType, markups: List[Markup], path: str) -> None:
         """
         Запись разметок в файл.
 
@@ -68,7 +68,7 @@ class Writer(object):
         :param path: путь к файлу.
         """
         with open(path, "w", encoding="utf-8") as file:
-            if destination_type == FileTypeEnum.XML:
+            if destination_type == FileType.XML:
                 file.write('<?xml version="1.0" encoding="UTF-8"?><items>')
                 for markup in markups:
                     xml = markup.to_xml().encode('utf-8')\
@@ -76,7 +76,7 @@ class Writer(object):
                     file.write(xml)
                     file.write("\n")
                 file.write('</items>')
-            elif destination_type == FileTypeEnum.JSON:
+            elif destination_type == FileType.JSON:
                 file.write("[")
                 for markup in markups:
                     file.write(markup.to_json())
@@ -85,7 +85,7 @@ class Writer(object):
                 size = file.tell()
                 file.truncate(size - 1)
                 file.write(']')
-            elif destination_type == FileTypeEnum.RAW:
+            elif destination_type == FileType.RAW:
                 for markup in markups:
                     Writer.__write_markup_raw(markup, file)
 

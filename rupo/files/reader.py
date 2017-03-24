@@ -18,7 +18,7 @@ from rupo.metre.metre_classifier import MetreClassifier
 RAW_SEPARATOR = "\n\n\n"
 
 
-class FileTypeEnum(Enum):
+class FileType(Enum):
     """
     Тип файла.
     """
@@ -32,7 +32,7 @@ class Reader(object):
     Считывание из файлов.
     """
     @staticmethod
-    def read_markups(path: str, source_type: FileTypeEnum, is_processed: bool,
+    def read_markups(path: str, source_type: FileType, is_processed: bool,
                      accents_dict: AccentDict=None, accents_classifier: MLAccentClassifier=None) -> Iterator[Markup]:
         """
         Считывание разметок (включая разметку по сырым текстам).
@@ -47,18 +47,18 @@ class Reader(object):
         for filename in paths:
             with open(filename, "r", encoding="utf-8") as file:
                 if is_processed:
-                    if source_type == FileTypeEnum.XML:
+                    if source_type == FileType.XML:
                         for elem in Reader.__xml_iter(file, 'markup'):
                             markup = Markup()
                             markup.from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))
                             yield markup
-                    elif source_type == FileTypeEnum.JSON:
+                    elif source_type == FileType.JSON:
                         j = json.load(file)
                         for item in j['items']:
                             markup = Markup()
                             markup.from_dict(item)
                             yield markup
-                    elif source_type == FileTypeEnum.RAW:
+                    elif source_type == FileType.RAW:
                         raise NotImplementedError("Пока не реализовано.")
                 else:
                     assert accents_dict is not None
@@ -67,7 +67,7 @@ class Reader(object):
                         yield Reader.__markup_text(text, accents_dict, accents_classifier)
 
     @staticmethod
-    def read_texts(path: str, source_type: FileTypeEnum) -> Iterator[str]:
+    def read_texts(path: str, source_type: FileType) -> Iterator[str]:
         """
         Считывание текстов.
 
@@ -77,15 +77,15 @@ class Reader(object):
         paths = Reader.get_paths(path, source_type.value)
         for filename in paths:
             with open(filename, "r", encoding="utf-8") as file:
-                if source_type == FileTypeEnum.XML:
+                if source_type == FileType.XML:
                     for elem in Reader.__xml_iter(file, 'item'):
                         yield elem.find(".//text").text
-                elif source_type == FileTypeEnum.JSON:
+                elif source_type == FileType.JSON:
                     # TODO: ленивый парсинг
                     j = json.load(file)
                     for item in j['items']:
                         yield item['text']
-                elif source_type == FileTypeEnum.RAW:
+                elif source_type == FileType.RAW:
                     text = file.read()
                     for t in text.split(RAW_SEPARATOR):
                         yield t

@@ -4,17 +4,17 @@
 
 from typing import List, Tuple
 
-from rupo.main.phonetics import Phonetics
-from rupo.main.markup import Markup
-from rupo.accents.dict import AccentDict
 from rupo.accents.classifier import MLAccentClassifier
-from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
-from rupo.files.reader import FileTypeEnum, Reader
+from rupo.accents.dict import AccentDict
+from rupo.files.reader import FileType, Reader
 from rupo.files.writer import Writer
-from rupo.rhymes.rhymes import Rhymes
-from rupo.generate.markov import MarkovModelContainer
 from rupo.generate.generator import Generator
-from rupo.util.vocabulary import Vocabulary
+from rupo.generate.markov import MarkovModelContainer
+from rupo.main.markup import Markup
+from rupo.main.phonetics import Phonetics
+from rupo.main.vocabulary import Vocabulary
+from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
+from rupo.rhymes.rhymes import Rhymes
 
 
 class Global:
@@ -109,7 +109,7 @@ def classify_metre(text: str) -> str:
     return MetreClassifier.classify_metre(Phonetics.process_text(text, Global.get_dict())).metre
 
 
-def generate_markups(input_path: str, input_type: FileTypeEnum, output_path: str, output_type: FileTypeEnum) -> None:
+def generate_markups(input_path: str, input_type: FileType, output_path: str, output_type: FileType) -> None:
     """
     Генерация разметок по текстам.
 

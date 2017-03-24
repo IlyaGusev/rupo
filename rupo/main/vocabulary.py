@@ -7,7 +7,7 @@ import pickle
 import os
 
 from rupo.main.markup import Word, Markup
-from rupo.files.reader import Reader, FileTypeEnum
+from rupo.files.reader import Reader, FileType
 
 
 class Vocabulary(object):
@@ -28,7 +28,7 @@ class Vocabulary(object):
             self.load()
         else:
             i = 0
-            markups = Reader.read_markups(markup_path, FileTypeEnum.XML, is_processed=True)
+            markups = Reader.read_markups(markup_path, FileType.XML, is_processed=True)
             for markup in markups:
                 self.add_markup(markup)
                 i += 1

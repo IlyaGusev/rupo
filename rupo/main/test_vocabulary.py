@@ -2,11 +2,11 @@
 # Автор: Гусев Илья
 # Описание: Тесты словаря.
 
-import unittest
 import os
+import unittest
 
+from rupo.main.vocabulary import Vocabulary
 from rupo.settings import EXAMPLES_DIR, MARKUP_XML_EXAMPLE
-from rupo.util.vocabulary import Vocabulary
 
 
 class TestVocabulary(unittest.TestCase):

@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# Автор: Гусев Илья
+# Описание: Модуль токенизации.
+
 from typing import List
 from enum import Enum, unique, auto
 
@@ -9,7 +13,7 @@ class Token(Annotation):
     @unique
     class TokenType(Enum):
         """
-
+        Тип токена.
         """
         UNKNOWN = -1
         WORD = auto()
@@ -25,10 +29,10 @@ class Token(Annotation):
 
     def __init__(self, text: str, token_type: TokenType, begin: int, end: int):
         """
-        :param text:
-        :param token_type:
-        :param begin:
-        :param end:
+        :param text: исходный текст.
+        :param token_type: тип токена.
+        :param begin: начало позиции токена в тексте.
+        :param end: конец позиции токена в тексте.
         """
         self.token_type = token_type
         super(Token, self).__init__(begin, end, text)
@@ -41,12 +45,16 @@ class Token(Annotation):
 
 
 class Tokenizer(object):
+    """
+    Класс токенизации.
+    """
     @staticmethod
     def tokenize(text: str) -> List[Token]:
         """
+        Токенизация текстов на русском языке с учётом знаков препинания и слов с дефисами.
 
-        :param text:
-        :return:
+        :param text: исходный текст.
+        :return: список токенов.
         """
         tokens = []
         punctuation = ".,?:;!—"
@@ -75,9 +83,10 @@ class Tokenizer(object):
     @staticmethod
     def __hyphen_map(tokens: List[Token]) -> List[Token]:
         """
+        Слова из словаря оставляем с дефисом, остальные разделяем.
 
-        :param tokens:
-        :return:
+        :param tokens: токены.
+        :return: токены после обработки.
         """
         new_tokens = []
         hyphen_tokens = Tokenizer.__get_hyphen_tokens()
@@ -104,8 +113,7 @@ class Tokenizer(object):
     @staticmethod
     def __get_hyphen_tokens():
         """
-
-        :return:
+        :return: содержание словаря, в котором прописаны слова с дефисом.
         """
         with open(HYPHEN_TOKENS, "r", encoding="utf-8") as file:
             hyphen_tokens = [token.strip() for token in file.readlines()]

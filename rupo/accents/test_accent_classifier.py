@@ -15,7 +15,6 @@ class TestAccentClassifier(unittest.TestCase):
         cls.accent_classifier = MLAccentClassifier(cls.accent_dict)
 
     def test_accent_classifier(self):
-        self.accent_classifier.do_cross_val(self.accent_dict)
         self.assertEqual(len([0, 2, 2, 1, 2, 2, 2, 1, 2]),
                          len([self.accent_classifier.classify_accent(word) for word in
                              ["волки", "перелив", "карачун", "пипярка", "пепелац", "гиппогриф",

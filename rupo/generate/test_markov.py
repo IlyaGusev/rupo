@@ -2,12 +2,12 @@
 # Автор: Гусев Илья
 # Описание: Тесты марковских цепей.
 
-import unittest
 import os
+import unittest
 
-from rupo.settings import EXAMPLES_DIR, MARKUP_XML_EXAMPLE
-from rupo.util.vocabulary import Vocabulary
 from rupo.generate.markov import MarkovModelContainer
+from rupo.main.vocabulary import Vocabulary
+from rupo.settings import EXAMPLES_DIR, MARKUP_XML_EXAMPLE
 
 
 class TestMarkov(unittest.TestCase):
