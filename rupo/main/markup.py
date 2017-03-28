@@ -182,3 +182,45 @@ class Markup(CommonMixin):
         self.text = root.find("text").text.replace("\\n", "\n")
         self.lines = lines
         return self
+
+    def from_raw(self, text: str) -> 'Markup':
+        """
+        Импорт из сырого текста с ударениями в конце слов
+
+        :param text: текст.
+        :return: разметка.
+        """
+
+        pos = 0
+        lines = []
+        for line in text.split("\n"):
+            if line == "":
+                continue
+            line_tokens = []
+            for word in line.split(" "):
+                i = -1
+                ch = word[i]
+                accent = ""
+                while ch.isdigit() or ch == "-":
+                    accent += ch
+                    i -= 1
+                    ch = word[i]
+                line_tokens.append((word[:i+1], int(accent[::-1])))
+            words = []
+            line_begin = pos
+            for pair in line_tokens:
+                token = pair[0]
+                accent = pair[1]
+                from rupo.main.phonetics import Phonetics
+                syllables = Phonetics.get_word_syllables(token)
+                for j in range(len(syllables)):
+                    syllables[j].begin += pos
+                    syllables[j].end += pos
+                word = Word(pos, pos + len(token), token, syllables)
+                word.set_accents([accent])
+                words.append(word)
+                pos += len(token) + 1
+            lines.append(Line(line_begin, pos, " ".join([pair[0] for pair in line_tokens]), words))
+        self.text = "\n".join([line.text for line in lines])
+        self.lines = lines
+        return self

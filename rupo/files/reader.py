@@ -59,7 +59,22 @@ class Reader(object):
                             markup.from_dict(item)
                             yield markup
                     elif source_type == FileType.RAW:
-                        raise NotImplementedError("Пока не реализовано.")
+                        separator_count = 0
+                        text = ""
+                        for line in file:
+                            if line == "\n":
+                                separator_count += 1
+                            else:
+                                text += line
+                            if separator_count == 3:
+                                separator_count = 0
+                                markup = Markup()
+                                markup.from_raw(text)
+                                yield markup
+                        if text != "":
+                            markup = Markup()
+                            markup.from_raw(text)
+                            yield markup
                 else:
                     assert accents_dict is not None
                     assert accents_classifier is not None
