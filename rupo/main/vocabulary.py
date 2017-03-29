@@ -14,13 +14,14 @@ class Vocabulary(object):
     """
     Индексированный словарь.
     """
-    def __init__(self, dump_filename: str, markup_path: str=None) -> None:
+    def __init__(self, dump_filename: str, markup_path: str=None, is_vocab : bool=False) -> None:
         """
         :param dump_filename: файл, в который сохранется словарь.
         :param markup_path: файл/папка с разметками.
         """
         self.dump_filename = dump_filename
         self.word_to_index = {}  # type: Dict[str, int]
+        self.index_to_word = {}
         self.words = []  # type: List[Word]
         self.shorts_set = set()  # type: Set[str]
 
@@ -28,11 +29,10 @@ class Vocabulary(object):
             self.load()
         else:
             i = 0
-            markups = Reader.read_markups(markup_path, FileType.XML, is_processed=True)
-            for markup in markups:
-                self.add_markup(markup)
-                i += 1
-                if i % 500 == 0:
+            markups = Reader.read_markups(markup_path, FileType.VOCAB, is_processed=True)
+            for i, (markup, index) in enumerate(markups):
+                self.add_markup(markup, index)
+                if i % 50 == 0:
                     print(i)
             self.save()
 
@@ -51,7 +51,7 @@ class Vocabulary(object):
             vocab = pickle.load(f)
             self.__dict__.update(vocab.__dict__)
 
-    def add_markup(self, markup: Markup) -> None:
+    def add_markup(self, markup: Markup, index : int=-1) -> None:
         """
         Добавление слов из разметки в словарь.
 
@@ -59,9 +59,9 @@ class Vocabulary(object):
         """
         for line in markup.lines:
             for word in line.words:
-                self.add_word(word)
+                self.add_word(word, index)
 
-    def add_word(self, word: Word) -> bool:
+    def add_word(self, word: Word, index : int=-1) -> bool:
         """
         Добавление слова.
 
@@ -72,7 +72,8 @@ class Vocabulary(object):
         if short not in self.shorts_set:
             self.words.append(word)
             self.shorts_set.add(short)
-            self.word_to_index[short] = len(self.words)-1
+            self.word_to_index[short] = len(self.words) if index == -1 else index
+            self.index_to_word[len(self.words) if index == -1 else index] = word
             return True
         return False
 
@@ -95,7 +96,7 @@ class Vocabulary(object):
         :param index: индекс.
         :return: слово.
         """
-        return self.words[index]
+        return self.index_to_word[index] if index in self.index_to_word else Word(0, 0, '', [])
 
     def shrink(self, short_words: List[str]) -> None:
         """
@@ -111,7 +112,7 @@ class Vocabulary(object):
             if short in short_words:
                 new_words.append(word)
                 new_shorts_set.add(short)
-                self.word_to_index[short] = len(new_words)-1
+                self.word_to_index[short] = len(new_words)
         self.shorts_set = new_shorts_set
         self.words = new_words
 
