@@ -25,6 +25,7 @@ class FileType(Enum):
     RAW = ".txt"
     XML = ".xml"
     JSON = ".json"
+    VOCAB = ".voc"
 
 
 class Reader(object):
@@ -75,6 +76,12 @@ class Reader(object):
                             markup = Markup()
                             markup.from_raw(text)
                             yield markup
+                    elif source_type == FileType.VOCAB:
+                        for line in file:
+                            markup = Markup()
+                            fields = line.strip().split('\t')
+                            markup.from_raw(fields[0])
+                            yield markup, int(fields[1])
                 else:
                     assert accents_dict is not None
                     assert accents_classifier is not None
