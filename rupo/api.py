@@ -185,7 +185,7 @@ def get_word_rhymes(word: str, vocab_dump_path: str, markup_path: str=None) -> L
     markup_word.set_accents([get_accent(word)])
     rhymes = []
     vocabulary = Global.get_vocabulary(vocab_dump_path, markup_path)
-    for i in range(len(vocabulary.words)):
+    for i in range(vocabulary.size()):
         if Rhymes.is_rhyme(markup_word, vocabulary.get_word(i)):
             rhymes.append(vocabulary.get_word(i).text.lower())
     return rhymes

@@ -5,6 +5,7 @@
 from typing import Dict, List, Set
 import pickle
 import os
+import copy
 
 from rupo.main.markup import Word, Markup
 from rupo.files.reader import Reader, FileType
@@ -14,26 +15,27 @@ class Vocabulary(object):
     """
     Индексированный словарь.
     """
-    def __init__(self, dump_filename: str, markup_path: str=None, is_vocab : bool=False) -> None:
+    def __init__(self, dump_filename: str, markup_path: str=None, from_voc: bool=False) -> None:
         """
         :param dump_filename: файл, в который сохранется словарь.
         :param markup_path: файл/папка с разметками.
         """
         self.dump_filename = dump_filename
         self.word_to_index = {}  # type: Dict[str, int]
-        self.index_to_word = {}
-        self.words = []  # type: List[Word]
+        self.index_to_word = {}  # type: Dict[int, Word]
         self.shorts_set = set()  # type: Set[str]
 
         if os.path.isfile(self.dump_filename):
             self.load()
         else:
-            i = 0
-            markups = Reader.read_markups(markup_path, FileType.VOCAB, is_processed=True)
-            for i, (markup, index) in enumerate(markups):
-                self.add_markup(markup, index)
-                if i % 50 == 0:
-                    print(i)
+            if from_voc:
+                word_indexes = Reader.read_vocabulary(markup_path)
+                for word, index in word_indexes:
+                    self.add_word(word, index)
+            else:
+                markups = Reader.read_markups(markup_path, FileType.XML, is_processed=True)
+                for markup in markups:
+                    self.add_markup(markup)
             self.save()
 
     def save(self) -> None:
@@ -51,7 +53,7 @@ class Vocabulary(object):
             vocab = pickle.load(f)
             self.__dict__.update(vocab.__dict__)
 
-    def add_markup(self, markup: Markup, index : int=-1) -> None:
+    def add_markup(self, markup: Markup) -> None:
         """
         Добавление слов из разметки в словарь.
 
@@ -59,21 +61,26 @@ class Vocabulary(object):
         """
         for line in markup.lines:
             for word in line.words:
-                self.add_word(word, index)
+                self.add_word(word)
 
-    def add_word(self, word: Word, index : int=-1) -> bool:
+    def add_word(self, word: Word, index: int=-1) -> bool:
         """
         Добавление слова.
 
         :param word: слово.
+        :param index: индекс, если задан заранее.
         :return: слово новое или нет.
         """
         short = word.get_short()
         if short not in self.shorts_set:
-            self.words.append(word)
+            if index == -1:
+                i = 0
+                while i in self.index_to_word:
+                    i += 1
+                index = i
+            self.index_to_word[index] = word
             self.shorts_set.add(short)
-            self.word_to_index[short] = len(self.words) if index == -1 else index
-            self.index_to_word[len(self.words) if index == -1 else index] = word
+            self.word_to_index[short] = index
             return True
         return False
 
@@ -96,7 +103,13 @@ class Vocabulary(object):
         :param index: индекс.
         :return: слово.
         """
-        return self.index_to_word[index] if index in self.index_to_word else Word(0, 0, '', [])
+        return self.index_to_word[index]
+
+    def size(self):
+        """
+        :return: получить размер словаря.
+        """
+        return len(self.index_to_word)
 
     def shrink(self, short_words: List[str]) -> None:
         """
@@ -104,15 +117,8 @@ class Vocabulary(object):
 
         :param short_words: короткие формы слов.
         """
-        new_words = []
-        new_shorts_set = set()
+        old_words = copy.deepcopy(self.index_to_word)
         short_words = set(short_words)
-        for word in self.words:
-            short = word.get_short()
-            if short in short_words:
-                new_words.append(word)
-                new_shorts_set.add(short)
-                self.word_to_index[short] = len(new_words)
-        self.shorts_set = new_shorts_set
-        self.words = new_words
-
+        for word in old_words.values():
+            if word.get_short() in short_words:
+                self.add_word(word)

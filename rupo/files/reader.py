@@ -76,17 +76,28 @@ class Reader(object):
                             markup = Markup()
                             markup.from_raw(text)
                             yield markup
-                    elif source_type == FileType.VOCAB:
-                        for line in file:
-                            markup = Markup()
-                            fields = line.strip().split('\t')
-                            markup.from_raw(fields[0])
-                            yield markup, int(fields[1])
                 else:
                     assert accents_dict is not None
                     assert accents_classifier is not None
                     for text in Reader.read_texts(filename, source_type):
                         yield Reader.__markup_text(text, accents_dict, accents_classifier)
+
+    @staticmethod
+    def read_vocabulary(path: str):
+        """
+        Считывание словаря.
+
+        :param path: путь к словарю.
+        :return: слово и его индекс.
+        """
+        paths = Reader.get_paths(path, FileType.VOCAB.value)
+        for filename in paths:
+            with open(filename, "r", encoding="utf-8") as file:
+                for line in file:
+                    markup = Markup()
+                    fields = line.strip().split('\t')
+                    markup.from_raw(fields[0])
+                    yield markup.lines[0].words[0], int(fields[1])
 
     @staticmethod
     def read_texts(path: str, source_type: FileType) -> Iterator[str]:

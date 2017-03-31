@@ -48,7 +48,7 @@ class Generator(object):
 
         prev_word_indices = []
         lines = []
-        while rhyme_filter.position >= 0:
+        while not rhyme_filter.is_completed():
             words = self.generate_line(metre_filter, rhyme_filter, prev_word_indices)
             lines.append(" ".join(reversed(words)))
         return "\n".join(reversed(lines)) + "\n"
@@ -68,7 +68,7 @@ class Generator(object):
         word_index = self.generate_word(prev_word_indices, [metre_filter, rhyme_filter])
         prev_word_indices.append(word_index)
         result.append(self.vocabulary.get_word(word_index).text.lower())
-        while metre_filter.position >= 0:
+        while not metre_filter.is_completed():
             word_index = self.generate_word(prev_word_indices, [metre_filter])
             prev_word_indices.append(word_index)
             result.append(self.vocabulary.get_word(word_index).text.lower())

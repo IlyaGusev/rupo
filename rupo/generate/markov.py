@@ -27,7 +27,7 @@ class MarkovModelContainer(object):
         if os.path.isfile(dump_filename):
             self.load()
         else:
-            for i in range(len(self.vocabulary.words)):
+            for i in range(self.vocabulary.size()):
                 self.transitions.append(Counter())
             i = 0
             markups = Reader.read_markups(markup_dump_path, FileType.XML, is_processed=True)

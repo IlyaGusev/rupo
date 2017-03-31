@@ -20,5 +20,5 @@ class TestMarkov(unittest.TestCase):
         self.assertTrue(os.path.exists(markov_dump_file))
         os.remove(vocab_dump_file)
         os.remove(markov_dump_file)
-        self.assertEqual(len(vocabulary.words), len(markov.transitions))
-        self.assertEqual(sum([sum(transition.values()) for transition in markov.transitions]), len(vocabulary.words)-1)
+        self.assertEqual(vocabulary.size(), len(markov.transitions))
+        self.assertEqual(sum([sum(transition.values()) for transition in markov.transitions]), vocabulary.size()-1)
