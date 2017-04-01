@@ -3,7 +3,7 @@
 # Описание: Модуль токенизации.
 
 from typing import List
-from enum import Enum, unique, auto
+from enum import Enum, unique
 
 from rupo.settings import HYPHEN_TOKENS
 from rupo.main.markup import Annotation
@@ -16,10 +16,10 @@ class Token(Annotation):
         Тип токена.
         """
         UNKNOWN = -1
-        WORD = auto()
-        PUNCTUATION = auto()
-        SPACE = auto()
-        ENDLINE = auto()
+        WORD = 0
+        PUNCTUATION = 1
+        SPACE = 2
+        ENDLINE = 3
 
         def __str__(self):
             return str(self.name)

@@ -48,6 +48,17 @@ class TestApi(unittest.TestCase):
         Global.vocabulary = None
         Global.markov = None
         Global.generator = None
+        # from rupo.generate.lstm import LSTM_Container
+        # from rupo.generate.generator import Generator
+        # from rupo.main.vocabulary import Vocabulary
+        # lstm_path = "/home/yallen/Документы/Python/Poems/datasets/model.h5"
+        # voc_path = "/home/yallen/Документы/Python/Poems/datasets/voc.pickle"
+        # lstm = LSTM_Container(lstm_path)
+        # vocabulary = Vocabulary(voc_path)
+        # generator = Generator(lstm, vocabulary)
+        # print(generator.generate_poem(metre_schema="+-", rhyme_pattern="aabb", n_syllables=8))
+        # print(generator.generate_poem(metre_schema="+-", rhyme_pattern="aabb", n_syllables=8))
+        # print(generator.generate_poem(metre_schema="+-", rhyme_pattern="aabb", n_syllables=8))
 
     def test_get_word_rhymes(self):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")

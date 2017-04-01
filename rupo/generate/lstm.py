@@ -1,14 +1,11 @@
-import os
-import pickle
 from typing import List
 import numpy as np
-from keras.layers import Dense, Activation, LSTM, Embedding, Dropout, TimeDistributed, SpatialDropout1D
+from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D
 from keras.models import Sequential
-from keras.optimizers import RMSprop
-from keras.callbacks import Callback
+
 
 class LSTM_Container(object):
-    def __init__(self, path : str):
+    def __init__(self, path: str):
         self.num_of_words = 60000
         self.model = Sequential()
         self.model.add(Embedding(self.num_of_words + 1, 150, mask_zero=True, batch_input_shape=(1000, None)))

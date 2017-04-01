@@ -60,7 +60,7 @@ class MetreFilter(Filter):
     """
     def __init__(self, metre_pattern: str):
         self.metre_pattern = metre_pattern
-        self.position = 0
+        self.position = len(metre_pattern) - 1
 
     def filter_word(self, word: Word) -> bool:
         """
@@ -70,12 +70,11 @@ class MetreFilter(Filter):
         :return: подходит слово или нет.
         """
         syllables_count = len(word.syllables)
-        if self.position + syllables_count > len(self.metre_pattern) or \
-                self.position + syllables_count == len(self.metre_pattern) - 1:
+        if syllables_count > self.position + 1:
             return False
         for i in range(syllables_count):
             syllable = word.syllables[i]
-            syllable_number = self.position + i
+            syllable_number = self.position - syllables_count + i + 1
             if syllables_count >= 2 and syllable.accent == -1 and self.metre_pattern[syllable_number] == "+":
                 for j in range(syllables_count):
                     other_syllable = word.syllables[j]
@@ -90,7 +89,7 @@ class MetreFilter(Filter):
 
         :param word: слово.
         """
-        self.position += len(word.syllables)
+        self.position -= len(word.syllables)
 
     def revert_word(self, word: Word) -> None:
         """
@@ -98,19 +97,19 @@ class MetreFilter(Filter):
 
         :param word: слово.
         """
-        self.position -= len(word.syllables)
+        self.position += len(word.syllables)
 
     def reset(self) -> None:
         """
         Сброс позиции в шаблоне.
         """
-        self.position = 0
+        self.position = len(self.metre_pattern) - 1
 
     def is_completed(self):
         """
         :return: закончена ли генерация по фильтру?
         """
-        return self.position > len(self.metre_pattern) - 1
+        return self.position < 0
 
 
 class RhymeFilter(Filter):
@@ -119,7 +118,7 @@ class RhymeFilter(Filter):
     """
     def __init__(self, rhyme_pattern: str, letters_to_rhymes: dict=None):
         self.rhyme_pattern = rhyme_pattern
-        self.position = 0
+        self.position = len(self.rhyme_pattern) - 1
         self.letters_to_rhymes = defaultdict(set)
         if letters_to_rhymes is not None:
             for letter, words in letters_to_rhymes.items():
@@ -150,7 +149,7 @@ class RhymeFilter(Filter):
         :param word: рифмующееся слово.
         """
         self.letters_to_rhymes[self.rhyme_pattern[self.position]].add(word)
-        self.position += 1
+        self.position -= 1
 
     def revert_word(self, word: Word) -> None:
         """
@@ -158,11 +157,11 @@ class RhymeFilter(Filter):
 
         :param word: рифмующееся слово.
         """
-        self.position -= 1
+        self.position += 1
         self.letters_to_rhymes[self.rhyme_pattern[self.position]].remove(word)
 
     def is_completed(self):
         """
         :return: закончена ли генерация по фильтру?
         """
-        return self.position >= len(self.rhyme_pattern)
+        return self.position < 0
