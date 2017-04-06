@@ -4,7 +4,7 @@
 
 from typing import List
 
-from rupo.accents.dict import AccentDict
+from rupo.stress.dict import StressDict
 from rupo.main.markup import Syllable, Word, Markup, Line
 from rupo.main.tokenizer import Tokenizer, Token
 from rupo.util.preprocess import count_vowels, get_first_vowel_position, \
@@ -74,29 +74,29 @@ class Phonetics:
         return syllables
 
     @staticmethod
-    def get_word_accents(word: str, accents_dict: AccentDict) -> List[int]:
+    def get_word_stresses(word: str, stress_dict: StressDict) -> List[int]:
         """
         Определение ударения в слове по словарю. Возможно несколько вариантов ударения.
 
         :param word: слово для простановки ударений.
-        :param accents_dict: экземпляр обёртки для словаря ударений.
-        :return accents: позиции букв, на которые падает ударение.
+        :param stress_dict: экземпляр обёртки для словаря ударений.
+        :return stresses: позиции букв, на которые падает ударение.
         """
-        accents = []
+        stresses = []
         if count_vowels(word) == 0:
             # Если гласных нет, то и ударений нет.
             pass
         elif count_vowels(word) == 1:
             # Если одна гласная, то на неё и падает ударение.
-            accents.append(get_first_vowel_position(word))
+            stresses.append(get_first_vowel_position(word))
         elif word.find("ё") != -1:
             # Если есть буква "ё", то только на неё может падать ударение.
-            accents.append(word.find("ё"))
+            stresses.append(word.find("ё"))
         else:
             # Проверяем словарь на наличие форм с ударениями.
-            accents = accents_dict.get_accents(word)
+            stresses = stress_dict.get_stresses(word)
             if 'е' not in word:
-                return accents
+                return stresses
             # Находим все возможные варинаты преобразований 'е' в 'ё'.
             positions = [i for i in range(len(word)) if word[i] == 'е']
             beam = [word[:positions[0]]]
@@ -109,19 +109,19 @@ class Phonetics:
                     beam = new_beam
             # И проверяем их по словарю.
             for permutation in beam:
-                if len(accents_dict.get_accents(permutation)) != 0:
+                if len(stress_dict.get_stresses(permutation)) != 0:
                     yo_pos = permutation.find("ё")
                     if yo_pos != -1:
-                        accents.append(yo_pos)
-        return accents
+                        stresses.append(yo_pos)
+        return stresses
 
     @staticmethod
-    def process_text(text: str, accents_dict: AccentDict) -> Markup:
+    def process_text(text: str, stress_dict: StressDict) -> Markup:
         """
         Получение начального варианта разметки по слогам и ударениям.
 
         :param text: текст для разметки
-        :param accents_dict: экземпляр обёртки для словаря ударений
+        :param stress_dict: экземпляр обёртки для словаря ударений
         :return markup: разметка по слогам и ударениям
         """
         begin_line = 0
@@ -134,9 +134,9 @@ class Phonetics:
                 word = Word(begin_line + token.begin, begin_line + token.end, token.text,
                             Phonetics.get_word_syllables(token.text))
                 # Проставляем ударения.
-                accents = Phonetics.get_word_accents(word.text.lower(), accents_dict)
+                stresses = Phonetics.get_word_stresses(word.text.lower(), stress_dict)
                 # Сопоставляем ударения слогам.
-                word.set_accents(accents)
+                word.set_stresses(stresses)
                 words.append(word)
             end_line = begin_line + len(text_line)
             lines.append(Line(begin_line, end_line, text_line, words))
@@ -145,25 +145,25 @@ class Phonetics:
         return Markup(text, lines)
 
     @staticmethod
-    def get_improved_word_accent(word: str, accent_dict: AccentDict, accent_classifier) -> int:
+    def get_improved_word_stress(word: str, stress_dict: StressDict, stress_classifier) -> int:
         """
         Получение ударения с учётом классификатора.
 
         :param word: слово.
-        :param accent_dict: словарь ударений.
-        :param accent_classifier: классификатор ударений.
+        :param stress_dict: словарь ударений.
+        :param stress_classifier: классификатор ударений.
         :return: индекс ударения.
         """
-        dict_accents = Phonetics.get_word_accents(word, accent_dict)
-        if len(dict_accents) == 1:
-            return dict_accents[0]
-        elif len(dict_accents) == 0:
-            clf_accent = accent_classifier.classify_accent(word)
-            return clf_accent
+        dict_stresses = Phonetics.get_word_stresses(word, stress_dict)
+        if len(dict_stresses) == 1:
+            return dict_stresses[0]
+        elif len(dict_stresses) == 0:
+            clf_stresses = stress_classifier.classify_stress(word)
+            return clf_stresses
         else:
-            clf_accent = accent_classifier.classify_accent(word)
-            intersection = list(set(dict_accents).intersection({clf_accent}))
+            clf_stresses = stress_classifier.classify_stress(word)
+            intersection = list(set(dict_stresses).intersection({clf_stresses}))
             if len(intersection) != 0:
                 return intersection[0]
             else:
-                return dict_accents[0]
+                return dict_stresses[0]

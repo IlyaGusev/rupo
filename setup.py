@@ -5,19 +5,19 @@ from setuptools.command.install import install
 
 class PostDevelopCommand(develop):
     def run(self):
-        from rupo.accents.dict import AccentDict
-        from rupo.accents.classifier import MLAccentClassifier
-        d = AccentDict()
-        MLAccentClassifier(d)
+        from rupo.stress.dict import StressDict
+        from rupo.stress.classifier import MLStressClassifier
+        d = StressDict()
+        MLStressClassifier(d)
         develop.run(self)
 
 
 class PostInstallCommand(install):
     def run(self):
-        from rupo.accents.dict import AccentDict
-        from rupo.accents.classifier import MLAccentClassifier
-        d = AccentDict()
-        MLAccentClassifier(d)
+        from rupo.stress.dict import StressDict
+        from rupo.stress.classifier import MLStressClassifier
+        d = StressDict()
+        MLStressClassifier(d)
         install.run(self)
 
 

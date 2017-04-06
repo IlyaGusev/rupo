@@ -50,7 +50,7 @@ class Rhymes(object):
         """
         # TODO: Переход на фонетическое слово, больше признаков.
         syllable_number = 0
-        accented_syllable = ''
+        stressed_syllable = ''
         next_syllable = ''
         next_char = ''
         syllables = list(reversed(word.syllables))
@@ -59,9 +59,9 @@ class Rhymes(object):
             if syllable.accent != -1:
                 if i != 0:
                     next_syllable = syllables[i - 1].text
-                accented_syllable = syllables[i].text
+                stressed_syllable = syllables[i].text
                 if syllable.accent + 1 < len(word.text):
                     next_char = word.text[syllable.accent + 1]
                 syllable_number = i
                 break
-        return syllable_number, accented_syllable, next_syllable, next_char
+        return syllable_number, stressed_syllable, next_syllable, next_char

@@ -7,8 +7,8 @@ from typing import List
 import numpy as np
 from numpy.random import choice
 
-from rupo.accents.classifier import MLAccentClassifier
-from rupo.accents.dict import AccentDict
+from rupo.stress.classifier import MLStressClassifier
+from rupo.stress.dict import StressDict
 from rupo.generate.filters import Filter, MetreFilter, RhymeFilter
 from rupo.main.phonetics import Phonetics
 from rupo.main.vocabulary import Vocabulary
@@ -98,17 +98,17 @@ class Generator(object):
         return word_index
 
     def generate_poem_by_line(self, line: str, rhyme_pattern: str,
-                              accent_dict: AccentDict, accents_classifier: MLAccentClassifier) -> str:
+                              stress_dict: StressDict, stress_classifier: MLStressClassifier) -> str:
         """
         Генерация стихотвторения по одной строчке.
 
-        :param accent_dict: словарь ударений.
-        :param accents_classifier: классификатор.
+        :param stress_dict: словарь ударений.
+        :param stress_classifier: классификатор.
         :param line: строчка.
         :param rhyme_pattern: шаблон рифмы.
         :return: стихотворение
         """
-        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(line, accent_dict), accents_classifier)
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(line, stress_dict), stress_classifier)
         rhyme_word = markup.lines[0].words[-1]
         count_syllables = sum([len(word.syllables) for word in markup.lines[0].words])
         metre_pattern = CompilationsSingleton.get().get_patterns(result.metre, count_syllables)[0]

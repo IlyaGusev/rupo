@@ -12,17 +12,17 @@ from rupo.settings import DICT_TXT_PATH
 from rupo.settings import DICT_TRIE_PATH
 
 
-class AccentDict:
+class StressDict:
     """
     Класс данных, для сериализации словаря как префиксного дерева и быстрой загрузки в память.
     """
 
-    class AccentType(Enum):
+    class StressType(Enum):
         ANY = -1
         PRIMARY = 0
         SECONDARY = 1
 
-    AccentType = AccentType
+    StressType = StressType
 
     def __init__(self) -> None:
         self.data = datrie.Trie(CYRRILIC_LOWER_VOWELS+CYRRILIC_LOWER_CONSONANTS+"-")
@@ -48,20 +48,20 @@ class AccentDict:
                 for word in line.split("#")[1].split(","):
                     word = word.strip()
                     pos = -1
-                    accents = []
+                    stresses = []
                     clean_word = ""
                     for i in range(len(word)):
                         if word[i] == "'" or word[i] == "`":
                             if word[i] == "`":
-                                accents.append((pos, AccentDict.AccentType.SECONDARY))
+                                stresses.append((pos, StressDict.StressType.SECONDARY))
                             else:
-                                accents.append((pos, AccentDict.AccentType.PRIMARY))
+                                stresses.append((pos, StressDict.StressType.PRIMARY))
                             continue
                         clean_word += word[i]
                         pos += 1
                         if word[i] == "ё":
-                            accents.append((pos, AccentDict.AccentType.PRIMARY))
-                    self.update(clean_word, accents)
+                            stresses.append((pos, StressDict.StressType.PRIMARY))
+                    self.update(clean_word, stresses)
         self.data.save(dst_filename)
 
     def save(self, dst_filename: str) -> None:
@@ -72,35 +72,35 @@ class AccentDict:
         """
         self.data.save(dst_filename)
 
-    def get_accents(self, word: str, accent_type: AccentType=AccentType.ANY) -> List[int]:
+    def get_stresses(self, word: str, stress_type: StressType=StressType.ANY) -> List[int]:
         """
         Получение ударений нужного типа у слова.
 
         :param word: слово, которое мы хотим посмотреть в словаре.
-        :param accent_type: тип ударения.
+        :param stress_type: тип ударения.
         :return forms: массив всех ударений.
         """
         if word in self.data:
-            if accent_type == AccentDict.AccentType.ANY:
+            if stress_type == StressDict.StressType.ANY:
                 return [i[0] for i in self.data[word]]
             else:
-                return [i[0] for i in self.data[word] if i[1] == accent_type]
+                return [i[0] for i in self.data[word] if i[1] == stress_type]
         return []
 
-    def get_all(self) -> List[Tuple[str, List[Tuple[int, AccentType]]]]:
+    def get_all(self) -> List[Tuple[str, List[Tuple[int, StressType]]]]:
         """
         :return items: все ключи и ударения словаря.
         """
         return self.data.items()
 
-    def update(self, word: str, accent_pairs: List[Tuple[int, AccentType]]) -> None:
+    def update(self, word: str, stress_pairs: List[Tuple[int, StressType]]) -> None:
         """
         Обновление словаря.
 
         :param word: слово.
-        :param accent_pairs: набор ударений.
+        :param stress_pairs: набор ударений.
         """
         if word not in self.data:
-            self.data[word] = set(accent_pairs)
+            self.data[word] = set(stress_pairs)
         else:
-            self.data[word].update(accent_pairs)
+            self.data[word].update(stress_pairs)

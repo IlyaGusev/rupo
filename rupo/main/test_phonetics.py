@@ -4,7 +4,7 @@
 
 import unittest
 
-from rupo.accents.dict import AccentDict
+from rupo.stress.dict import StressDict
 from rupo.main.markup import Syllable
 from rupo.main.phonetics import Phonetics
 from rupo.util.data import MARKUP_EXAMPLE
@@ -14,7 +14,7 @@ from rupo.main.tokenizer import Tokenizer
 class TestPhonetics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict()
+        cls.stress_dict = StressDict()
 
     def test_syllables(self):
         checks = {
@@ -50,7 +50,7 @@ class TestPhonetics(unittest.TestCase):
         for word, borders in checks.items():
             self.assertEqual(Phonetics.get_word_syllables(word), borders)
 
-    def test_accents(self):
+    def test_stress(self):
         checks = {
             'я': [0],
             'в': [],
@@ -74,9 +74,9 @@ class TestPhonetics(unittest.TestCase):
         }
 
         for word, pos in checks.items():
-            self.assertEqual(sorted(Phonetics.get_word_accents(word, self.accent_dict)), sorted(pos))
+            self.assertEqual(sorted(Phonetics.get_word_stresses(word, self.stress_dict)), sorted(pos))
 
     def test_process_text(self):
         text = "Соломка изжила себя.\n Пора виться майкой в."
-        markup = Phonetics.process_text(text, self.accent_dict)
+        markup = Phonetics.process_text(text, self.stress_dict)
         self.assertEqual(markup, MARKUP_EXAMPLE)

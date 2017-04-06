@@ -10,8 +10,8 @@ from typing import Iterator
 
 from rupo.main.markup import Markup
 from rupo.main.phonetics import Phonetics
-from rupo.accents.dict import AccentDict
-from rupo.accents.classifier import MLAccentClassifier
+from rupo.stress.dict import StressDict
+from rupo.stress.classifier import MLStressClassifier
 from rupo.metre.metre_classifier import MetreClassifier
 
 
@@ -34,15 +34,15 @@ class Reader(object):
     """
     @staticmethod
     def read_markups(path: str, source_type: FileType, is_processed: bool,
-                     accents_dict: AccentDict=None, accents_classifier: MLAccentClassifier=None) -> Iterator[Markup]:
+                     stress_dict: StressDict=None, stress_classifier: MLStressClassifier=None) -> Iterator[Markup]:
         """
         Считывание разметок (включая разметку по сырым текстам).
 
         :param path: путь к файлу/папке.
         :param source_type: тип файлов.
         :param is_processed: уже размеченные тексты?
-        :param accents_dict: словарь ударений (для неразмеченных текстов).
-        :param accents_classifier: классификатор ударений (для неразмеченных текстов).
+        :param stress_dict: словарь ударений (для неразмеченных текстов).
+        :param stress_classifier: классификатор ударений (для неразмеченных текстов).
         """
         paths = Reader.get_paths(path, source_type.value)
         for filename in paths:
@@ -77,10 +77,10 @@ class Reader(object):
                             markup.from_raw(text)
                             yield markup
                 else:
-                    assert accents_dict is not None
-                    assert accents_classifier is not None
+                    assert stress_dict is not None
+                    assert stress_classifier is not None
                     for text in Reader.read_texts(filename, source_type):
-                        yield Reader.__markup_text(text, accents_dict, accents_classifier)
+                        yield Reader.__markup_text(text, stress_dict, stress_classifier)
 
     @staticmethod
     def read_vocabulary(path: str):
@@ -143,18 +143,18 @@ class Reader(object):
                     return Reader.get_paths(folder, ext)
 
     @staticmethod
-    def __markup_text(text: str, accents_dict: AccentDict=None,
-                      accents_classifier: MLAccentClassifier=None) -> Markup:
+    def __markup_text(text: str, stress_dict: StressDict=None,
+                      stress_classifier: MLStressClassifier=None) -> Markup:
         """
         Разметка текста.
 
         :param text: текст.
-        :param accents_dict: словарь ударений.
-        :param accents_classifier: классификатор ударений.
+        :param stress_dict: словарь ударений.
+        :param stress_classifier: классификатор ударений.
         :return: разметка.
         """
-        markup = Phonetics.process_text(text, accents_dict)
-        markup = MetreClassifier.improve_markup(markup, accents_classifier)[0]
+        markup = Phonetics.process_text(text, stress_dict)
+        markup = MetreClassifier.improve_markup(markup, stress_classifier)[0]
         return markup
 
     @staticmethod

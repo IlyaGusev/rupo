@@ -6,19 +6,19 @@ import unittest
 import jsonpickle
 
 from rupo.main.markup import Markup
-from rupo.accents.dict import AccentDict
+from rupo.stress.dict import StressDict
 from rupo.main.phonetics import Phonetics
-from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult, AccentCorrection
+from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult, StressCorrection
 
 
 class TestMetreClassifier(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict()
+        cls.stress_dict = StressDict()
 
     def test_classification_result(self):
         result = ClassificationResult(5)
-        result.additions["iambos"].append(AccentCorrection(0, 0, 0, "", 0))
+        result.additions["iambos"].append(StressCorrection(0, 0, 0, "", 0))
         self.assertEqual(result, jsonpickle.decode(result.to_json()))
 
     def test_metre_classifier(self):
@@ -26,7 +26,7 @@ class TestMetreClassifier(unittest.TestCase):
                "Уж на равнине, по холмам\n" \
                "Грохочут пушки. Дым багровый\n" \
                "Кругами всходит к небесам."
-        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.stress_dict))
         self.assertIsInstance(markup, Markup)
         self.assertIsInstance(result, ClassificationResult)
         self.assertEqual(result.get_metre_errors_count(), 0)
@@ -36,7 +36,7 @@ class TestMetreClassifier(unittest.TestCase):
                "Вихри снежные крутя;\n" \
                "То, как зверь, она завоет,\n" \
                "То заплачет, как дитя..."
-        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.stress_dict))
         self.assertEqual(result.get_metre_errors_count(), 0)
         self.assertEqual(result.metre, "choreios")
 
@@ -44,7 +44,7 @@ class TestMetreClassifier(unittest.TestCase):
                "Вихри снежные крутя;\n" \
                "То, как зверь, она завоет,\n" \
                "То заплачет, как дитя..."
-        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.stress_dict))
         self.assertEqual(result.get_metre_errors_count(), 1)
         self.assertEqual(result.metre, "choreios")
 
@@ -56,7 +56,7 @@ class TestMetreClassifier(unittest.TestCase):
                "«Не пропускай беду!»\n"\
                "Кто воет за стеной, как зверь,\n"\
                "Кто прячется в саду?"
-        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.stress_dict))
         self.assertEqual(result.get_metre_errors_count(), 0)
         self.assertEqual(result.metre, "iambos")
 
@@ -75,7 +75,7 @@ class TestMetreClassifier(unittest.TestCase):
                "Видно, за опушкой,\n"\
                "Сонный сторож стучит\n"\
                "Мертвой колотушкой."
-        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.stress_dict))
         self.assertEqual(result.get_metre_errors_count(), 0)
         self.assertTrue(result.metre == "dolnik3" or result.metre == "dolnik2")
 
@@ -110,6 +110,6 @@ class TestMetreClassifier(unittest.TestCase):
                "Есть над чем поразмыслить в жизни,\n" \
                "Кроме\n" \
                "Золота-серебра."
-        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.stress_dict))
         self.assertEqual(result.get_metre_errors_count(), 0)
         self.assertTrue(result.metre == "dolnik3" or result.metre == "dolnik2")

@@ -10,27 +10,27 @@ from rupo.main.markup import Line, Markup
 from rupo.util.mixins import CommonMixin
 from rupo.metre.patterns import CompiledPatterns
 from rupo.util.preprocess import get_first_vowel_position
-from rupo.accents.classifier import MLAccentClassifier
+from rupo.stress.classifier import MLStressClassifier
 
 
-class AccentCorrection(CommonMixin):
+class StressCorrection(CommonMixin):
     """
     Исправление ударения.
     """
     def __init__(self, line_number: int, word_number: int, syllable_number: int,
-                 word_text: str, accent: int) -> None:
+                 word_text: str, stress: int) -> None:
         """
         :param line_number: номер строки.
         :param word_number: номер слова.
         :param syllable_number: номер слога.
         :param word_text: текст слова.
-        :param accent: позиция ударения (с 0).
+        :param stress: позиция ударения (с 0).
         """
         self.line_number = line_number
         self.word_number = word_number
         self.syllable_number = syllable_number
         self.word_text = word_text
-        self.accent = accent
+        self.accent = stress
 
 
 class LineClassificationResult(CommonMixin):
@@ -85,10 +85,10 @@ class ClassificationResult(CommonMixin):
         self.count_lines = count_lines
         self.lines_result = [LineClassificationResult() for i in range(count_lines)]
         self.errors_count = {k: 0 for k in MetreClassifier.metres.keys()}  # type: Dict[str, int]
-        self.corrections = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[AccentCorrection]]
-        self.resolutions = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[AccentCorrection]]
-        self.additions = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[AccentCorrection]]
-        self.ml_resolutions = []  # type: List[AccentCorrection]
+        self.corrections = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[StressCorrection]]
+        self.resolutions = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[StressCorrection]]
+        self.additions = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[StressCorrection]]
+        self.ml_resolutions = []  # type: List[StressCorrection]
 
     def get_metre_errors_count(self):
         """
@@ -103,7 +103,7 @@ class ClassificationResult(CommonMixin):
         return jsonpickle.encode(self)
 
     @staticmethod
-    def str_corrections(collection: List[AccentCorrection]) -> str:
+    def str_corrections(collection: List[StressCorrection]) -> str:
         """
         :param collection: список исправлений.
         :return: его строковое представление.
@@ -239,7 +239,7 @@ class MetreClassifier(object):
             word = line.words[w]
             # Игнорируем слова длиной меньше 2 слогов.
             if len(word.syllables) > 1:
-                numbers = word.get_accented_syllables_numbers()
+                numbers = word.get_stressed_syllables_numbers()
                 is_error = sum(1 for number in numbers if pattern[number_in_pattern+number] == "s") == 0
                 if is_error:
                     error_count += 1
@@ -248,7 +248,7 @@ class MetreClassifier(object):
 
     @staticmethod
     def __get_line_pattern_matching_corrections(line: Line, line_number: int, pattern: str) \
-            -> Tuple[List[AccentCorrection], List[AccentCorrection], List[AccentCorrection]]:
+            -> Tuple[List[StressCorrection], List[StressCorrection], List[StressCorrection]]:
         """
         Ударения могут приходиться на слабое место,
         если безударный слог того же слова не попадает на икт. Иначе - ошибка.
@@ -268,11 +268,11 @@ class MetreClassifier(object):
             if len(word.syllables) <= 1:
                 number_in_pattern += len(word.syllables)
                 continue
-            accents_count = word.count_accents()
+            stress_count = word.count_stress()
             for syllable in word.syllables:
-                if accents_count == 0 and pattern[number_in_pattern] == "s":
+                if stress_count == 0 and pattern[number_in_pattern] == "s":
                     # Ударений нет, ставим такое, какое подходит по метру. Возможно несколько.
-                    additions.append(AccentCorrection(line_number, w, syllable.number, word.text, syllable.vowel()))
+                    additions.append(StressCorrection(line_number, w, syllable.number, word.text, syllable.vowel()))
                 elif pattern[number_in_pattern] == "u" and syllable.accent != -1:
                     # Ударение есть и оно падает на этот слог, при этом в шаблоне безударная позиция.
                     # Найдём такой слог, у которого в шаблоне ударная позиция. Это и есть наше исправление.
@@ -280,8 +280,8 @@ class MetreClassifier(object):
                         other_number_in_pattern = other_syllable.number - syllable.number + number_in_pattern
                         if syllable.number == other_syllable.number or pattern[other_number_in_pattern] != "s":
                             continue
-                        ac = AccentCorrection(line_number, w, other_syllable.number, word.text, other_syllable.vowel())
-                        if accents_count == 1 and other_syllable.accent == -1:
+                        ac = StressCorrection(line_number, w, other_syllable.number, word.text, other_syllable.vowel())
+                        if stress_count == 1 and other_syllable.accent == -1:
                             corrections.append(ac)
                         else:
                             resolutions.append(ac)
@@ -289,14 +289,14 @@ class MetreClassifier(object):
         return corrections, resolutions, additions
 
     @staticmethod
-    def get_ml_resolutions(result: ClassificationResult, accent_classifier: MLAccentClassifier) -> None:
+    def get_ml_resolutions(result: ClassificationResult, stress_classifier: MLStressClassifier) -> None:
         """
         Пытаемся снять омонимию с предыдущих этапов древесным классификатором.
 
         :param result: результат классификации.
-        :param accent_classifier: древесный классификатор ударений.
+        :param stress_classifier: древесный классификатор ударений.
         """
-        result_additions = result.additions[result.metre]  # type: List[AccentCorrection]
+        result_additions = result.additions[result.metre]  # type: List[StressCorrection]
         for i in range(len(result_additions)):
             for j in range(i, len(result_additions)):
                 text1 = result_additions[i].word_text
@@ -304,10 +304,10 @@ class MetreClassifier(object):
                 number1 = result_additions[i].syllable_number
                 number2 = result_additions[j].syllable_number
                 if text1 == text2 and number1 != number2:
-                    accent = accent_classifier.classify_accent(text1)
-                    if accent == number1:
+                    stress = stress_classifier.classify_stress(text1)
+                    if stress == number1:
                         result.ml_resolutions.append(result_additions[i])
-                    if accent == number2:
+                    if stress == number2:
                         result.ml_resolutions.append(result_additions[j])
 
     @staticmethod
@@ -323,33 +323,33 @@ class MetreClassifier(object):
             syllables = markup.lines[pos.line_number].words[pos.word_number].syllables
             for i in range(len(syllables)):
                 syllable = syllables[i]
-                syllable.accent = -1
+                syllable.stress = -1
                 if syllable.number == pos.syllable_number:
-                    syllable.accent = syllable.begin + get_first_vowel_position(syllable.text)
+                    syllable.stress = syllable.begin + get_first_vowel_position(syllable.text)
 
         for pos in result.additions[result.metre]:
             syllable = markup.lines[pos.line_number].words[pos.word_number].syllables[pos.syllable_number]
-            syllable.accent = syllable.begin + get_first_vowel_position(syllable.text)
+            syllable.stress = syllable.begin + get_first_vowel_position(syllable.text)
 
         for pos in result.ml_resolutions:
             syllables = markup.lines[pos.line_number].words[pos.word_number].syllables
             for i in range(len(syllables)):
                 syllable = syllables[i]
-                syllable.accent = -1
+                syllable.stress = -1
                 if syllable.number == pos.syllable_number:
-                    syllable.accent = syllable.begin + get_first_vowel_position(syllable.text)
+                    syllable.stress = syllable.begin + get_first_vowel_position(syllable.text)
         return markup
 
     @staticmethod
-    def improve_markup(markup: Markup, accents_classifier: MLAccentClassifier=None) -> \
+    def improve_markup(markup: Markup, stress_classifier: MLStressClassifier=None) -> \
             Tuple[Markup, ClassificationResult]:
         """
         Улучшение разметки метрическим и машинным классификатором.
 
         :param markup: начальная разметка.
-        :param accents_classifier: классификатор ударений.
+        :param stress_classifier: классификатор ударений.
         """
         result = MetreClassifier.classify_metre(markup)
-        if accents_classifier is not None:
-            MetreClassifier.get_ml_resolutions(result, accents_classifier)
+        if stress_classifier is not None:
+            MetreClassifier.get_ml_resolutions(result, stress_classifier)
         return MetreClassifier.get_improved_markup(markup, result), result

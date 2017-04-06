@@ -5,8 +5,8 @@
 import unittest
 
 from rupo.files.reader import Reader, FileType
-from rupo.accents.classifier import MLAccentClassifier
-from rupo.accents.dict import AccentDict
+from rupo.stress.classifier import MLStressClassifier
+from rupo.stress.dict import StressDict
 from rupo.main.markup import Markup, Line, Word
 from rupo.settings import MARKUP_XML_EXAMPLE, TEXT_XML_EXAMPLE, MARKUP_JSON_EXAMPLE
 
@@ -14,16 +14,16 @@ from rupo.settings import MARKUP_XML_EXAMPLE, TEXT_XML_EXAMPLE, MARKUP_JSON_EXAM
 class TestReader(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accents_dict = AccentDict()
-        cls.accents_classifier = MLAccentClassifier(cls.accents_dict)
+        cls.stress_dict = StressDict()
+        cls.stress_classifier = MLStressClassifier(cls.stress_dict)
 
     def test_read(self):
         processed_xml = Reader.read_markups(MARKUP_XML_EXAMPLE, FileType.XML, is_processed=True)
         self.__assert_markup_is_correct(next(processed_xml))
 
         unprocessed_xml = Reader.read_markups(TEXT_XML_EXAMPLE, FileType.XML, is_processed=False,
-                                              accents_dict=self.accents_dict,
-                                              accents_classifier=self.accents_classifier)
+                                              stress_dict=self.stress_dict,
+                                              stress_classifier=self.stress_classifier)
         self.__assert_markup_is_correct(next(unprocessed_xml))
 
         processed_json = Reader.read_markups(MARKUP_JSON_EXAMPLE, FileType.JSON, is_processed=True)

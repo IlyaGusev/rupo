@@ -52,36 +52,36 @@ class Word(Annotation):
         super(Word, self).__init__(begin, end, text)
         self.syllables = syllables
 
-    def count_accents(self) -> int:
+    def count_stress(self) -> int:
         """
         :return: количество ударений в слове.
         """
         return sum(syllable.accent != -1 for syllable in self.syllables)
 
-    def accent(self) -> int:
+    def stress(self) -> int:
         """
         :return: последнее ударение в слове, если нет, то -1.
         """
-        accent = -1
+        stress = -1
         for syllable in self.syllables:
             if syllable.accent != -1:
-                accent = syllable.accent
-        return accent
+                stress = syllable.accent
+        return stress
 
-    def get_accented_syllables_numbers(self) -> List[int]:
+    def get_stressed_syllables_numbers(self) -> List[int]:
         """
         :return: номера слогов, на которые падают ударения.
         """
         return [syllable.number for syllable in self.syllables if syllable.accent != -1]
 
-    def set_accents(self, accents: List[int]) -> None:
+    def set_stresses(self, stresses: List[int]) -> None:
         """
         Задать ударения, все остальные убираются.
 
-        :param accents: позиции ударения в слове.
+        :param stresses: позиции ударения в слове.
         """
         for syllable in self.syllables:
-            if syllable.vowel() in accents:
+            if syllable.vowel() in stresses:
                 syllable.accent = syllable.vowel()
             else:
                 syllable.accent = -1
@@ -90,7 +90,7 @@ class Word(Annotation):
         """
         :return: слово в форме "текст"+"последнее ударение".
         """
-        return self.text.lower() + str(self.accent())
+        return self.text.lower() + str(self.stress())
 
     def from_dict(self, d: dict) -> 'Word':
         self.__dict__.update(d)
@@ -200,24 +200,24 @@ class Markup(CommonMixin):
             for word in line.split(" "):
                 i = -1
                 ch = word[i]
-                accent = ""
+                stress = ""
                 while ch.isdigit() or ch == "-":
-                    accent += ch
+                    stress += ch
                     i -= 1
                     ch = word[i]
-                line_tokens.append((word[:i+1], int(accent[::-1])))
+                line_tokens.append((word[:i+1], int(stress[::-1])))
             words = []
             line_begin = pos
             for pair in line_tokens:
                 token = pair[0]
-                accent = pair[1]
+                stress = pair[1]
                 from rupo.main.phonetics import Phonetics
                 syllables = Phonetics.get_word_syllables(token)
                 for j in range(len(syllables)):
                     syllables[j].begin += pos
                     syllables[j].end += pos
                 word = Word(pos, pos + len(token), token, syllables)
-                word.set_accents([accent])
+                word.set_stresses([stress])
                 words.append(word)
                 pos += len(token) + 1
             lines.append(Line(line_begin, pos, " ".join([pair[0] for pair in line_tokens]), words))
