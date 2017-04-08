@@ -5,7 +5,7 @@
 import unittest
 
 from rupo.files.reader import Reader, FileType
-from rupo.stress.classifier import MLStressClassifier
+from rupo.stress.stress_classifier import MLStressClassifier
 from rupo.stress.dict import StressDict
 from rupo.main.markup import Markup, Line, Word
 from rupo.settings import MARKUP_XML_EXAMPLE, TEXT_XML_EXAMPLE, MARKUP_JSON_EXAMPLE

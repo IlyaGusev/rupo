@@ -10,7 +10,7 @@ from rupo.main.markup import Line, Markup
 from rupo.util.mixins import CommonMixin
 from rupo.metre.patterns import CompiledPatterns
 from rupo.util.preprocess import get_first_vowel_position
-from rupo.stress.classifier import MLStressClassifier
+from rupo.stress.stress_classifier import MLStressClassifier
 
 
 class StressCorrection(CommonMixin):

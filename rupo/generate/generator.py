@@ -7,7 +7,7 @@ from typing import List
 import numpy as np
 from numpy.random import choice
 
-from rupo.stress.classifier import MLStressClassifier
+from rupo.stress.stress_classifier import MLStressClassifier
 from rupo.stress.dict import StressDict
 from rupo.generate.filters import Filter, MetreFilter, RhymeFilter
 from rupo.main.phonetics import Phonetics

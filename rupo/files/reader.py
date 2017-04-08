@@ -11,7 +11,7 @@ from typing import Iterator
 from rupo.main.markup import Markup
 from rupo.main.phonetics import Phonetics
 from rupo.stress.dict import StressDict
-from rupo.stress.classifier import MLStressClassifier
+from rupo.stress.stress_classifier import MLStressClassifier
 from rupo.metre.metre_classifier import MetreClassifier
 
 

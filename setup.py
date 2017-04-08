@@ -6,7 +6,7 @@ from setuptools.command.install import install
 class PostDevelopCommand(develop):
     def run(self):
         from rupo.stress.dict import StressDict
-        from rupo.stress.classifier import MLStressClassifier
+        from rupo.stress.stress_classifier import MLStressClassifier
         d = StressDict()
         MLStressClassifier(d)
         develop.run(self)
@@ -15,7 +15,7 @@ class PostDevelopCommand(develop):
 class PostInstallCommand(install):
     def run(self):
         from rupo.stress.dict import StressDict
-        from rupo.stress.classifier import MLStressClassifier
+        from rupo.stress.stress_classifier import MLStressClassifier
         d = StressDict()
         MLStressClassifier(d)
         install.run(self)

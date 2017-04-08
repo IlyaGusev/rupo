@@ -4,7 +4,7 @@
 
 from typing import List, Tuple
 
-from rupo.stress.classifier import MLStressClassifier
+from rupo.stress.stress_classifier import MLStressClassifier
 from rupo.stress.dict import StressDict
 from rupo.files.reader import FileType, Reader
 from rupo.files.writer import Writer

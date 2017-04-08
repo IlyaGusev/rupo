@@ -4,7 +4,7 @@
 
 import unittest
 
-from rupo.stress.classifier import MLStressClassifier
+from rupo.stress.stress_classifier import MLStressClassifier
 from rupo.stress.dict import StressDict
 
 
