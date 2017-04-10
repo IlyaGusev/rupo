@@ -1,36 +1,46 @@
-from typing import Tuple, List
+# -*- coding: utf-8 -*-
+# Автор: Гусев Илья
+# Описание: Получение транскрипции на основе машинного обучения.
+
+import os
+import re
+from sklearn.externals import joblib
+from typing import Tuple, List, Set
+from sklearn.model_selection import ShuffleSplit, cross_val_score
+from rupo.settings import G2P_DICT_PATH, G2P_CLASSIFIER_DIR
+from sklearn.tree import DecisionTreeClassifier
 
 
 class MLPhonemeClassifier:
     russian_map = {
         "а": ["ɐ", "a", "ɑ", "ə", "æ"],
-        "б": ["b", "bʲ", "p", "pʲ"],
-        "в": ["f", "fʲ", "v", "vʲ"],
-        "г": ["g", "ɡʲ", "ɣ", "v", "x", "xʲ"],
-        "д": ["d", "dʲ", "t", "tʲ"],
+        "б": ["b", "p"],
+        "в": ["f", "v"],
+        "г": ["g", "ɡ", "ɣ", "v", "x"],
+        "д": ["d", "t"],
         "е": ["ɛ", "e", "ə", "ɪ", "ɨ", "j", "ʝ"],
         "ё": ["ɵ"],
-        "ж": ["ʂ", "ɕː", "ʐ", "ʑː"],
-        "з": ["ɕː", "s", "sʲ", "z", "zʲ", "ʑː"],
+        "ж": ["ʂ", "ɕ", "ʐ", "ʑ"],
+        "з": ["ɕ", "s", "z", "ʑ"],
         "и": ["i"],
         "й": ["j"],
-        "к": ["k", "kʲ"],
-        "л": ["ɫ", "lʲ"],
-        "м": ["m", "mʲ", "ɱ"],
-        "н": ["n", "nʲ"],
+        "к": ["k"],
+        "л": ["ɫ"],
+        "м": ["m", "ɱ"],
+        "н": ["n", "ɲ"],
         "о": ["ɐ", "o", "ə"],
-        "п": ["p", "pʲ"],
-        "р": ["r", "ɾ", "rʲ", "ɾʲ", "r。", "rʲ。"],
-        "с": ["s", "sʲ", "ɕː", "zʲ"],
-        "т": ["t", "tʲ"],
+        "п": ["p"],
+        "р": ["r", "ɾ"],
+        "с": ["s", "ɕ", "z"],
+        "т": ["t"],
         "у": ["u", "ʉ", "ʊ"],
-        "ф": ["f", "fʲ"],
-        "х": ["ɣ", "x", "xʲ"],
+        "ф": ["f"],
+        "х": ["ɣ", "x"],
         "ц": ["ʦ"],
-        "ч": ["ʂ", "ɕː", "ʧ", "ʨ"],
+        "ч": ["ʂ", "ɕ", "ʧ", "ʨ", "ɕ"],
         "ш": ["ʂ", "ʧ"],
-        "щ": ["ɕː", "ʑː"],
-        "ь": ["bʲ", "ɡʲ", "dʲ", "kʲ", "lʲ", "mʲ", "nʲ", "pʲ", "sʲ", "fʲ", "tʲ", "zʲ", "vʲ", "xʲ"],
+        "щ": ["ɕ", "ʑ"],
+        "ь": ["ʲ"],
         "ы": ["ɨ"],
         "ъ": [],
         "э": ["ɛ", "ɪ"],
@@ -38,39 +48,131 @@ class MLPhonemeClassifier:
         "я": ["ə", "æ", "ɪ", "j", "ʝ"]
     }
 
+    russian_alphabet = "абвгдеёжзийклмнопрстуфхцчшщьыъэюя"
+    phonetic_alphabet = "n̪ʃʆäʲ。ˌʰʷːːɐaɑəæbfvgɡxtdɛeɪjʝɵʂɕʐʑijkɫlmɱnoprɾsztuʉɪ̯ʊɣʦʂʧʨɨɲʒûʕχѝíʌɒ‿͡"
+    clf_filename = "g2p_clf.pickle"
+
+    def __init__(self) -> None:
+        if not os.path.exists(G2P_CLASSIFIER_DIR):
+            os.mkdir(G2P_CLASSIFIER_DIR)
+        clf_path = os.path.join(G2P_CLASSIFIER_DIR, self.clf_filename)
+        if not os.path.isfile(clf_path):
+            self.__build_classifier(G2P_DICT_PATH, clf_path)
+        self.classifier = joblib.load(clf_path)
+
+    def predict(self, word: str) -> str:
+        """
+        :param word: слово, для которого надо предугадать транскрипцию.
+        :return: транскрипция в МФА.
+        """
+        samples = MLPhonemeClassifier.__generate_samples(word)[0]
+        answers = self.classifier.predict(samples)
+        return "".join([MLPhonemeClassifier.phonetic_alphabet[i] for i in answers])
+
+    def do_cross_val(self) -> None:
+        """
+        Кросс-валидация классификатора.
+        """
+        train_data, train_answers = MLPhonemeClassifier.__prepare_data(G2P_DICT_PATH)
+        cv = ShuffleSplit(2, test_size=0.2, random_state=10)
+        cv_scores = cross_val_score(self.classifier, train_data, train_answers, cv=cv, scoring='accuracy')
+        print("Cross-validation g2p: " + str(cv_scores.mean()))
+
     @staticmethod
-    def generate_g2p_samples(graphemes, phonemes) -> Tuple[List[List[int]], List[int]]:
+    def __build_classifier(dict_filename: str, clf_path: str) -> None:
+        """
+        Постройка классификатора.
+
+        :param dict_filename: путь к файлу словаря.
+        :param clf_path: путь, куда сохраняем классификатор.
+        """
+        train_data, train_answers = MLPhonemeClassifier.__prepare_data(dict_filename)
+        clf = DecisionTreeClassifier()
+        clf.fit(train_data, train_answers)
+        joblib.dump(clf, clf_path)
+
+    @staticmethod
+    def __prepare_data(dict_filename: str, context: int=4) -> Tuple[List[List[int]], List[int]]:
+        """
+        Подготовка данных по словарю.
+
+        :param dict_filename: путь к файлу словаря.
+        :return: данные для обучения и ответы к ним.
+        """
+        clean = []
+        with open(dict_filename, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                graphemes = line.split("\t")[0].strip().lower()
+                phonemes = line.split("\t")[1].strip()
+                clean.append((graphemes, phonemes))
+        train_data = []
+        train_answers = []
+        for i, (graphemes, phonemes) in enumerate(clean[::3]):
+            g, p = MLPhonemeClassifier.__align_phonemes(graphemes, phonemes)
+            samples, answers = MLPhonemeClassifier.__generate_samples(g, p, context)
+            train_data += samples
+            train_answers += answers
+        return train_data, train_answers
+
+    @staticmethod
+    def __generate_samples(graphemes: str, phonemes: str=None, context: int=4) -> Tuple[List[List[int]], List[int]]:
+        """
+        :param graphemes: слово.
+        :param phonemes: транскрипция.
+        :return: примеры и ответы для обучения по слову.
+        """
+        if phonemes is not None:
+            assert len(graphemes) == len(phonemes)
         samples = []
         answers = []
         alphabet = "абвгдеёжзийклмнопрстуфхцчшщжъьэюя "
-        context = list(range(-4, 5))
+        context = list(range(-context, context+1))
         for i in range(len(graphemes)):
             sample = []
             for c in context:
                 if i+c < 0 or i+c >= len(graphemes):
                     for ch in alphabet:
-                        sample.append(False)
+                        sample.append(0)
                 else:
                     for ch in alphabet:
-                        sample.append(graphemes[i+c] == ch)
+                        sample.append(int(graphemes[i+c] == ch))
             samples.append(sample)
-            answers.append(phonemes[i])
+            if phonemes is not None:
+                answers.append(MLPhonemeClassifier.phonetic_alphabet.find(phonemes[i]))
         return samples, answers
 
     @staticmethod
-    def align_phonemes(graphemes, phonemes):
+    def __align_phonemes(graphemes: str, phonemes: str) -> Tuple[str, str]:
+        """
+        Выравнивание графем и фонем.
+
+        :param graphemes: графемы.
+        :param phonemes: фонемы.
+        :return: выровненная пара.
+        """
         diff = len(graphemes) - len(phonemes)
-        phonemes_variants = MLPhonemeClassifier.alignment_variants(phonemes, diff, set()) if diff > 0 else [phonemes]
-        graphemes_variants = MLPhonemeClassifier.alignment_variants(graphemes, abs(diff), set()) if diff < 0 else [graphemes]
+        phonemes_variants = MLPhonemeClassifier.__alignment_variants(phonemes, diff, set()) \
+            if diff > 0 else [phonemes]
+        graphemes_variants = MLPhonemeClassifier.__alignment_variants(graphemes, abs(diff), set()) \
+            if diff < 0 else [graphemes]
         scores = {}
         for g in graphemes_variants:
             for p in phonemes_variants:
                 assert len(g) == len(p)
-                scores[(g, p)] = MLPhonemeClassifier.score_alignment(g, p)
+                scores[(g, p)] = MLPhonemeClassifier.__score_alignment(g, p)
         return max(scores, key=scores.get)
 
     @staticmethod
-    def alignment_variants(symbols, space_count, spaces):
+    def __alignment_variants(symbols: str, space_count: int, spaces: Set[str]) -> Set[str]:
+        """
+        Получение вариантов выравнивания.
+
+        :param symbols: буквы.
+        :param space_count: количество пробелов, которые осталось расставить
+        :param spaces: позиции пробелов.
+        :return: варианты выравнивания.
+        """
         if space_count == 0:
             answer = ""
             next_symbol = 0
@@ -84,11 +186,18 @@ class MLPhonemeClassifier:
         variants = set()
         for j in range(len(symbols) + space_count):
             if j not in spaces:
-                variants |= MLPhonemeClassifier.alignment_variants(symbols, space_count-1, spaces | {j})
+                variants |= MLPhonemeClassifier.__alignment_variants(symbols, space_count-1, spaces | {j})
         return variants
 
     @staticmethod
-    def score_alignment(graphemes, phonemes):
+    def __score_alignment(graphemes: str, phonemes: str) -> int:
+        """
+        Оценка выравнивания.
+
+        :param graphemes: графемы.
+        :param phonemes: фонемы.
+        :return: оценка.
+        """
         score = 0
         for i in range(len(graphemes)):
             grapheme = graphemes[i]
@@ -97,7 +206,8 @@ class MLPhonemeClassifier:
                 if i-1 >= 0 and phonemes[i-1] in MLPhonemeClassifier.russian_map[grapheme]:
                     score += 0.5
             elif grapheme == " ":
-                if i+1 < len(graphemes) and phonemes[i] in MLPhonemeClassifier.russian_map[graphemes[i+1]]:
+                if i+1 < len(graphemes) and graphemes[i+1] != " " and \
+                                phoneme in MLPhonemeClassifier.russian_map[graphemes[i+1]]:
                     score += 0.5
             elif phoneme in MLPhonemeClassifier.russian_map[grapheme]:
                 score += 1
