@@ -108,7 +108,7 @@ class MLPhonemeClassifier:
                 clean.append((graphemes, phonemes))
         train_data = []
         train_answers = []
-        for i, (graphemes, phonemes) in enumerate(clean[::3]):
+        for i, (graphemes, phonemes) in enumerate(clean):
             g, p = MLPhonemeClassifier.__align_phonemes(graphemes, phonemes)
             samples, answers = MLPhonemeClassifier.__generate_samples(g, p, context)
             train_data += samples
