@@ -90,6 +90,7 @@ class MLPhonemeClassifier:
         clf = DecisionTreeClassifier()
         clf.fit(train_data, train_answers)
         joblib.dump(clf, clf_path)
+        print("Built g2p classifier.")
 
     @staticmethod
     def __prepare_data(dict_filename: str, context: int=4) -> Tuple[List[List[int]], List[int]]:

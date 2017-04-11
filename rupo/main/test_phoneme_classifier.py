@@ -10,7 +10,6 @@ from rupo.main.phoneme_classifier import MLPhonemeClassifier
 class TestPhonemeClassifier(unittest.TestCase):
     def test_phoneme_classifier(self):
         clf = MLPhonemeClassifier()
-        clf.do_cross_val()
         print(clf.predict("ведь"))
         print(clf.predict("здравствуйте"))
         print(clf.predict("корова"))
