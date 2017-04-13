@@ -95,7 +95,7 @@ class Word(Annotation):
     def from_dict(self, d: dict) -> 'Word':
         self.__dict__.update(d)
         syllables = d["syllables"]  # type: List[dict]
-        self.syllables = [Syllable(0, 0, 0, "").from_dict(syllables[i]) for i in range(len(syllables))]
+        self.syllables = [Syllable(0, 0, 0, "").from_dict(syllable) for syllable in syllables]
         return self
 
     def __hash__(self) -> int:
@@ -116,7 +116,7 @@ class Line(Annotation):
     def from_dict(self, d) -> 'Line':
         self.__dict__.update(d)
         words = d["words"]  # type: List[dict]
-        self.words = [Word(0, 0, "", []).from_dict(words[i]) for i in range(len(words))]
+        self.words = [Word(0, 0, "", []).from_dict(word) for word in words]
         return self
 
 
@@ -140,7 +140,7 @@ class Markup(CommonMixin):
     def from_dict(self, d) -> 'Markup':
         self.__dict__.update(d)
         lines = d["lines"]  # type: List[dict]
-        self.lines = [Line(0, 0, "", []).from_dict(lines[i]) for i in range(len(lines))]
+        self.lines = [Line(0, 0, "", []).from_dict(line) for line in lines]
         return self
 
     def to_xml(self) -> str:

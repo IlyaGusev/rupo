@@ -4,8 +4,8 @@
 
 import os
 import pickle
-from collections import Counter
-from typing import List
+from collections import Counter, defaultdict
+from typing import List, Dict, Tuple
 
 import numpy as np
 
@@ -18,8 +18,9 @@ class MarkovModelContainer(object):
     """
     Марковские цепи.
     """
-    def __init__(self, dump_filename: str, vocabulary: Vocabulary, markup_dump_path: str=None):
-        self.transitions = list()
+    def __init__(self, dump_filename: str, vocabulary: Vocabulary, markup_dump_path: str=None, n_grams: int=2):
+        self.n_grams = n_grams
+        self.transitions = defaultdict(Counter)  # type: Dict[Tuple, Counter]
         self.vocabulary = vocabulary
         self.dump_filename = dump_filename
 
@@ -27,8 +28,6 @@ class MarkovModelContainer(object):
         if os.path.isfile(dump_filename):
             self.load()
         else:
-            for i in range(self.vocabulary.size()):
-                self.transitions.append(Counter())
             i = 0
             markups = Reader.read_markups(markup_dump_path, FileType.XML, is_processed=True)
             for markup in markups:
@@ -48,17 +47,17 @@ class MarkovModelContainer(object):
             self.transitions = pickle.load(f)
         self.vocabulary.load()
 
-    def generate_chain(self, words: List[int]) -> List[Counter]:
+    def generate_chain(self, words: List[int]) -> Dict[Tuple, Counter]:
         """
         Генерация переходов в марковских цепях с учётом частотности.
 
         :param words: вершины цепи.
         :return: обновленные переходы.
         """
-        for i in range(len(words) - 1):
-            current_word = words[i]
+        for i in range(len(words) - self.n_grams + 1):
+            current_words = tuple([words[j] for j in range(i, i+self.n_grams-1)])
             next_word = words[i+1]
-            self.transitions[current_word][next_word] += 1
+            self.transitions[current_words][next_word] += 1
         return self.transitions
 
     def add_markup(self, markup: Markup) -> None:
@@ -87,13 +86,16 @@ class MarkovModelContainer(object):
         :param word_indices: индексы предыдущих слов.
         :return: языковая модель (распределение вероятностей для следующего слова).
         """
-        l = len(self.transitions)
-        if len(word_indices) == 0 or len(self.transitions[word_indices[-1]]) == 0:
-            model = np.full(len(self.transitions), 1/l, dtype=np.float)
+        l = self.vocabulary.size()
+        if len(word_indices) < self.n_grams - 1:
+            return np.full(self.vocabulary.size(), 1/l, dtype=np.float)
+        prev_words = tuple([word_indices[-i] for i in range(1, self.n_grams)])
+        if len(self.transitions[prev_words]) == 0:
+            return np.full(self.vocabulary.size(), 1/l, dtype=np.float)
         else:
-            transition = self.transitions[word_indices[-1]]
+            transition = self.transitions[prev_words]
             s = sum(transition.values())
-            model = np.zeros(len(self.transitions), dtype=np.float)
+            model = np.zeros(self.vocabulary.size(), dtype=np.float)
             for index, p in transition.items():
                 model[index] = p/s
-        return model
+            return model

@@ -181,9 +181,8 @@ class MetreClassifier(object):
         """
         result = ClassificationResult(len(markup.lines))
         line_clf_results = [LineClassificationResult() for i in range(len(markup.lines))]
-        for l in range(len(markup.lines)):
+        for l, line in enumerate(markup.lines):
             for metre_name, metre_pattern in MetreClassifier.metres.items():
-                line = markup.lines[l]
                 line_syllables_count = sum([len(word.syllables) for word in line.words])
 
                 # Строчки длиной больше border_syllables_count слогов не обрабатываем.
@@ -212,12 +211,12 @@ class MetreClassifier(object):
         result.metre = max(counter, key=counter.get)
 
         # Запомним все исправления.
-        for l in range(len(markup.lines)):
+        for l, line in enumerate(markup.lines):
             pattern = line_clf_results[l].get_best_pattern(result.metre)
             if pattern == "":
                 continue
             corrections, resolutions, additions =\
-                MetreClassifier.__get_line_pattern_matching_corrections(markup.lines[l], l, pattern)
+                MetreClassifier.__get_line_pattern_matching_corrections(line, l, pattern)
             result.corrections[result.metre] += corrections
             result.resolutions[result.metre] += resolutions
             result.additions[result.metre] += additions
@@ -235,8 +234,7 @@ class MetreClassifier(object):
         """
         error_count = 0
         number_in_pattern = 0
-        for w in range(len(line.words)):
-            word = line.words[w]
+        for w, word in enumerate(line.words):
             # Игнорируем слова длиной меньше 2 слогов.
             if len(word.syllables) > 1:
                 numbers = word.get_stressed_syllables_numbers()
@@ -262,8 +260,7 @@ class MetreClassifier(object):
         resolutions = []
         additions = []
         number_in_pattern = 0
-        for w in range(len(line.words)):
-            word = line.words[w]
+        for w, word in enumerate(line.words):
             # Игнорируем слова длиной меньше 2 слогов.
             if len(word.syllables) <= 1:
                 number_in_pattern += len(word.syllables)
@@ -297,18 +294,19 @@ class MetreClassifier(object):
         :param stress_classifier: древесный классификатор ударений.
         """
         result_additions = result.additions[result.metre]  # type: List[StressCorrection]
-        for i in range(len(result_additions)):
+        for i, add1 in enumerate(result_additions):
             for j in range(i, len(result_additions)):
-                text1 = result_additions[i].word_text
-                text2 = result_additions[j].word_text
-                number1 = result_additions[i].syllable_number
-                number2 = result_additions[j].syllable_number
+                add2 = result_additions[j]
+                text1 = add1.word_text
+                text2 = add2.word_text
+                number1 = add1.syllable_number
+                number2 = add2.syllable_number
                 if text1 == text2 and number1 != number2:
                     stress = stress_classifier.classify_stress(text1)
                     if stress == number1:
-                        result.ml_resolutions.append(result_additions[i])
+                        result.ml_resolutions.append(add1)
                     if stress == number2:
-                        result.ml_resolutions.append(result_additions[j])
+                        result.ml_resolutions.append(add2)
 
     @staticmethod
     def get_improved_markup(markup: Markup, result: ClassificationResult) -> Markup:
@@ -321,8 +319,7 @@ class MetreClassifier(object):
         """
         for pos in result.corrections[result.metre] + result.resolutions[result.metre]:
             syllables = markup.lines[pos.line_number].words[pos.word_number].syllables
-            for i in range(len(syllables)):
-                syllable = syllables[i]
+            for i, syllable in enumerate(syllables):
                 syllable.stress = -1
                 if syllable.number == pos.syllable_number:
                     syllable.stress = syllable.begin + get_first_vowel_position(syllable.text)
@@ -333,8 +330,7 @@ class MetreClassifier(object):
 
         for pos in result.ml_resolutions:
             syllables = markup.lines[pos.line_number].words[pos.word_number].syllables
-            for i in range(len(syllables)):
-                syllable = syllables[i]
+            for i, syllable in enumerate(syllables):
                 syllable.stress = -1
                 if syllable.number == pos.syllable_number:
                     syllable.stress = syllable.begin + get_first_vowel_position(syllable.text)

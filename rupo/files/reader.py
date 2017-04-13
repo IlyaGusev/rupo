@@ -50,15 +50,11 @@ class Reader(object):
                 if is_processed:
                     if source_type == FileType.XML:
                         for elem in Reader.__xml_iter(file, 'markup'):
-                            markup = Markup()
-                            markup.from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))
-                            yield markup
+                            yield Markup().from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))
                     elif source_type == FileType.JSON:
                         j = json.load(file)
                         for item in j['items']:
-                            markup = Markup()
-                            markup.from_dict(item)
-                            yield markup
+                            yield Markup().from_dict(item)
                     elif source_type == FileType.RAW:
                         separator_count = 0
                         text = ""
@@ -69,13 +65,9 @@ class Reader(object):
                                 text += line
                             if separator_count == 3:
                                 separator_count = 0
-                                markup = Markup()
-                                markup.from_raw(text)
-                                yield markup
+                                yield Markup().from_raw(text)
                         if text != "":
-                            markup = Markup()
-                            markup.from_raw(text)
-                            yield markup
+                            yield Markup().from_raw(text)
                 else:
                     assert stress_dict is not None
                     assert stress_classifier is not None
@@ -94,10 +86,8 @@ class Reader(object):
         for filename in paths:
             with open(filename, "r", encoding="utf-8") as file:
                 for line in file:
-                    markup = Markup()
                     fields = line.strip().split('\t')
-                    markup.from_raw(fields[0])
-                    yield markup.lines[0].words[0], int(fields[1])
+                    yield Markup().from_raw(fields[0]).lines[0].words[0], int(fields[1])
 
     @staticmethod
     def read_texts(path: str, source_type: FileType) -> Iterator[str]:

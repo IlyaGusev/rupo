@@ -91,8 +91,8 @@ class Patterns:
             if expression[i] == ")":
                 if counter == 1:
                     flag = FlagEnum.ONE  # type: FlagEnum
-                    if i + 1 < len(expression) and (expression[i + 1] == "?" or expression[i + 1] == "*"):
-                        flag = FlagEnum(expression[i + 1])
+                    if i + 1 < len(expression) and (expression[i+1] == "?" or expression[i+1] == "*"):
+                        flag = FlagEnum(expression[i+1])
                     groups.append(Group(expression[begin:i], flag))
                 counter -= 1
             assert counter >= 0

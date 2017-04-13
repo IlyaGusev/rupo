@@ -45,8 +45,8 @@ class Phonetics:
             return word_syllables
 
         # Для слов или подслов, в которых нет дефиса.
-        for i in range(len(word)):
-            if word[i] not in VOWELS:
+        for i, ch in enumerate(word):
+            if ch not in VOWELS:
                 continue
             if i+1 < len(word)-1 and word[i+1] in CLOSED_SYLLABLE_CHARS:
                 if i+2 < len(word)-1 and word[i+2] in "ьЬ":

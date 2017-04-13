@@ -59,8 +59,8 @@ class Tokenizer(object):
         tokens = []
         punctuation = ".,?:;!—"
         begin = -1
-        for i in range(len(text)):
-            if text[i].isalpha() or text[i] == "-":
+        for i, ch in enumerate(text):
+            if ch.isalpha() or ch == "-":
                 if begin == -1:
                     begin = i
             else:
@@ -68,13 +68,13 @@ class Tokenizer(object):
                     tokens.append(Token(text[begin:i], Token.TokenType.WORD, begin, i))
                     begin = -1
                 token_type = Token.TokenType.UNKNOWN
-                if text[i] in punctuation:
+                if ch in punctuation:
                     token_type = Token.TokenType.PUNCTUATION
-                elif text[i] == "\n":
+                elif ch == "\n":
                     token_type = Token.TokenType.ENDLINE
-                elif text[i] == " ":
+                elif ch == " ":
                     token_type = Token.TokenType.SPACE
-                tokens.append(Token(text[i], token_type, i, i + 1))
+                tokens.append(Token(ch, token_type, i, i + 1))
         if begin != -1:
             tokens.append(Token(text[begin:len(text)], Token.TokenType.WORD, begin, len(text)))
         tokens = Tokenizer.__hyphen_map(tokens)

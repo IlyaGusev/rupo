@@ -50,16 +50,16 @@ class StressDict:
                     pos = -1
                     stresses = []
                     clean_word = ""
-                    for i in range(len(word)):
-                        if word[i] == "'" or word[i] == "`":
-                            if word[i] == "`":
+                    for i, ch in enumerate(word):
+                        if ch == "'" or ch == "`":
+                            if ch == "`":
                                 stresses.append((pos, StressDict.StressType.SECONDARY))
                             else:
                                 stresses.append((pos, StressDict.StressType.PRIMARY))
                             continue
-                        clean_word += word[i]
+                        clean_word += ch
                         pos += 1
-                        if word[i] == "ё":
+                        if ch == "ё":
                             stresses.append((pos, StressDict.StressType.PRIMARY))
                     self.update(clean_word, stresses)
         self.data.save(dst_filename)

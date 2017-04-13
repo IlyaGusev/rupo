@@ -40,8 +40,8 @@ class Filter(object):
             if not self.filter_word(vocabulary.get_word(i)):
                 model[i] = 0.0
         s = sum(model)
-        for i in range(len(model)):
-            model[i] = model[i]/s if s != 0.0 else 0.0
+        for i, p in enumerate(model):
+            model[i] = p/s if s != 0.0 else 0.0
         return model
 
     def filter_words(self, words: List[Word]) -> List[Word]:

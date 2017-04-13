@@ -58,8 +58,8 @@ def count_vowels(string):
 
 
 def get_first_vowel_position(string):
-    for i in range(len(string)):
-        if string[i] in VOWELS:
+    for i, ch in enumerate(string):
+        if ch in VOWELS:
             return i
     return -1
 
