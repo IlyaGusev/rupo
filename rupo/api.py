@@ -47,10 +47,10 @@ class Engine:
             self.vocabulary = Vocabulary(dump_path, markup_path)
         return self.vocabulary
 
-    def get_markov(self, dump_path: str, vocab_dump_path: str, markup_path: str) -> MarkovModelContainer:
+    def get_markov(self, dump_path: str, vocab_dump_path: str, markup_path: str, n_grams: int=2) -> MarkovModelContainer:
         if self.markov is None:
             vocab = self.get_vocabulary(vocab_dump_path, markup_path)
-            self.markov = MarkovModelContainer(dump_path, vocab, markup_path)
+            self.markov = MarkovModelContainer(dump_path, vocab, markup_path, n_grams=n_grams)
         return self.markov
 
     def get_generator(self, dump_path: str, vocab_dump_path: str, markup_path: str) -> Generator:

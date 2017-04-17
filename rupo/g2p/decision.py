@@ -113,6 +113,8 @@ class DecisionPhonemePredictor:
             samples, answers = DecisionPhonemePredictor.__generate_samples(g, p, context)
             train_data += samples
             train_answers += answers
+            if i % 10000 == 0:
+                print(str(i)+"/"+str(len(clean)))
         return train_data, train_answers
 
     @staticmethod

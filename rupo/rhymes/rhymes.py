@@ -26,13 +26,14 @@ class Rhymes(object):
         features1 = Rhymes.__get_rhyme_profile(word1)
         features2 = Rhymes.__get_rhyme_profile(word2)
         count_equality = 0
-        for i in range(len(features1[1])):
+        for i, ch1 in enumerate(features1[1]):
             for j in range(i, len(features2[1])):
-                if features1[1][i] == features2[1][j]:
-                    if features1[1][i] in VOWELS:
-                        count_equality += 3
-                    else:
-                        count_equality += 1
+                ch2 = features2[1][j]
+                if ch1 != ch2:
+                    continue
+                count_equality += 1
+                if ch1 in VOWELS:
+                    count_equality += 2
         if features1[2] == features2[2] and features1[2] != '' and features2[2] != '':
             count_equality += 2
         elif features1[3] == features2[3] and features1[3] != '' and features2[3] != '':
@@ -54,14 +55,14 @@ class Rhymes(object):
         next_syllable = ''
         next_char = ''
         syllables = list(reversed(word.syllables))
-        for i in range(len(syllables)):
-            syllable = syllables[i]
-            if syllable.accent != -1:
-                if i != 0:
-                    next_syllable = syllables[i - 1].text
-                stressed_syllable = syllables[i].text
-                if syllable.accent + 1 < len(word.text):
-                    next_char = word.text[syllable.accent + 1]
-                syllable_number = i
-                break
+        for i, syllable in enumerate(syllables):
+            if syllable.accent == -1:
+                continue
+            if i != 0:
+                next_syllable = syllables[i - 1].text
+            stressed_syllable = syllables[i].text
+            if syllable.accent + 1 < len(word.text):
+                next_char = word.text[syllable.accent + 1]
+            syllable_number = i
+            break
         return syllable_number, stressed_syllable, next_syllable, next_char

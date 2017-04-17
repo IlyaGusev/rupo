@@ -46,7 +46,8 @@ class TestApi(unittest.TestCase):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
         markov_dump_file = os.path.join(EXAMPLES_DIR, "markov.pickle")
         self.assertNotEqual(
-            self.engine.generate_poem(MARKUP_XML_EXAMPLE, markov_dump_file, vocab_dump_file, rhyme_pattern="aa", n_syllables=6), "")
+            self.engine.generate_poem(MARKUP_XML_EXAMPLE, markov_dump_file,
+                                      vocab_dump_file, rhyme_pattern="aa", n_syllables=6), "")
         os.remove(vocab_dump_file)
         os.remove(markov_dump_file)
         self.engine.vocabulary = None
