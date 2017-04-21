@@ -5,7 +5,7 @@
 import numpy as np
 import os
 
-from typing import List, Tuple, ClassVar
+from typing import List, Tuple
 
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential, load_model
@@ -17,9 +17,9 @@ from keras.layers import LSTM, Bidirectional, Dropout, Activation, Dense, Maskin
 class RNNAccentPredictor:
     phonetic_alphabet = " n̪ʃʆäʲ。ˌʰʷːːɐaɑəæbfv̪gɡxtdɛ̝̈ɬŋeɔɘɪjʝɵʂɕʐʑijkјɫlmɱnoprɾszᵻuʉɪ̯ʊɣʦʂʧʨɨɪ̯̯ɲʒûʕχѝíʌɒ‿͡ðwhɝθ"
 
-    def __init__(self, dict_path: str, word_max_length: int=30, language: str="ru", rnn: ClassVar=LSTM,
+    def __init__(self, dict_path: str, word_max_length: int=30, language: str="ru", rnn=LSTM,
                  units: int=128, dropout: float=0.2):
-        self.rnn = rnn  # type: ClassVar
+        self.rnn = rnn
         self.dropout = dropout  # type: float
         self.units = units  # type: int
         self.language = language  # type: str
