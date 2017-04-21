@@ -1,109 +1,120 @@
 # -*- coding: utf-8 -*-
 # Автор: Гусев Илья
-# Описание: Рекуррентная сеть для получения фонем из графем.
+# Описание: Рекуррентная сеть для получения ударений по фонемам.
 
 import numpy as np
 import os
-import h5py
-from keras.models import Sequential
-from keras.layers import LSTM, Bidirectional, GRU, Dropout, Activation, TimeDistributed, Dense, Merge
-from keras.preprocessing import sequence
+
+from typing import List, Tuple, ClassVar
+
 from sklearn.model_selection import train_test_split
+from keras.models import Sequential, load_model
+from keras.preprocessing import sequence
+from keras.callbacks import EarlyStopping, ModelCheckpoint, Callback
+from keras.layers import LSTM, Bidirectional, Dropout, Activation, Dense, Masking
 
 
 class RNNAccentPredictor:
     phonetic_alphabet = " n̪ʃʆäʲ。ˌʰʷːːɐaɑəæbfv̪gɡxtdɛ̝̈ɬŋeɔɘɪjʝɵʂɕʐʑijkјɫlmɱnoprɾszᵻuʉɪ̯ʊɣʦʂʧʨɨɪ̯̯ɲʒûʕχѝíʌɒ‿͡ðwhɝθ"
 
-    def __init__(self, dict_path, word_max_length=30, language="ru"):
-        self.dict_path = dict_path
-        self.word_max_length = word_max_length
+    def __init__(self, dict_path: str, word_max_length: int=30, language: str="ru", rnn: ClassVar=LSTM,
+                 units: int=128, dropout: float=0.2):
+        self.rnn = rnn  # type: ClassVar
+        self.dropout = dropout  # type: float
+        self.units = units  # type: int
+        self.language = language  # type: str
+        self.dict_path = dict_path  # type: str
+        self.word_max_length = word_max_length  # type: int
         self.model = None
 
-    def build(self):
-        input_n = len(self.phonetic_alphabet)
-        output_n = self.word_max_length
-        self.model = Sequential()
-        self.model.add(Bidirectional(LSTM(128), input_shape=(None, input_n)))
-        self.model.add(Dropout(0.2))
-        self.model.add(Dense(output_n))
-        self.model.add(Activation('softmax'))
-        self.model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-        print(self.model.summary())
+    def build(self) -> None:
+        """
+        Построение модели. 
+        """
+        model = Sequential()
+        model.add(Masking(mask_value=0., input_shape=(self.word_max_length, len(self.phonetic_alphabet))))
+        model.add(Bidirectional(self.rnn(self.units)))
+        model.add(Dropout(self.dropout))
+        model.add(Dense(self.word_max_length))
+        model.add(Activation('softmax'))
+        model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        print(model.summary())
+        self.model = model
 
-    def train(self, path_to_save):
+    def train(self, dir_name: str, enable_checkpoints: bool=False) -> None:
+        """
+        Обучение сети.
+        
+        :param dir_name: папка, в которую сохраняеются все весрии модели.
+        :param enable_checkpoints: использовать ли чекпоинты.
+        """
+        # Подготовка данных
         x, y = self.__load_dict()
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
-        x_train, y_train = self.__prepare_data(x_train, y_train)
-        x_test, y_test = self.__prepare_data(x_test, y_test)
-        accuracy_error_old = 1.0
-        for i in range(40):
-            self.model.fit(x_train, y_train, verbose=1, epochs=1)
-            print("Epoch: " + str(i))
-            accuracy_error = self.__validate(x_test, y_test)
-            if accuracy_error > accuracy_error_old:
-                break
-            accuracy_error_old = accuracy_error
-            self.save(path_to_save)
+        x, y = self.__prepare_data(x, y)
+        # Деление на выборки.
+        x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.1, random_state=42)
+        # Основные раунды обучения.
+        callbacks = [EarlyStopping(monitor='val_loss', patience=2)]  # type: List[Callback]
+        if enable_checkpoints:
+            checkpoint_name = os.path.join(dir_name, "{epoch:02d}-{val_loss:.2f}.hdf5")
+            callbacks.append(ModelCheckpoint(checkpoint_name, monitor='val_loss'))
+        self.model.fit(x_train, y_train, verbose=1, epochs=20, validation_data=(x_val, y_val), callbacks=callbacks)
+        # Рассчёт точности на val выборке.
+        accuracy = self.model.evaluate(x_val, y_val)[1]
+        # Один раунд обучения на всём датасете.
+        self.model.fit(x, y, verbose=1, epochs=1)
+        # Сохранение модели.
+        filename = "accent_{language}_{rnn}{units}_dropout{dropout}_acc{acc}.h5"
+        filename = filename.format(language=self.language, rnn=self.rnn.__name__,
+                                   units=self.units, dropout=self.dropout, acc=accuracy)
+        self.model.save(os.path.join(dir_name, filename))
 
-    def __load_dict(self):
+    def predict(self, words: List[str]) -> List[int]:
+        """
+        Предсказание ударений.
+        
+        :param words: слова. 
+        :return: ударения.
+        """
+        x, y = self.__prepare_data(words, None)
+        accents = [int(np.argmax(prob)) for prob in self.model.predict(x, verbose=0)]
+        return accents
+
+    def load(self, filename: str) -> None:
+        self.model = load_model(filename)
+
+    def __load_dict(self) -> Tuple[List[str], List[int]]:
+        """
+        Парсинг словаря.
+        
+        :return: фонетические слова и ударения.
+        """
         x = []
         y = []
         with open(self.dict_path, "r", encoding='utf-8') as f:
             lines = f.readlines()
             for line in lines:
-                p = line.split("\t")[0].strip()
-                f = line.split("\t")[1].strip()
+                line = line.strip()
+                phonemes, primary, secondary = line.split("\t")
                 flag = False
-                for ch in p:
-                    if ch not in self.phonetic_alphabet:
+                for p in phonemes:
+                    if p not in self.phonetic_alphabet:
                         flag = True
                 if flag:
                     continue
-                x.append(p)
-                y.append(f)
+                x.append(phonemes)
+                y.append(primary)
         return x, y
 
-    def __prepare_data(self, x, y):
+    def __prepare_data(self, x: List[str], y: List[int]=None) -> Tuple[List[List[List[int]]], List[int]]:
+        """
+        Подготовка данных
+        
+        :param x: семплы.
+        :param y: ответы.
+        :return: очищенные семплы и овтеты.
+        """
         x = [[[int(ch == ch2) for ch2 in self.phonetic_alphabet] for ch in p] for p in x]
-        padding = np.zeros(len(self.phonetic_alphabet))
-        padding[0] = 1
-        x = sequence.pad_sequences(x, maxlen=self.word_max_length, value=padding, padding="post", truncating="post")
+        x = sequence.pad_sequences(x, maxlen=self.word_max_length, value=np.zeros(len(self.phonetic_alphabet)),
+                                   padding="post", truncating="post")
         return x, y
-
-    def __validate(self, x, y):
-        print("Validation:")
-        answer = self.model.predict(x, verbose=0)
-        errors = 0
-        for i, prob in enumerate(answer):
-            a = np.argmax(prob)
-            if int(a) != int(y[i]):
-                errors += 1
-
-        print(errors)
-        acc_error = float(errors)/len(y)
-        print("Accuracy error: " + str(acc_error))
-        return acc_error
-
-    def predict(self, word):
-        x = [[[int(ch == ch2) for ch2 in self.phonetic_alphabet] for ch in word]]
-        padding = np.zeros(len(self.phonetic_alphabet))
-        padding[0] = 1
-        x = sequence.pad_sequences(x, maxlen=self.word_max_length, value=padding, padding="post", truncating="post")
-        accent = np.argmax(self.model.predict(x, verbose=0)[0])
-        return accent
-
-    def save(self, weights_path):
-        if os.path.exists(weights_path):
-            os.remove(weights_path)
-        file = h5py.File(weights_path, 'w')
-        weight = self.model.get_weights()
-        for i in range(len(weight)):
-            file.create_dataset('weight' + str(i), data=weight[i])
-        file.close()
-
-    def load(self, weights_path):
-        file = h5py.File(weights_path, 'r')
-        weight = []
-        for i in range(len(file.keys())):
-            weight.append(file['weight' + str(i)][:])
-        self.model.set_weights(weight)

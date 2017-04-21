@@ -2,6 +2,8 @@
 # Автор: Гусев Илья
 # Описание: Конвертер CMU словаря.
 
+from rupo.settings import CMU_DICT, EN_PHONEME_ACCENT_PATH, EN_G2P_DICT_PATH
+
 
 class CMUDict:
     aprabet2ipa = {
@@ -56,9 +58,9 @@ class CMUDict:
     }
 
     @staticmethod
-    def convert_g2p(source_file, destination_file):
+    def convert_to_g2p_only(destination_file):
         clean = []
-        with open(source_file, 'r', encoding="utf-8", errors="ignore") as f:
+        with open(CMU_DICT, 'r', encoding="utf-8", errors="ignore") as f:
             lines = f.readlines()
             for line in lines:
                 g = line.split("  ")[0].lower()
@@ -78,9 +80,9 @@ class CMUDict:
                 w.write(g+"\t"+p+"\n")
 
     @staticmethod
-    def convert_accent(source_file, destination_file):
+    def convert_to_phoneme_accent(destination_file):
         clean = []
-        with open(source_file, 'r', encoding="utf-8", errors="ignore") as f:
+        with open(CMU_DICT, 'r', encoding="utf-8", errors="ignore") as f:
             lines = f.readlines()
             for line in lines:
                 g = line.split("  ")[0].lower()

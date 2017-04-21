@@ -7,9 +7,11 @@ import os
 from typing import List, Tuple
 from enum import Enum
 
-from rupo.util.preprocess import CYRRILIC_LOWER_VOWELS, CYRRILIC_LOWER_CONSONANTS
-from rupo.settings import DICT_TXT_PATH
-from rupo.settings import DICT_TRIE_PATH
+from rupo.util.cmu import CMUDict
+from rupo.util.zaliznyak import ZalyzniakDict
+from rupo.settings import RU_GRAPHEME_ACCENT_PATH, RU_GRAPHEME_ACCENT_TRIE_PATH, \
+    EN_PHONEME_ACCENT_PATH, EN_PHONEME_ACCENT_TRIE_PATH, \
+    RU_PHONEME_ACCENT_PATH, RU_PHONEME_ACCENT_TRIE_PATH, RU_GRAPHEME_SET, PHONEME_SET
 
 
 class StressDict:
@@ -17,17 +19,40 @@ class StressDict:
     Класс данных, для сериализации словаря как префиксного дерева и быстрой загрузки в память.
     """
 
+    class Language:
+        ENGLISH = 0
+        RUSSIAN = 1
+
+    class Mode:
+        GRAPHEMES = 0
+        PHONEMES = 0
+
     class StressType(Enum):
         ANY = -1
         PRIMARY = 0
         SECONDARY = 1
 
-    StressType = StressType
-
-    def __init__(self) -> None:
-        self.data = datrie.Trie(CYRRILIC_LOWER_VOWELS+CYRRILIC_LOWER_CONSONANTS+"-")
-        src_filename = DICT_TXT_PATH
-        dst_filename = DICT_TRIE_PATH
+    def __init__(self, language: Language=Language.RUSSIAN, mode: Mode=Mode.GRAPHEMES) -> None:
+        if language == self.Language.RUSSIAN and mode == self.Mode.GRAPHEMES:
+            self.data = datrie.Trie(RU_GRAPHEME_SET)
+            src_filename = RU_GRAPHEME_ACCENT_PATH
+            if not os.path.exists(RU_GRAPHEME_ACCENT_PATH):
+                ZalyzniakDict.convert_to_accent_only(RU_GRAPHEME_ACCENT_PATH)
+            dst_filename = RU_GRAPHEME_ACCENT_TRIE_PATH
+        elif mode == self.Mode.PHONEMES and language == self.Language.ENGLISH:
+            self.data = datrie.Trie(PHONEME_SET)
+            src_filename = EN_PHONEME_ACCENT_PATH
+            if not os.path.exists(EN_PHONEME_ACCENT_PATH):
+                CMUDict.convert_to_phoneme_accent(EN_PHONEME_ACCENT_PATH)
+            dst_filename = EN_PHONEME_ACCENT_TRIE_PATH
+        elif mode == self.Mode.PHONEMES and language == self.Language.RUSSIAN:
+            self.data = datrie.Trie(PHONEME_SET)
+            src_filename = RU_PHONEME_ACCENT_PATH
+            if not os.path.exists(RU_PHONEME_ACCENT_PATH):
+                ZalyzniakDict.convert_to_phoneme_accent(RU_PHONEME_ACCENT_PATH)
+            dst_filename = RU_PHONEME_ACCENT_TRIE_PATH
+        else:
+            assert False
         if not os.path.isfile(src_filename):
             raise FileNotFoundError("Не найден файл словаря.")
         if os.path.isfile(dst_filename):
@@ -37,7 +62,7 @@ class StressDict:
 
     def create(self, src_filename: str, dst_filename: str) -> None:
         """
-        Загрузка словаря из файла. Если уже есть его сериализация в .trie файле, берём из него.
+        Загрузка словаря из файла.
 
         :param src_filename: имя файла с оригинальным словарём.
         :param dst_filename: имя файла, в который будет сохранён дамп.
@@ -45,23 +70,11 @@ class StressDict:
         with open(src_filename, 'r', encoding='utf-8') as f:
             lines = f.readlines()
             for line in lines:
-                for word in line.split("#")[1].split(","):
-                    word = word.strip()
-                    pos = -1
-                    stresses = []
-                    clean_word = ""
-                    for i, ch in enumerate(word):
-                        if ch == "'" or ch == "`":
-                            if ch == "`":
-                                stresses.append((pos, StressDict.StressType.SECONDARY))
-                            else:
-                                stresses.append((pos, StressDict.StressType.PRIMARY))
-                            continue
-                        clean_word += ch
-                        pos += 1
-                        if ch == "ё":
-                            stresses.append((pos, StressDict.StressType.PRIMARY))
-                    self.update(clean_word, stresses)
+                word, primary, secondary = line.split("\t")
+                stresses = [(int(a), StressDict.StressType.PRIMARY) for a in primary.strip().split(",")]
+                if secondary.strip() != "":
+                    stresses += [(int(a), StressDict.StressType.SECONDARY) for a in secondary.strip().split(",")]
+                self.update(word, stresses)
         self.data.save(dst_filename)
 
     def save(self, dst_filename: str) -> None:

@@ -15,7 +15,7 @@ from rupo.main.markup import Syllable
 from rupo.main.phonetics import Phonetics
 from rupo.util.preprocess import CYRRILIC_LOWER_CONSONANTS, CYRRILIC_LOWER_VOWELS, VOWELS
 from rupo.util.preprocess import get_first_vowel_position
-from rupo.settings import CLASSIFIER_PATH
+from rupo.settings import CLASSIFIER_DIR
 
 
 class MLStressClassifier:
@@ -30,12 +30,12 @@ class MLStressClassifier:
         :param stress_dict: словарь ударений.
         """
         self.max_syllables = 12
-        if not os.path.exists(CLASSIFIER_PATH):
-            os.mkdir(CLASSIFIER_PATH)
+        if not os.path.exists(CLASSIFIER_DIR):
+            os.mkdir(CLASSIFIER_DIR)
         for l in range(2, self.max_syllables + 1):
-            if not os.path.isfile(os.path.join(CLASSIFIER_PATH, self.clf_filename.format(l))):
-                self.__build_stress_classifier(CLASSIFIER_PATH, stress_dict, l)
-        self.classifiers = {l: joblib.load(os.path.join(CLASSIFIER_PATH,
+            if not os.path.isfile(os.path.join(CLASSIFIER_DIR, self.clf_filename.format(l))):
+                self.__build_stress_classifier(CLASSIFIER_DIR, stress_dict, l)
+        self.classifiers = {l: joblib.load(os.path.join(CLASSIFIER_DIR,
                                                         self.clf_filename.format(l)))
                             for l in range(2, self.max_syllables + 1)}
 
