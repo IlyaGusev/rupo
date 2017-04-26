@@ -8,6 +8,6 @@ from rupo.settings import EN_PHONEME_STRESS_PATH, ACCENT_CURRENT_MODEL_DIR, EN_G
 from rupo.g2p.rnn_stress import RNNStressPredictor
 from rupo.g2p.rnn_g2p import RNNPhonemePredictor
 
-clf1 = RNNStressPredictor(RU_PHONEME_STRESS_PATH, 21, language="ru", rnn=LSTM)
-clf1.build()
-clf1.train(ACCENT_CURRENT_MODEL_DIR, enable_checkpoints=True)
+# clf1 = RNNStressPredictor(RU_PHONEME_STRESS_PATH, 21, language="ru", rnn=LSTM)
+# clf1.build()
+# clf1.train(ACCENT_CURRENT_MODEL_DIR, enable_checkpoints=True)
