@@ -4,14 +4,14 @@
 
 import datrie
 import os
-from typing import List, Tuple
 from enum import Enum
+from typing import List, Tuple
 
-from rupo.util.cmu import CMUDict
-from rupo.util.zaliznyak import ZalyzniakDict
-from rupo.settings import RU_GRAPHEME_ACCENT_PATH, RU_GRAPHEME_ACCENT_TRIE_PATH, \
-    EN_PHONEME_ACCENT_PATH, EN_PHONEME_ACCENT_TRIE_PATH, \
-    RU_PHONEME_ACCENT_PATH, RU_PHONEME_ACCENT_TRIE_PATH, RU_GRAPHEME_SET, PHONEME_SET
+from rupo.dict.cmu import CMUDict
+from rupo.dict.zaliznyak import ZalyzniakDict
+from rupo.settings import RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH, \
+    EN_PHONEME_STRESS_PATH, EN_PHONEME_STRESS_TRIE_PATH, \
+    RU_PHONEME_STRESS_PATH, RU_PHONEME_STRESS_TRIE_PATH, RU_GRAPHEME_SET, PHONEME_SET
 
 
 class StressDict:
@@ -35,22 +35,22 @@ class StressDict:
     def __init__(self, language: Language=Language.RUSSIAN, mode: Mode=Mode.GRAPHEMES) -> None:
         if language == self.Language.RUSSIAN and mode == self.Mode.GRAPHEMES:
             self.data = datrie.Trie(RU_GRAPHEME_SET)
-            src_filename = RU_GRAPHEME_ACCENT_PATH
-            if not os.path.exists(RU_GRAPHEME_ACCENT_PATH):
-                ZalyzniakDict.convert_to_accent_only(RU_GRAPHEME_ACCENT_PATH)
-            dst_filename = RU_GRAPHEME_ACCENT_TRIE_PATH
+            src_filename = RU_GRAPHEME_STRESS_PATH
+            if not os.path.exists(RU_GRAPHEME_STRESS_PATH):
+                ZalyzniakDict.convert_to_accent_only(RU_GRAPHEME_STRESS_PATH)
+            dst_filename = RU_GRAPHEME_STRESS_TRIE_PATH
         elif mode == self.Mode.PHONEMES and language == self.Language.ENGLISH:
             self.data = datrie.Trie(PHONEME_SET)
-            src_filename = EN_PHONEME_ACCENT_PATH
-            if not os.path.exists(EN_PHONEME_ACCENT_PATH):
-                CMUDict.convert_to_phoneme_accent(EN_PHONEME_ACCENT_PATH)
-            dst_filename = EN_PHONEME_ACCENT_TRIE_PATH
+            src_filename = EN_PHONEME_STRESS_PATH
+            if not os.path.exists(EN_PHONEME_STRESS_PATH):
+                CMUDict.convert_to_phoneme_accent(EN_PHONEME_STRESS_PATH)
+            dst_filename = EN_PHONEME_STRESS_TRIE_PATH
         elif mode == self.Mode.PHONEMES and language == self.Language.RUSSIAN:
             self.data = datrie.Trie(PHONEME_SET)
-            src_filename = RU_PHONEME_ACCENT_PATH
-            if not os.path.exists(RU_PHONEME_ACCENT_PATH):
-                ZalyzniakDict.convert_to_phoneme_accent(RU_PHONEME_ACCENT_PATH)
-            dst_filename = RU_PHONEME_ACCENT_TRIE_PATH
+            src_filename = RU_PHONEME_STRESS_PATH
+            if not os.path.exists(RU_PHONEME_STRESS_PATH):
+                ZalyzniakDict.convert_to_phoneme_accent(RU_PHONEME_STRESS_PATH)
+            dst_filename = RU_PHONEME_STRESS_TRIE_PATH
         else:
             assert False
         if not os.path.isfile(src_filename):

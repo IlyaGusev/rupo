@@ -11,12 +11,14 @@ from keras.models import Sequential, load_model
 from keras.callbacks import Callback, EarlyStopping, ModelCheckpoint
 from keras.preprocessing import sequence
 from keras.layers import LSTM, Bidirectional, Dropout, Activation, TimeDistributed, Dense
+from rupo.settings import RU_GRAPHEME_SET, EN_GRAPHEME_SET
+from rupo.g2p.phonemes import Phonemes
 
 
 class RNNPhonemePredictor:
-    phonetic_alphabet = " n̪ʃʆäʲ。ˌʰʷːːɐaɑəæbfv̪gɡxtdɛ̝̈ɬŋeɔɘɪjʝɵʂɕʐʑijkјɫlmɱnoprɾszᵻuʉɪ̯ʊɣʦʂʧʨɨɪ̯̯ɲʒûʕχѝíʌɒ‿͡ðwhɝθ"
+    phonetic_alphabet = "".join(Phonemes.get_all())
 
-    def __init__(self, dict_path: str, word_max_length: int=30, language: str="ru", rnn=LSTM,
+    def __init__(self, dict_path: str=None, word_max_length: int=30, language: str="ru", rnn=LSTM,
                  units1: int=256, units2: int=128, dropout: float=0.2):
         self.rnn = rnn
         self.dropout = dropout  # type: float
@@ -24,9 +26,9 @@ class RNNPhonemePredictor:
         self.units2 = units2  # type: int
         self.language = language  # type: str
         if language == "ru":
-            self.grapheme_alphabet = " абвгдеёжзийклмнопрстуфхцчшщьыъэюя-"
+            self.grapheme_alphabet = RU_GRAPHEME_SET
         elif language == "en":
-            self.grapheme_alphabet = " abcdefghijklmnopqrstuvwxyz.'-"
+            self.grapheme_alphabet = EN_GRAPHEME_SET
         else:
             assert False
         self.dict_path = dict_path  # type: str
@@ -72,10 +74,10 @@ class RNNPhonemePredictor:
         # Один раунд обучения на всём датасете.
         self.model.fit(x, y, verbose=1, epochs=1)
         # Сохранение модели.
-        filename = "g2p_{language}_{rnn}{units1}_{rnn}{units2}_dropout{dropout}_acc{acc}_wer{wer}.h5"
+        filename = "g2p_{language}_maxlen{maxlen}_{rnn}{units1}_{rnn}{units2}_dropout{dropout}_acc{acc}_wer{wer}.h5"
         filename = filename.format(language=self.language, rnn=self.rnn.__name__,
                                    units1=self.units1, units2=self.units2, dropout=self.dropout,
-                                   acc=int(accuracy*100), wer=int(wer*100))
+                                   acc=int(accuracy*100), wer=int(wer*100), maxlen=self.word_max_length)
         self.model.save(os.path.join(dir_name, filename))
 
     def predict(self, words: List[str]) -> List[str]:
