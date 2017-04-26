@@ -11,7 +11,8 @@ from rupo.dict.cmu import CMUDict
 from rupo.dict.zaliznyak import ZalyzniakDict
 from rupo.settings import RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH, \
     EN_PHONEME_STRESS_PATH, EN_PHONEME_STRESS_TRIE_PATH, \
-    RU_PHONEME_STRESS_PATH, RU_PHONEME_STRESS_TRIE_PATH, RU_GRAPHEME_SET, PHONEME_SET
+    RU_PHONEME_STRESS_PATH, RU_PHONEME_STRESS_TRIE_PATH, RU_GRAPHEME_SET
+from rupo.g2p.phonemes import Phonemes
 
 
 class StressDict:
@@ -40,16 +41,16 @@ class StressDict:
                 ZalyzniakDict.convert_to_accent_only(RU_GRAPHEME_STRESS_PATH)
             dst_filename = RU_GRAPHEME_STRESS_TRIE_PATH
         elif mode == self.Mode.PHONEMES and language == self.Language.ENGLISH:
-            self.data = datrie.Trie(PHONEME_SET)
+            self.data = datrie.Trie(Phonemes.get_all())
             src_filename = EN_PHONEME_STRESS_PATH
             if not os.path.exists(EN_PHONEME_STRESS_PATH):
-                CMUDict.convert_to_phoneme_accent(EN_PHONEME_STRESS_PATH)
+                CMUDict.convert_to_phoneme_stress(EN_PHONEME_STRESS_PATH)
             dst_filename = EN_PHONEME_STRESS_TRIE_PATH
         elif mode == self.Mode.PHONEMES and language == self.Language.RUSSIAN:
-            self.data = datrie.Trie(PHONEME_SET)
+            self.data = datrie.Trie(Phonemes.get_all())
             src_filename = RU_PHONEME_STRESS_PATH
             if not os.path.exists(RU_PHONEME_STRESS_PATH):
-                ZalyzniakDict.convert_to_phoneme_accent(RU_PHONEME_STRESS_PATH)
+                ZalyzniakDict.convert_to_phoneme_stress(RU_PHONEME_STRESS_PATH)
             dst_filename = RU_PHONEME_STRESS_TRIE_PATH
         else:
             assert False
