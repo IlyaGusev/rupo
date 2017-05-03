@@ -31,11 +31,11 @@ class Phonemes:
 
     @staticmethod
     def get_all():
-        l = Phonemes.VOWELS + Phonemes.NASAL_CONSONANTS + Phonemes.STOP_CONSONANTS + \
+        l = [" "] + Phonemes.VOWELS + Phonemes.NASAL_CONSONANTS + Phonemes.STOP_CONSONANTS + \
             Phonemes.FRICATIVE_CONSONANTS + Phonemes.AFFRICATE_CONSONANTS + Phonemes.APPROXIMANT_CONSONANTS + \
             Phonemes.FLAP_OR_TAP_CONSONANTS + Phonemes.TRILL_CONSONANTS + Phonemes.CLICK_CONSONANTS + \
             Phonemes.IMPLOSIVE_CONSONANTS + Phonemes.DIACRITICS + Phonemes.SUPRASEGMENTALS
-        return list(set(l))
+        return l
 
     @staticmethod
     def clean(phonemes: str) -> str:
@@ -48,7 +48,7 @@ class Phonemes:
                 if phonemes[i-1] in Phonemes.VOWELS:
                     clean += phonemes[i-1]
                 continue
-            if ch in alphabet + ["'"]:
+            if ch in alphabet + ["'", "ˌ"]:
                 clean += ch
         j_positions = [i for i in range(len(clean)) if clean.startswith("ɪ̯", i)]
         offset = 0

@@ -7,10 +7,11 @@ import os
 from typing import  List, Tuple
 
 from sklearn.model_selection import train_test_split
-from keras.models import Sequential, load_model
+from keras.models import Model, load_model
 from keras.callbacks import Callback, EarlyStopping, ModelCheckpoint
 from keras.preprocessing import sequence
-from keras.layers import LSTM, Bidirectional, Dropout, Activation, TimeDistributed, Dense
+from keras.layers import LSTM, Bidirectional, Dropout, TimeDistributed, Dense, Input
+from keras.layers.merge import concatenate
 from rupo.settings import RU_GRAPHEME_SET, EN_GRAPHEME_SET
 from rupo.g2p.phonemes import Phonemes
 
@@ -40,44 +41,52 @@ class RNNPhonemePredictor:
         Построение модели.
         """
         input_n = len(self.grapheme_alphabet)
-        model = Sequential()
-        model.add(Bidirectional(self.rnn(self.units1, return_sequences=True), input_shape=(None, input_n)))
-        model.add(self.rnn(self.units2, return_sequences=True))
-        model.add(Dropout(self.dropout))
-        model.add(TimeDistributed(Dense(len(self.phonetic_alphabet))))
-        model.add(Activation('softmax'))
+        inp = Input(shape=(None, input_n))
+        encoded = concatenate([Bidirectional(self.rnn(self.units1, return_sequences=True))(inp),
+                              self.rnn(self.units1, return_sequences=True)(inp)],
+                              axis=-1)
+        decoded = self.rnn(self.units2, return_sequences=True)(encoded)
+        dropped = Dropout(self.dropout)(decoded)
+        predictions = TimeDistributed(Dense(len(self.phonetic_alphabet), activation="softmax"))(dropped)
+
+        model = Model(inputs=inp, outputs=predictions)
         model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         print(model.summary())
         self.model = model
 
-    def train(self, dir_name: str, enable_checkpoints: bool=False) -> None:
+    def train(self, dir_name: str, enable_checkpoints: bool=False, checkpoint: str=None) -> None:
         """
         Обучение модели.
         
         :param dir_name: папка с версиями модели.
         :param enable_checkpoints: использовать ли чекпоинты.
+        :param checkpoint: загрузка чекпоинта.
         """
         # Подготовка данных
         x, y = self.__load_dict()
         x, y = self.__prepare_data(x, y)
         # Деление на выборки.
-        x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.1, random_state=42)
+        x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.125, random_state=42)
+        x_test, x_val, y_test, y_val = train_test_split(x_val, y_val, test_size=0.2, random_state=42)
         # Основные раунды обучения.
         callbacks = [EarlyStopping(monitor='val_loss', patience=2)]  # type: List[Callback]
         if enable_checkpoints:
             checkpoint_name = os.path.join(dir_name, "{epoch:02d}-{val_loss:.2f}.hdf5")
             callbacks.append(ModelCheckpoint(checkpoint_name, monitor='val_loss'))
-        self.model.fit(x_train, y_train, verbose=1, epochs=40, validation_data=(x_val, y_val), callbacks=callbacks)
-        # Рассчёт точности на val выборке, расчёт word error rate на всём датасете.
-        accuracy = self.model.evaluate(x_val, y_val)[1]
-        wer = self.__evaluate_wer(x, y)[0]
+        if checkpoint is not None:
+            self.load(checkpoint)
+        self.model.fit(x_train, y_train, verbose=1, epochs=40,
+                       validation_data=(x_val, y_val), callbacks=callbacks)
+        # Рассчёт точности и word error rate на test выборке.
+        accuracy = self.model.evaluate(x_test, y_test)[1]
+        wer = self.__evaluate_wer(x_test, y_test)[0]
         # Один раунд обучения на всём датасете.
         self.model.fit(x, y, verbose=1, epochs=1)
         # Сохранение модели.
         filename = "g2p_{language}_maxlen{maxlen}_{rnn}{units1}_{rnn}{units2}_dropout{dropout}_acc{acc}_wer{wer}.h5"
         filename = filename.format(language=self.language, rnn=self.rnn.__name__,
                                    units1=self.units1, units2=self.units2, dropout=self.dropout,
-                                   acc=int(accuracy*100), wer=int(wer*100), maxlen=self.word_max_length)
+                                   acc=int(accuracy*1000), wer=int(wer*1000), maxlen=self.word_max_length)
         self.model.save(os.path.join(dir_name, filename))
 
     def predict(self, words: List[str]) -> List[str]:
@@ -87,9 +96,7 @@ class RNNPhonemePredictor:
         :param words: графические слова.
         :return: фонетические слова.
         """
-        x = [[[int(ch == ch2) for ch2 in self.grapheme_alphabet] for ch in word] for word in words]
-        x = sequence.pad_sequences(x, maxlen=self.word_max_length, value=np.zeros(len(self.grapheme_alphabet)),
-                                   padding="post", truncating="post")
+        x = self.__prepare_data(words, None)[0]
         y = self.model.predict(x, verbose=0)
         answers = []
         for word in y:
@@ -129,7 +136,7 @@ class RNNPhonemePredictor:
                 y.append(p)
         return x, y
 
-    def __prepare_data(self, x: List[str], y: List[str]) -> Tuple[np.array, np.array]:
+    def __prepare_data(self, x: List[str], y: List[str]=None) -> Tuple[np.array, np.array]:
         """
         Подготовка данных.
         
@@ -138,11 +145,12 @@ class RNNPhonemePredictor:
         :return: данные в числовом виде.
         """
         x = [[[int(ch == ch2) for ch2 in self.grapheme_alphabet] for ch in g] for g in x]
-        y = [[self.phonetic_alphabet.find(ch) for ch in p] for p in y]
         x = sequence.pad_sequences(x, maxlen=self.word_max_length, value=np.zeros(len(self.grapheme_alphabet)),
                                    padding="post", truncating="post")
-        y = sequence.pad_sequences(y, maxlen=self.word_max_length, value=0, padding="post", truncating="post")
-        y = y.reshape((y.shape[0], y.shape[1], 1))
+        if y is not None:
+            y = [[self.phonetic_alphabet.find(ch) for ch in p] for p in y]
+            y = sequence.pad_sequences(y, maxlen=self.word_max_length, value=0, padding="post", truncating="post")
+            y = y.reshape((y.shape[0], y.shape[1], 1))
         return x, y
 
     def __evaluate_wer(self, x: np.array, y: np.array) -> Tuple[float, float]:

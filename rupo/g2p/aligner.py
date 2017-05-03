@@ -2,116 +2,91 @@
 # Автор: Гусев Илья
 # Описание: Выравнивание слова и транскрпции.
 
-from typing import Tuple, Set
-
 
 class Aligner:
     russian_map = {
-        "а": ["ɐ", "a", "ɑ", "ə", "æ", "ː"],
+        "а": ["ɐ", "a", "ɑ", "ə", "æ"],
         "б": ["b", "p"],
         "в": ["f", "v"],
         "г": ["g", "ɡ", "ɣ", "v", "x"],
-        "д": ["d", "t"],
-        "е": ["ɛ", "e", "ə", "ɪ", "ɨ", "j", "ʝ"],
-        "ё": ["ɵ", "ɛ̝̈"],
+        "д": ["d", "t", "ʦ"],
+        "е": ["ɛ", "e", "ə", "ɪ", "ɨ"],
+        "ё": ["ɵ", "ɛ", "ʏ", "ɵ", "o"],
         "ж": ["ʂ", "ɕ", "ʐ", "ʑ"],
         "з": ["ɕ", "s", "z", "ʑ"],
-        "и": ["i", "ɪ"],
+        "и": ["i", "ɪ", "y", "ʏ", "ɨ"],
         "й": ["j"],
         "к": ["k"],
-        "л": ["ɫ"],
+        "л": ["ɫ", "l"],
         "м": ["m", "ɱ"],
         "н": ["n", "ɲ"],
-        "о": ["ɐ", "o", "ə", "ɔ"],
+        "о": ["ɐ", "o", "ə", "ɔ", "ɵ"],
         "п": ["p"],
         "р": ["r", "ɾ"],
         "с": ["s", "ɕ", "z"],
-        "т": ["t"],
+        "т": ["t", "ʦ"],
         "у": ["u", "ʉ", "ʊ"],
         "ф": ["f"],
         "х": ["ɣ", "x"],
         "ц": ["ʦ", "t"],
         "ч": ["ʂ", "ɕ", "ʧ", "ʨ", "ɕ"],
-        "ш": ["ʂ", "ʧ"],
+        "ш": ["ʂ", "ʧ", "ʃ"],
         "щ": ["ɕ", "ʑ"],
         "ь": ["ʲ"],
         "ы": ["ɨ"],
-        "ъ": [],
+        "ъ": ["j"],
         "э": ["ɛ", "ɪ"],
-        "ю": ["ʉ", "ʊ", "j", "ʝ"],
-        "я": ["ə", "æ", "ɪ", "j", "ʝ", "a"],
+        "ю": ["ʉ", "ʊ", "u", "ɨ"],
+        "я": ["ə", "æ", "ɪ", "a"],
         "-": [],
         " ": []
     }
 
     @staticmethod
-    def align_phonemes(graphemes: str, phonemes: str) -> Tuple[str, str]:
-        """
-        Выравнивание графем и фонем.
-
-        :param graphemes: графемы.
-        :param phonemes: фонемы.
-        :return: выровненная пара.
-        """
-        diff = len(graphemes) - len(phonemes)
-        phonemes_variants = Aligner.__alignment_variants(phonemes, diff, set()) \
-            if diff > 0 else [phonemes]
-        graphemes_variants = Aligner.__alignment_variants(graphemes, abs(diff), set()) \
-            if diff < 0 else [graphemes]
-        scores = {}
-        for g in graphemes_variants:
-            for p in phonemes_variants:
-                assert len(g) == len(p)
-                scores[(g, p)] = Aligner.__score_alignment(g, p)
-        return max(scores, key=scores.get)
+    def align(graphemes, phonemes, sigma=0):
+        matrix, trace = Aligner.__build_align_matrix(graphemes, phonemes, sigma)
+        g, p = Aligner.__process_align_trace(trace, graphemes, phonemes)
+        return g, p
 
     @staticmethod
-    def __alignment_variants(symbols: str, space_count: int, spaces: Set[str]) -> Set[str]:
-        """
-        Получение вариантов выравнивания.
+    def __build_align_matrix(first_string, second_string, sigma=1):
+        f = len(first_string)
+        s = len(second_string)
+        matrix = [[0 for j in range(s + 1)] for i in range(f + 1)]
+        trace = [[0 for j in range(s + 1)] for i in range(f + 1)]
 
-        :param symbols: буквы.
-        :param space_count: количество пробелов, которые осталось расставить
-        :param spaces: позиции пробелов.
-        :return: варианты выравнивания.
-        """
-        if space_count == 0:
-            answer = ""
-            next_symbol = 0
-            for i in range(len(symbols) + len(spaces)):
-                if i in spaces:
-                    answer += " "
-                else:
-                    answer += symbols[next_symbol]
-                    next_symbol += 1
-            return {answer}
-        variants = set()
-        for j in range(len(symbols) + space_count):
-            if j not in spaces:
-                variants |= Aligner.__alignment_variants(symbols, space_count - 1, spaces | {j})
-        return variants
+        for i in range(1, f + 1):
+            matrix[i][0] = -i * sigma
+        for i in range(1, s + 1):
+            matrix[0][i] = -i * sigma
+        for i in range(1, f + 1):
+            for j in range(1, s + 1):
+                indel2 = matrix[i - 1][j] - sigma
+                indel1 = matrix[i][j - 1] - sigma
+                score = 1 if second_string[j - 1] in Aligner.russian_map[first_string[i - 1]] else 0
+                replace = matrix[i - 1][j - 1] + score
+                scores = [indel2, indel1, replace]
+                matrix[i][j] = max(scores)
+                trace[i][j] = scores.index(matrix[i][j])
+        return matrix, trace
 
     @staticmethod
-    def __score_alignment(graphemes: str, phonemes: str) -> int:
-        """
-        Оценка выравнивания.
-
-        :param graphemes: графемы.
-        :param phonemes: фонемы.
-        :return: оценка.
-        """
-        score = 0
-        for i in range(len(graphemes)):
-            grapheme = graphemes[i]
-            phoneme = phonemes[i]
-            if phoneme == " ":
-                if i-1 >= 0 and phonemes[i-1] in Aligner.russian_map[grapheme]:
-                    score += 0.5
-            elif grapheme == " ":
-                if i+1 < len(graphemes) and graphemes[i+1] != " " and \
-                                phoneme in Aligner.russian_map[graphemes[i+1]]:
-                    score += 0.5
-            elif phoneme in Aligner.russian_map[grapheme]:
-                score += 1
-        return score
-
+    def __process_align_trace(trace, first_string, second_string):
+        row = len(first_string)
+        col = len(second_string)
+        insert_indel = lambda word, pos: word[:pos] + ' ' + word[pos:]
+        while row != 0 and col != 0:
+            if trace[row][col] == 0:
+                second_string = insert_indel(second_string, col)
+                row -= 1
+            elif trace[row][col] == 1:
+                first_string = insert_indel(first_string, row)
+                col -= 1
+            else:
+                row -= 1
+                col -= 1
+        for i in range(row):
+            second_string = insert_indel(second_string, 0)
+        for i in range(col):
+            first_string = insert_indel(first_string, 0)
+        return first_string, second_string

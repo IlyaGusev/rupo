@@ -23,20 +23,31 @@ class WikiDict:
         with open(RU_WIKI_DICT, 'r', encoding='utf-8') as r:
             lines = r.readlines()
         with open(destination_file, 'w', encoding='utf-8') as w:
-            words = []
-            stresses = []
             for line in lines:
                 word = line.split("\t")[1].strip()
-                words.append(word.replace("'", ""))
-                stress = -1
-                pos = word.find("'")
-                for i, ch in enumerate(word[pos:]):
-                    if ch in Phonemes.VOWELS:
-                        stress = i + pos - 1
-                        break
-                stresses.append(stress)
-            for i, word in enumerate(words):
-                w.write(word + "\t" + str(stresses[i]) + "\t" + str(-1) + "\n")
+                clean_word = word.replace("'", "").replace("ˌ", "")
+                all_stresses = [i for i, ch in enumerate(word) if ch == "'" or ch == "ˌ"]
+                primary = [i for i, ch in enumerate(word) if ch == "'"]
+                secondary = [i for i, ch in enumerate(word) if ch == "ˌ"]
+                primary_stresses = []
+                secondary_stresses = []
+                for pos in primary:
+                    stress = -1
+                    for i, ch in enumerate(word[pos:]):
+                        if ch in Phonemes.VOWELS:
+                            stress = i + pos - all_stresses.index(pos) - 1
+                            break
+                    if stress != -1:
+                        primary_stresses.append(str(stress))
+                for pos in secondary:
+                    stress = -1
+                    for i, ch in enumerate(word[pos:]):
+                        if ch in Phonemes.VOWELS:
+                            stress = i + pos - all_stresses.index(pos) - 1
+                            break
+                    if stress != -1:
+                        secondary_stresses.append(str(stress))
+                w.write(clean_word + "\t" + ",".join(primary_stresses) + "\t" + ",".join(secondary_stresses) + "\n")
 
     @staticmethod
     def first_clean_up():
@@ -76,7 +87,7 @@ class WikiDict:
                 f.write(word + "\t" + phonetic_words[i] + "\n")
 
 
-if __name__ == '__main__':
-    # WikiDict.first_clean_up()
-    # WikiDict.convert_to_g2p_only(RU_G2P_DICT_PATH)
-    WikiDict.convert_to_phoneme_stress(RU_PHONEME_STRESS_PATH)
+# if __name__ == '__main__':
+#     # WikiDict.first_clean_up()
+#     WikiDict.convert_to_g2p_only(RU_G2P_DICT_PATH)
+#     WikiDict.convert_to_phoneme_stress(RU_PHONEME_STRESS_PATH)
