@@ -11,7 +11,7 @@ from rupo.g2p.rnn_g2p import RNNPhonemePredictor
 
 
 def g2p_ru():
-    clf = RNNPhonemePredictor(RU_G2P_DICT_PATH, 35, language="ru", rnn=LSTM, units1=512, dropout=0.1)
+    clf = RNNPhonemePredictor(RU_G2P_DICT_PATH, 40, language="ru", rnn=LSTM, units1=256, dropout=0.4)
     clf.build()
     clf.train(G2P_CURRENT_MODEL_DIR, enable_checkpoints=True)
 
@@ -23,7 +23,7 @@ def stress_ru():
 
 
 def g2p_en():
-    clf = RNNPhonemePredictor(EN_G2P_DICT_PATH, 40, language="en", rnn=LSTM, units1=512, dropout=0.1)
+    clf = RNNPhonemePredictor(EN_G2P_DICT_PATH, 40, language="en", rnn=LSTM, units1=256, dropout=0.4)
     clf.build()
     clf.train(G2P_CURRENT_MODEL_DIR, enable_checkpoints=True)
 
@@ -35,5 +35,5 @@ def stress_en():
 
 # stress_ru()
 # stress_en()
-# g2p_en()
-# g2p_ru()
+g2p_en()
+g2p_ru()
