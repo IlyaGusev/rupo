@@ -28,6 +28,7 @@ class Vocabulary(object):
         if os.path.isfile(self.dump_filename):
             self.load()
         else:
+<<<<<<< HEAD
             if from_voc:
                 word_indexes = Reader.read_vocabulary(markup_path)
                 for word, index in word_indexes:
@@ -36,6 +37,14 @@ class Vocabulary(object):
                 markups = Reader.read_markups(markup_path, FileType.XML, is_processed=True)
                 for markup in markups:
                     self.add_markup(markup)
+=======
+            i = 0
+            markups = Reader.read_markups(markup_path, FileType.VOCAB, is_processed=True)
+            for i, markup in enumerate(markups):
+                self.add_markup(markup, i)
+                if i % 50 == 0:
+                    print(i)
+>>>>>>> 45049a4f591075476d71761bf2319d754376e847
             self.save()
 
     def save(self) -> None:
@@ -72,7 +81,11 @@ class Vocabulary(object):
         :return: слово новое или нет.
         """
         short = word.get_short()
+        self.words.append(word)
+        self.word_to_index[short] = len(self.words) if index == -1 else index
+        self.index_to_word[len(self.words) if index == -1 else index] = word
         if short not in self.shorts_set:
+<<<<<<< HEAD
             if index == -1:
                 i = 0
                 while i in self.index_to_word:
@@ -81,6 +94,9 @@ class Vocabulary(object):
             self.index_to_word[index] = word
             self.shorts_set.add(short)
             self.word_to_index[short] = index
+=======
+            self.shorts_set.add(short)
+>>>>>>> 45049a4f591075476d71761bf2319d754376e847
             return True
         return False
 
