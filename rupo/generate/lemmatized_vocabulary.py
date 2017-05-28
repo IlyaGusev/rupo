@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import numpy as np
+
 
 class LemmatizedWord(object):
     def __init__(self, lemma, gr_tag, word_form):
@@ -72,5 +74,5 @@ class LemmatizedVocabulary(object):
             if lemmatizedWord in self.lemmatizedWordIndicies \
             else len(self.lemmatizedWordIndicies)
             
-    def get_word_form_by_index(self, index):
+    def get_word(self, index):
         return self.index2lemmatizedWord[index]
