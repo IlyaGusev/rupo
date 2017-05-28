@@ -2,45 +2,76 @@
 # Автор: Гусев Илья
 # Описание: Выравнивание слова и транскрпции.
 
-from rupo.settings import RU_GRAPHEME_SET, RU_G2P_DICT_PATH
-from rupo.g2p.phonemes import Phonemes
+from typing import List, Tuple, Dict
 from collections import defaultdict
+
+from rupo.settings import RU_GRAPHEME_SET
+from rupo.g2p.phonemes import Phonemes
 
 
 class Aligner:
-    def __init__(self, grapheme_set=RU_GRAPHEME_SET):
+    def __init__(self, grapheme_set: str=RU_GRAPHEME_SET):
         self.grapheme_set = grapheme_set
         self.probability_matrix = None
 
-    def align(self, graphemes, phonemes, sigma=0):
+    def align(self, graphemes: str, phonemes: str):
+        """
+        Выравнивание графем и фонем.
+        
+        :param graphemes: графическое слово. 
+        :param phonemes: фонетическое слово.
+        :return: выровненные слова.
+        """
         assert self.probability_matrix is not None
-        matrix, trace = Aligner.__build_align_matrix(graphemes, phonemes, self.probability_matrix, sigma)
+        trace = Aligner.__build_align_matrix(graphemes, phonemes, self.probability_matrix)
         g, p = Aligner.__process_align_trace(trace, graphemes, phonemes)
         return g, p
 
-    def train(self, pairs, sigma=0):
+    def train(self, pairs: List[Tuple[str, str]], n_epochs: int=3):
+        """
+        Обучение EM-алгоритма над словарём пар.
+        
+        :param pairs: пары графичесих слов и фонетических слов.
+        :param n_epochs: количество итерации обучения.
+        """
         phoneme_set = "".join(Phonemes.get_all()).replace(" ", "")
         grapheme_set = self.grapheme_set.replace(" ", "")
+        # Сначала задаём равномерное распределение.
         probability_matrix = {g: {p: 1.0/len(phoneme_set) for p in phoneme_set} for g in grapheme_set}
-        for _ in range(3):
+        for _ in range(n_epochs):
             g_p_counts = defaultdict(lambda: defaultdict(lambda: 0.0))
             g_counts = defaultdict(lambda: 0.0)
+            # E-шаг.
             for graphemes, phonemes in pairs:
-                matrix, trace = Aligner.__build_align_matrix(graphemes, phonemes, probability_matrix, sigma)
+                # Считаем динамику с заданной матрицей весов над матрицей из графем и фонем.
+                trace = Aligner.__build_align_matrix(graphemes, phonemes, probability_matrix)
                 graphemes, phonemes = Aligner.__process_align_trace(trace, graphemes, phonemes)
+                # Увеличиваем счётчики, чтобы потом получить апостериорные вероятности.
                 for i in range(len(graphemes)):
                     if graphemes[i] != " " and phonemes[i] != " ":
                         g_p_counts[graphemes[i]][phonemes[i]] += 1
                         g_counts[graphemes[i]] += 1
+            # M-шаг. Нормализуем вероятности.
             for g, m in probability_matrix.items():
                 for p, prob in m.items():
                     probability_matrix[g][p] = g_p_counts[g][p] / g_counts[g] if g_counts[g] != 0 else 0.0
+                    # Заплатка, чтобы ʲ не липла к гласным.
                     if p == "ʲ":
                         probability_matrix[g][p] = 0
         self.probability_matrix = probability_matrix
 
     @staticmethod
-    def __build_align_matrix(first_string, second_string, probability_matrix, sigma=0):
+    def __build_align_matrix(first_string: str, second_string: str,
+                             probability_matrix: Dict[str, Dict[str, float]], sigma: float=0.0):
+        """
+        Динамика на матрице g * p.
+        
+        :param first_string: графемы.
+        :param second_string: фонемы
+        :param probability_matrix: матрица вероятностей переходов.
+        :param sigma: штрафы на пропуски (del).
+        :return: путь в матрице, по которому восстаналивается выравнивание.
+        """
         f = len(first_string)
         s = len(second_string)
         matrix = [[0 for j in range(s + 1)] for i in range(f + 1)]
@@ -59,10 +90,18 @@ class Aligner:
                 scores = [indel2, indel1, replace1]
                 matrix[i][j] = max(scores)
                 trace[i][j] = scores.index(matrix[i][j])
-        return matrix, trace
+        return trace
 
     @staticmethod
-    def __process_align_trace(trace, first_string, second_string):
+    def __process_align_trace(trace: List[List[int]], first_string: str, second_string: str):
+        """
+        Восстановление выравнивания по пути в матрице.
+        
+        :param trace: путь.
+        :param first_string: графемы. 
+        :param second_string: фонемы.
+        :return: выравненные графемы и фонемы.
+        """
         row = len(first_string)
         col = len(second_string)
         insert_indel = lambda word, pos: word[:pos] + ' ' + word[pos:]
@@ -81,12 +120,3 @@ class Aligner:
         for i in range(col):
             first_string = insert_indel(first_string, 0)
         return first_string, second_string
-
-if __name__ == '__main__':
-    with open(RU_G2P_DICT_PATH, 'r', encoding='utf-8') as r:
-        lines = r.readlines()
-        pairs = [line.strip().split("\t") for line in lines]
-        aligner = Aligner()
-        aligner.train(pairs)
-        for g, p in pairs[::50]:
-            print(aligner.align(g, p))
