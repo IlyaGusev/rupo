@@ -50,7 +50,7 @@ class Generator(object):
         lines = []
         while rhyme_filter.position >= 0:
             words = self.generate_line(metre_filter, rhyme_filter, prev_word_indices)
-            lines.append(" ".join(reversed(words)))
+            lines.append(" ".join(reversed(words)).capitalize())
         return "\n".join(reversed(lines)) + "\n"
 
     def generate_line(self, metre_filter: MetreFilter, rhyme_filter: RhymeFilter,

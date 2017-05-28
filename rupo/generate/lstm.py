@@ -2,28 +2,36 @@ import os
 import pickle
 from typing import List
 import numpy as np
-from keras.layers import Dense, Activation, LSTM, Embedding, Dropout, TimeDistributed, SpatialDropout1D
-from keras.models import Sequential
-from keras.optimizers import RMSprop
+from keras.models import Model, Sequential
+from keras.layers import Input, Activation, Embedding, TimeDistributed, Dense, Dropout, Reshape, Merge, Highway, \
+                         LSTM, Convolution2D, MaxPooling2D, BatchNormalization, SpatialDropout1D, Masking
 from keras.callbacks import Callback
+from keras.models import model_from_json, load_model
+from rupo.generate.lemmatized_vocabulary import LemmatizedVocabulary, LemmatizedWord
 
 class LSTM_Container(object):
     def __init__(self, path : str):
-        self.num_of_words = 60000
-        self.model = Sequential()
-        self.model.add(Embedding(self.num_of_words + 1, 150, mask_zero=True, batch_input_shape=(1000, None)))
-        self.model.add(SpatialDropout1D(0.3))
-        self.model.add(LSTM(512, dropout=0.3, recurrent_dropout=0.3, return_sequences=True))
-        self.model.add(LSTM(512, dropout=0.3, recurrent_dropout=0.3, return_sequences=False))
-        self.model.add(Dense(self.num_of_words + 1, activation='softmax'))
-        self.model.compile(loss='sparse_categorical_crossentropy', optimizer='adam')
-        self.model.load_weights(path)
+        # json_string = open(path + '.json', 'r', encoding='utf8').readline()
+        # self.model = model_from_json(json_string)
+        # self.model.load_weights(path + '_weights.h5')
+        self.model = load_model(path + '.model')
+        self.lemmatized_vocabulary = pickle.load( open(path + "Voc.pkl", "rb") )
+        self.num_of_words = len(self.lemmatized_vocabulary.lemmatizedWords)
+        self.index2tags_vector = pickle.load( open(path + "_index2tags_vector.pkl", "rb") )
+        self.GRAMMEMES_COUNT = 54
+        self.SOFTMAX_SIZE = 50000
+        print(self.model.summary())
+
+    def __get_word_index(self, word):
+        return min(self.lemmatized_vocabulary.get_word_form_index(word), self.SOFTMAX_SIZE)
 
     def get_model(self, word_indices: List[int]) -> np.array:
         if len(word_indices) == 0:
             return np.full(self.num_of_words, 1 / self.num_of_words, dtype=np.float)
-        for i in range(10):
-            X = np.zeros((1000, len(word_indices)))
-            for ind, word_index in enumerate(word_indices):
-                X[0, ind] = word_index
-            return self.model.predict(X, batch_size=1000, verbose=0)[0][:-1]
+        cur_sent = [self.lemmatized_vocabulary.get_word_form_by_index(ind) for ind in word_indices]
+        X_emb = np.zeros((1, len(cur_sent)))
+        X_gr = np.zeros((1, len(cur_sent), self.GRAMMEMES_COUNT))
+        for ind, word in enumerate(cur_sent):
+            X_emb[0, ind] = self.__get_word_index(word)
+            X_gr[0, ind] = self.index2tags_vector[word.gr_tag]
+        return self.model.predict([X_emb, X_gr], verbose=0)[0]
