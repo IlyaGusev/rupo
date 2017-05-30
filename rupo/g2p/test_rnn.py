@@ -13,7 +13,7 @@ from rupo.stress.rnn import RNNStressPredictor
 def g2p_ru():
     clf = RNNPhonemePredictor(RU_G2P_DICT_PATH, 40, language="ru", rnn=LSTM, units1=256, dropout=0.4)
     clf.build()
-    clf.train(G2P_CURRENT_MODEL_DIR, enable_checkpoints=True, checkpoint="/home/yallen/Документы/Python/rupo/rupo/data/g2p_models/12-0.04.hdf5")
+    clf.train(G2P_CURRENT_MODEL_DIR, enable_checkpoints=True)
 
 
 def stress_ru():
@@ -33,7 +33,8 @@ def stress_en():
     clf.build()
     clf.train(ACCENT_CURRENT_MODEL_DIR, enable_checkpoints=True)
 
-# stress_ru()
-# stress_en()
-# g2p_en()
-g2p_ru()
+if __name__ == "__main__":
+    # stress_ru()
+    # stress_en()
+    # g2p_en()
+    g2p_ru()

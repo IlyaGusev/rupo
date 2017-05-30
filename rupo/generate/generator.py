@@ -19,13 +19,15 @@ class Generator(object):
     """
     Генератор стихов
     """
-    def __init__(self, model_container, vocabulary: Vocabulary):
+    def __init__(self, model_container, vocabulary: Vocabulary, lemmatized_vocabulary=None):
         """
         :param model_container: модель с методом get_model.
         :param vocabulary: словарь с индексами.
         """
         self.model_container = model_container
         self.vocabulary = vocabulary
+        self.current_poem_fails = 0
+        self.lemmatized_vocabulary = lemmatized_vocabulary
 
     def generate_poem(self, metre_schema: str="-+", rhyme_pattern: str="abab", n_syllables: int=8,
                       letters_to_rhymes: dict=None) -> str:
@@ -44,13 +46,16 @@ class Generator(object):
         metre_pattern = metre_pattern[:n_syllables]
         metre_filter = MetreFilter(metre_pattern)
 
-        rhyme_filter = RhymeFilter(rhyme_pattern, letters_to_rhymes)
+        rhyme_filter = RhymeFilter(rhyme_pattern, letters_to_rhymes, self.lemmatized_vocabulary)
 
         prev_word_indices = []
         lines = []
         while not rhyme_filter.is_completed():
             words = self.generate_line(metre_filter, rhyme_filter, prev_word_indices)
             lines.append(" ".join(reversed(words)).capitalize())
+        if self.current_poem_fails != 0:
+            self.current_poem_fails = 0
+            return self.generate_poem(metre_schema, rhyme_pattern, n_syllables, letters_to_rhymes)
         return "\n".join(reversed(lines)) + "\n"
 
     def generate_line(self, metre_filter: MetreFilter, rhyme_filter: RhymeFilter,
@@ -86,6 +91,8 @@ class Generator(object):
         for f in filters:
             model = f.filter_model(model, self.vocabulary)
         if sum(model) == 0:
+            print("Failed")
+            self.current_poem_fails += 1
             model = self.model_container.get_model([])
             for f in filters:
                 model = f.filter_model(model, self.vocabulary)

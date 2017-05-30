@@ -35,7 +35,8 @@ GENERATOR_MODEL_DIR = resource_filename(__name__, "data/generator_models/")
 
 GENERATOR_MODEL_DESCRIPTION = resource_filename(__name__, "data/generator_models/build.json")
 GENERATOR_MODEL_WEIGHTS = resource_filename(__name__, "data/generator_models/weights.h5")
-GENERATOR_VOCAB_PATH = resource_filename(__name__, "data/generator_models/lemmatized_vocabulary.pkl")
+GENERATOR_LEMMA_VOCAB_PATH = resource_filename(__name__, "data/generator_models/lemmatized_vocabulary.pkl")
+GENERATOR_VOCAB_PATH = resource_filename(__name__, "data/generator_models/vocabulary.pickle")
 GENERATOR_TAGS_VECTORS = resource_filename(__name__, "data/generator_models/index2tags_vector.pkl")
 
 TEMP_PATH = resource_filename(__name__, "data/temp.txt")

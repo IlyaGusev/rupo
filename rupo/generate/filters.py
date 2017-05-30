@@ -39,7 +39,8 @@ class Filter(object):
         for i in range(len(model)):
             if not self.filter_word(vocabulary.get_word(i)):
                 model[i] = 0.0
-        model /= np.sum(model)
+        if np.sum(model) != 0:
+            model /= np.sum(model)
         return model
 
     def filter_words(self, words: List[Word]) -> List[Word]:
@@ -114,7 +115,8 @@ class RhymeFilter(Filter):
     """
     Фильтр по шаблону рифмы.
     """
-    def __init__(self, rhyme_pattern: str, letters_to_rhymes: dict=None):
+    def __init__(self, rhyme_pattern: str, letters_to_rhymes: dict=None, lemmatized_vocabulary=None):
+        self.lemmatized_vocabulary = lemmatized_vocabulary
         self.rhyme_pattern = rhyme_pattern
         self.position = len(self.rhyme_pattern) - 1
         self.letters_to_rhymes = defaultdict(set)
@@ -136,7 +138,8 @@ class RhymeFilter(Filter):
             return True
         first_word = list(self.letters_to_rhymes[self.rhyme_pattern[self.position]])[0]
 
-        is_rhyme = Rhymes.is_rhyme(first_word, word, score_border=5, syllable_number_border=2) and \
+        is_rhyme = Rhymes.is_rhyme(first_word, word, score_border=5, syllable_number_border=2,
+                                   lemmatized_vocabulary=self.lemmatized_vocabulary) and \
             first_word.text != word.text
         return is_rhyme
 

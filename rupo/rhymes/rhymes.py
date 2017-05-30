@@ -5,6 +5,8 @@
 from typing import Tuple
 from rupo.main.markup import Word
 from rupo.util.preprocess import VOWELS
+from pymorphy2 import MorphAnalyzer
+morph = MorphAnalyzer()
 
 
 class Rhymes(object):
@@ -13,7 +15,8 @@ class Rhymes(object):
     """
 
     @staticmethod
-    def is_rhyme(word1: Word, word2: Word, score_border: int=4, syllable_number_border: int=4) -> bool:
+    def is_rhyme(word1: Word, word2: Word, score_border: int=4, syllable_number_border: int=4,
+                 lemmatized_vocabulary=None) -> bool:
         """
         Проверка рифмованности 2 слов.
 
@@ -23,6 +26,11 @@ class Rhymes(object):
         :param syllable_number_border: ограничение на номер слога с конца, на который падает ударение.
         :return result: является рифмой или нет.
         """
+        if lemmatized_vocabulary is not None:
+            lemma1 = lemmatized_vocabulary.get_lemmatization(word1.text.lower()).lemma.lower()
+            lemma2 = lemmatized_vocabulary.get_lemmatization(word2.text.lower()).lemma.lower()
+            if lemma1 == lemma2:
+                return False
         features1 = Rhymes.__get_rhyme_profile(word1)
         features2 = Rhymes.__get_rhyme_profile(word2)
         count_equality = 0

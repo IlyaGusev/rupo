@@ -59,9 +59,7 @@ class LemmatizedVocabulary(object):
                 else None
     
     def get_lemmatization(self, word_form):
-        return self.word_form2_lemmatization[word_form] \
-                if word_form in self.word_form2_lemmatization[word_form] \
-                else None
+        return self.word_form2_lemmatization[word_form] if word_form in self.word_form2_lemmatization else None
     
     def choice_word(self):
         return self.lemmatizedWords[np.random.randint(0, len(self.lemmatizedWords))]
