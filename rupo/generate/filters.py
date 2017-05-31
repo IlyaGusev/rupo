@@ -39,8 +39,8 @@ class Filter(object):
         for i in range(len(model)):
             if not self.filter_word(vocabulary.get_word(i)):
                 model[i] = 0.0
-        if np.sum(model) != 0:
-            model /= np.sum(model)
+        # if np.sum(model) != 0:
+        #     model /= np.sum(model)
         return model
 
     def filter_words(self, words: List[Word]) -> List[Word]:
@@ -69,6 +69,8 @@ class MetreFilter(Filter):
         :return: подходит слово или нет.
         """
         syllables_count = len(word.syllables)
+        if syllables_count == 0:
+            return False
         if syllables_count > self.position + 1:
             return False
         for i in range(syllables_count):
@@ -115,11 +117,12 @@ class RhymeFilter(Filter):
     """
     Фильтр по шаблону рифмы.
     """
-    def __init__(self, rhyme_pattern: str, letters_to_rhymes: dict=None, lemmatized_vocabulary=None):
+    def __init__(self, rhyme_pattern: str, letters_to_rhymes: dict=None, lemmatized_vocabulary=None, score_border=4):
         self.lemmatized_vocabulary = lemmatized_vocabulary
         self.rhyme_pattern = rhyme_pattern
         self.position = len(self.rhyme_pattern) - 1
         self.letters_to_rhymes = defaultdict(set)
+        self.score_border = score_border
         if letters_to_rhymes is not None:
             for letter, words in letters_to_rhymes.items():
                 for word in words:
@@ -138,7 +141,7 @@ class RhymeFilter(Filter):
             return True
         first_word = list(self.letters_to_rhymes[self.rhyme_pattern[self.position]])[0]
 
-        is_rhyme = Rhymes.is_rhyme(first_word, word, score_border=5, syllable_number_border=2,
+        is_rhyme = Rhymes.is_rhyme(first_word, word, score_border=self.score_border, syllable_number_border=2,
                                    lemmatized_vocabulary=self.lemmatized_vocabulary) and \
             first_word.text != word.text
         return is_rhyme
@@ -166,3 +169,9 @@ class RhymeFilter(Filter):
         :return: закончена ли генерация по фильтру?
         """
         return self.position < 0
+
+    def reset(self) -> None:
+        """
+        Сброс позиции в шаблоне.
+        """
+        self.position = len(self.rhyme_pattern) - 1
