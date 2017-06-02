@@ -72,9 +72,8 @@ class Vocabulary(object):
         :return: слово новое или нет.
         """
         short = word.get_short()
-        self.words.append(word)
-        self.word_to_index[short] = len(self.words) if index == -1 else index
-        self.index_to_word[len(self.words) if index == -1 else index] = word
+        self.word_to_index[short] = self.size() if index == -1 else index
+        self.index_to_word[self.size() if index == -1 else index] = word
         if short not in self.shorts_set:
             self.shorts_set.add(short)
             return True

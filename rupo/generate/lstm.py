@@ -23,7 +23,7 @@ class LSTM_Container(object):
     def get_model(self, word_indices: List[int]) -> np.array:
         if len(word_indices) == 0:
             return np.full(self.num_of_words, 1 / self.num_of_words, dtype=np.float)
-        cur_sent = [self.lemmatized_vocabulary.get_word(ind) for ind in word_indices]
+        cur_sent = [self.lemmatized_vocabulary.get_word_by_index(ind) for ind in word_indices]
         X_emb = np.zeros((1, len(cur_sent)))
         X_gr = np.zeros((1, len(cur_sent), self.GRAMMEMES_COUNT))
         for ind, word in enumerate(cur_sent):

@@ -32,7 +32,7 @@ setup(
     download_url='https://github.com/IlyaGusev/rupo/archive/0.1.4.tar.gz',
     keywords=['poetry', 'nlp', 'russian'],
     package_data={
-        'rupo': ['data/dict/*.txt', 'data/examples/*'],
+        'rupo': ['data/dict/*.txt', 'data/examples/*', 'data/hyphen-tokens.txt'],
     },
     install_requires=[
         'dicttoxml==1.7.4',

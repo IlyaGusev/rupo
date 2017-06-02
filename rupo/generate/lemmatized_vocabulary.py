@@ -50,8 +50,8 @@ class LemmatizedVocabulary(object):
             self.lemmatization2word_form = {self.word_form2_lemmatization[x] : x for x in self.word_form2_lemmatization}
             for lemma, _ in lemmas_counter.most_common():
                 self.lemmatizedWords.extend(self.lemma2lemmatizedWord[lemma])
-        self.lemmatizedWordIndicies = {x : i for i, x in enumerate(self.lemmatizedWords)}
-        self.index2lemmatizedWord = {i : x for i, x in enumerate(self.lemmatizedWords)}
+        self.lemmatizedWordIndicies = {x: i for i, x in enumerate(self.lemmatizedWords)}
+        self.index2lemmatizedWord = {i: x for i, x in enumerate(self.lemmatizedWords)}
                 
     def get_word_form(self, lemma, gr_tag):
         return self.lemmatization2word_form[(lemma, gr_tag)] \
@@ -72,5 +72,5 @@ class LemmatizedVocabulary(object):
             if lemmatizedWord in self.lemmatizedWordIndicies \
             else len(self.lemmatizedWordIndicies)
             
-    def get_word(self, index):
+    def get_word_by_index(self, index):
         return self.index2lemmatizedWord[index]

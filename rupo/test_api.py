@@ -43,27 +43,23 @@ class TestApi(unittest.TestCase):
         self.assertEqual(self.engine.classify_metre(text), "iambos")
 
     def test_generate_poem(self):
-        vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
-        markov_dump_file = os.path.join(EXAMPLES_DIR, "markov.pickle")
-        self.assertNotEqual(
-            self.engine.generate_poem(MARKUP_XML_EXAMPLE, markov_dump_file,
-                                      vocab_dump_file, rhyme_pattern="aa", n_syllables=6), "")
+        vocab_dump_file = os.path.join("/home/yallen/Документы/Python/rupo", "vocab.pickle")
+        markov_dump_file = os.path.join("/home/yallen/Документы/Python/rupo", "markov.pickle")
+        self.assertIsNotNone(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml", markov_dump_file,
+                                                       vocab_dump_file, rhyme_pattern="aa", n_syllables=6))
+        print(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml", markov_dump_file,
+                                        vocab_dump_file, rhyme_pattern="aabb", n_syllables=8, beam_width=10))
+        print(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml",
+                                        markov_dump_file,
+                                        vocab_dump_file, rhyme_pattern="aabb", n_syllables=8, beam_width=10))
+        print(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml",
+                                        markov_dump_file,
+                                        vocab_dump_file, rhyme_pattern="aabb", n_syllables=8, beam_width=10))
         os.remove(vocab_dump_file)
         os.remove(markov_dump_file)
         self.engine.vocabulary = None
         self.engine.markov = None
         self.engine.generator = None
-        # from rupo.generate.lstm import LSTM_Container
-        # from rupo.generate.generator import Generator
-        # from rupo.main.vocabulary import Vocabulary
-        # lstm_path = "/home/yallen/Документы/Python/Poems/datasets/model.h5"
-        # voc_path = "/home/yallen/Документы/Python/Poems/datasets/voc.pickle"
-        # lstm = LSTM_Container(lstm_path)
-        # vocabulary = Vocabulary(voc_path)
-        # generator = Generator(lstm, vocabulary)
-        # print(generator.generate_poem(metre_schema="+-", rhyme_pattern="aabb", n_syllables=8))
-        # print(generator.generate_poem(metre_schema="+-", rhyme_pattern="aabb", n_syllables=8))
-        # print(generator.generate_poem(metre_schema="+-", rhyme_pattern="aabb", n_syllables=8))
 
     def test_get_word_rhymes(self):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")

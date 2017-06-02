@@ -55,7 +55,7 @@ class Engine:
 
     def get_generator(self, dump_path: str, vocab_dump_path: str, markup_path: str) -> Generator:
         if self.generator is None:
-            self.generator = Generator(self.get_markov(dump_path, vocab_dump_path, markup_path),
+            self.generator = Generator(self.get_markov(dump_path, vocab_dump_path, markup_path, n_grams=3),
                                        self.get_vocabulary(vocab_dump_path, markup_path))
         return self.generator
 
@@ -133,7 +133,7 @@ class Engine:
         return Rhymes.is_rhyme(markup_word1, markup_word2)
 
     def generate_poem(self, markup_path: str, dump_path: str, vocab_dump_path: str, metre_schema: str="-+",
-                      rhyme_pattern: str="abab", n_syllables: int=8) -> str:
+                      rhyme_pattern: str="abab", n_syllables: int=8, beam_width=5) -> str:
         """
         Сгенерировать стих по данным из разметок.
 
@@ -146,7 +146,7 @@ class Engine:
         :return: стих.
         """
         generator = self.get_generator(dump_path, vocab_dump_path, markup_path)
-        return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables)
+        return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables, beam_width=beam_width)
 
     def generate_poem_by_line(self, markup_path: str, dump_path: str, vocab_dump_path: str,
                               line, rhyme_pattern="abab") -> str:

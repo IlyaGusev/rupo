@@ -12,7 +12,5 @@ if __name__ == "__main__":
     vocabulary = Vocabulary(GENERATOR_VOCAB_PATH)
     lemmatized_vocabulary = lstm.lemmatized_vocabulary
     generator = Generator(lstm, vocabulary, lemmatized_vocabulary)
-    print(generator.generate_poem())
-    print(generator.generate_poem())
-    print(generator.generate_poem())
-    print(generator.generate_poem())
+    for i in range(4):
+        print(generator.generate_poem())
