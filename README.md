@@ -22,7 +22,7 @@ sudo pip3 install rupo
 >>> engine.get_word_syllables("корова")
 ["ко", "ро", "ва"]
 
->>> engine.wis_rhyme("корова", "здорова")
+>>> engine.is_rhyme("корова", "здорова")
 True
 ```
 
