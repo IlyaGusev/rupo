@@ -1,6 +1,3 @@
-from rupo.settings import RU_WIKI_DICT, RU_GRAPHEME_SET
-
-
 class Phonemes:
     VOWELS = ["i", "y", "ɪ", "ʏ", "ɨ", "ʉ", "ʊ", "ɯ", "u", "e", "ø", "ɘ", "ɵ", "ɤ", "o",
               "ə", "ɛ", "œ", "ɜ", "ɞ", "ʌ", "ɔ", "æ", "ɐ", "a", "ɶ", "ä", "ɑ", "ɒ", "ɝ",

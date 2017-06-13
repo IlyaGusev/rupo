@@ -4,18 +4,12 @@
 
 import unittest
 
-from rupo.stress.dict import StressDict
 from rupo.main.markup import Syllable
-from rupo.main.phonetics import Phonetics
 from rupo.util.data import MARKUP_EXAMPLE
-from rupo.main.tokenizer import Tokenizer
+from rupo.g2p.graphemes import Graphemes
 
 
-class TestPhonetics(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.stress_dict = StressDict()
-
+class TestGraphemes(unittest.TestCase):
     def test_syllables(self):
         checks = {
             'я': [Syllable(0, 1, 0, 'я')],
@@ -48,35 +42,4 @@ class TestPhonetics(unittest.TestCase):
         }
 
         for word, borders in checks.items():
-            self.assertEqual(Phonetics.get_word_syllables(word), borders)
-
-    def test_stress(self):
-        checks = {
-            'я': [0],
-            'в': [],
-            'он': [0],
-            'майка': [1],
-            'соломка': [3],
-            'изжить': [3],
-            'виться': [1],
-            'данный': [1],
-            'зорька': [1],
-            'банка': [1],
-            'оттечь': [3],
-            'советского': [3],
-            'союза': [2],
-            'пора': [3, 1],
-            'изжила': [5],
-            'меда': [1],
-            'автоподъёмник': [8],
-            'автоподъемник': [8],
-            'предопределенность': [11]
-        }
-
-        for word, pos in checks.items():
-            self.assertEqual(sorted(Phonetics.get_word_stresses(word, self.stress_dict)), sorted(pos))
-
-    def test_process_text(self):
-        text = "Соломка изжила себя.\n Пора виться майкой в."
-        markup = Phonetics.process_text(text, self.stress_dict)
-        self.assertEqual(markup, MARKUP_EXAMPLE)
+            self.assertEqual(Graphemes.get_syllables(word), borders)

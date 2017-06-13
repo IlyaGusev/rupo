@@ -56,18 +56,11 @@ class TestApi(unittest.TestCase):
         self.assertEqual(self.engine.classify_metre(text), "iambos")
 
     def test_generate_poem(self):
-        vocab_dump_file = os.path.join("/home/yallen/Документы/Python/rupo", "vocab.pickle")
-        markov_dump_file = os.path.join("/home/yallen/Документы/Python/rupo", "markov.pickle")
-        self.assertIsNotNone(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml", markov_dump_file,
-                                                       vocab_dump_file, rhyme_pattern="aa", n_syllables=6))
-        print(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml", markov_dump_file,
-                                        vocab_dump_file, rhyme_pattern="aabbcc", n_syllables=10, beam_width=10))
-        print(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml",
-                                        markov_dump_file,
-                                        vocab_dump_file, rhyme_pattern="aabbcc", n_syllables=10, beam_width=10))
-        print(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml",
-                                        markov_dump_file,
-                                        vocab_dump_file, rhyme_pattern="aabbcc", n_syllables=10, beam_width=10))
+        vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
+        markov_dump_file = os.path.join(EXAMPLES_DIR, "markov.pickle")
+        self.assertIsNotNone(
+            self.engine.generate_poem(MARKUP_XML_EXAMPLE, markov_dump_file,
+                                      vocab_dump_file, rhyme_pattern="a", n_syllables=6, beam_width=10, metre_schema="-+-"))
         os.remove(vocab_dump_file)
         os.remove(markov_dump_file)
         self.engine.vocabulary = None

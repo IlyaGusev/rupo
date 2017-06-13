@@ -10,11 +10,10 @@ from rupo.settings import RU_G2P_DICT_PATH
 
 class TestAligner(unittest.TestCase):
     def test_aligner(self):
+        aligner = Aligner()
         with open(RU_G2P_DICT_PATH, 'r', encoding='utf-8') as r:
-            lines = r.readlines()[:50000]
+            lines = r.readlines()[:50]
             pairs = [tuple(line.strip().split("\t")) for line in lines]
-            aligner = Aligner()
-            aligner.train(pairs)
-            for g, p in pairs[::50]:
+            for g, p in pairs:
                 print(aligner.align(g, p))
 

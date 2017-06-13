@@ -8,11 +8,10 @@ import copy
 import numpy as np
 from numpy.random import choice
 
-from rupo.stress.stress_classifier import MLStressClassifier
-from rupo.stress.dict import StressDict
+from rupo.stress.predictor import StressPredictor
 from rupo.generate.filters import MetreFilter, RhymeFilter
-from rupo.main.phonetics import Phonetics
 from rupo.main.vocabulary import Vocabulary
+from rupo.main.markup import Markup
 from rupo.metre.metre_classifier import MetreClassifier, CompilationsSingleton
 
 
@@ -132,7 +131,6 @@ class Generator(object):
             for path in copy.deepcopy(paths):
                 paths.pop(0)
                 paths += self.generate_line_beam(path, beam_width)
-
             paths, to_result = self.__filter_path_by_rhyme(paths)
             result_paths += to_result
         if len(result_paths) == 0:
@@ -171,6 +169,7 @@ class Generator(object):
         :param path: оригинальный путь.
         :param beam_width: колцичество новых путей.
         :param use_rhyme: использовать ли фильтр по рифме.
+        :param use_top: брать ли топ по языковой модели или делать случайный выбор.
         :return: новые пути.
         """
         model = path.get_current_model(self.model_container, self.vocabulary, use_rhyme)
@@ -191,18 +190,16 @@ class Generator(object):
                                       path.probability * word_probability, copy.copy(path.line_ends)))
         return new_paths
 
-    def generate_poem_by_line(self, line: str, rhyme_pattern: str,
-                              stress_dict: StressDict, stress_classifier: MLStressClassifier) -> str:
+    def generate_poem_by_line(self, line: str, rhyme_pattern: str, stress_predictor: StressPredictor) -> str:
         """
         Генерация стихотвторения по одной строчке.
 
-        :param stress_dict: словарь ударений.
-        :param stress_classifier: классификатор.
+        :param stress_predictor: классификатор.
         :param line: строчка.
         :param rhyme_pattern: шаблон рифмы.
         :return: стихотворение
         """
-        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(line, stress_dict), stress_classifier)
+        markup, result = MetreClassifier.improve_markup(Markup.process_text(line, stress_predictor))
         rhyme_word = markup.lines[0].words[-1]
         count_syllables = sum([len(word.syllables) for word in markup.lines[0].words])
         metre_pattern = CompilationsSingleton.get().get_patterns(result.metre, count_syllables)[0]

@@ -20,10 +20,6 @@ class StressDict:
     Класс данных, для сериализации словаря как префиксного дерева и быстрой загрузки в память.
     """
 
-    class Language:
-        ENGLISH = 0
-        RUSSIAN = 1
-
     class Mode:
         GRAPHEMES = 0
         PHONEMES = 0
@@ -35,24 +31,24 @@ class StressDict:
 
     StressType = StressType
 
-    def __init__(self, language: Language=Language.RUSSIAN, mode: Mode=Mode.GRAPHEMES) -> None:
-        if language == self.Language.RUSSIAN and mode == self.Mode.GRAPHEMES:
+    def __init__(self, language: str="ru", mode: Mode=Mode.GRAPHEMES) -> None:
+        if language == "ru" and mode == self.Mode.GRAPHEMES:
             self.data = datrie.Trie(RU_GRAPHEME_SET)
             src_filename = RU_GRAPHEME_STRESS_PATH
             if not os.path.exists(RU_GRAPHEME_STRESS_PATH):
-                ZalyzniakDict.convert_to_accent_only(RU_GRAPHEME_STRESS_PATH)
+                ZalyzniakDict.convert_to_accent_only()
             dst_filename = RU_GRAPHEME_STRESS_TRIE_PATH
-        elif mode == self.Mode.PHONEMES and language == self.Language.ENGLISH:
+        elif mode == self.Mode.PHONEMES and language == "en":
             self.data = datrie.Trie(Phonemes.get_all())
             src_filename = EN_PHONEME_STRESS_PATH
             if not os.path.exists(EN_PHONEME_STRESS_PATH):
                 CMUDict.convert_to_phoneme_stress(EN_PHONEME_STRESS_PATH)
             dst_filename = EN_PHONEME_STRESS_TRIE_PATH
-        elif mode == self.Mode.PHONEMES and language == self.Language.RUSSIAN:
+        elif mode == self.Mode.PHONEMES and language == "ru":
             self.data = datrie.Trie(Phonemes.get_all())
             src_filename = RU_PHONEME_STRESS_PATH
             if not os.path.exists(RU_PHONEME_STRESS_PATH):
-                ZalyzniakDict.convert_to_phoneme_stress(RU_PHONEME_STRESS_PATH)
+                ZalyzniakDict.convert_to_phoneme_stress()
             dst_filename = RU_PHONEME_STRESS_TRIE_PATH
         else:
             assert False

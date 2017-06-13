@@ -16,7 +16,7 @@ from rupo.settings import RU_GRAPHEME_SET, EN_GRAPHEME_SET
 from rupo.g2p.phonemes import Phonemes
 
 
-class RNNPhonemePredictor:
+class RNNG2PModel:
     phonetic_alphabet = "".join(Phonemes.get_all())
 
     def __init__(self, dict_path: str=None, word_max_length: int=30, language: str = "ru", rnn=LSTM,

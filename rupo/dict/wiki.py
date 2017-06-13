@@ -87,7 +87,7 @@ class WikiDict:
                 f.write(word + "\t" + phonetic_words[i] + "\n")
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # WikiDict.first_clean_up()
-    WikiDict.convert_to_g2p_only(RU_G2P_DICT_PATH)
+    # WikiDict.convert_to_g2p_only(RU_G2P_DICT_PATH)
     # WikiDict.convert_to_phoneme_stress(RU_PHONEME_STRESS_PATH)

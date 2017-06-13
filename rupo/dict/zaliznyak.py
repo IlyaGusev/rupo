@@ -56,10 +56,12 @@ class ZalyzniakDict:
 
     @staticmethod
     def convert_to_phoneme_stress():
-        from rupo.g2p.rnn_g2p import RNNPhonemePredictor
+        from rupo.g2p.rnn import RNNG2PModel
+        from rupo.g2p.aligner import Aligner
         from rupo.stress.dict import StressDict
-        g2p_predictor = RNNPhonemePredictor(RU_G2P_DICT_PATH)
+        g2p_predictor = RNNG2PModel(RU_G2P_DICT_PATH)
         g2p_predictor.load(RU_G2P_DEFAULT_MODEL)
+        aligner = Aligner()
         ZalyzniakDict.convert_to_accent_only()
         d = StressDict()
         vowels = set(Phonemes.VOWELS)
@@ -67,10 +69,9 @@ class ZalyzniakDict:
             samples = 0
             for word, accents in d.get_all():
                 primary_in_dict = [int(stress[0]) for stress in accents if stress[1] == StressDict.StressType.PRIMARY]
-                secondary_in_dict = [int(stress[0]) for stress in accents
-                                     if stress[1] == StressDict.StressType.SECONDARY]
+                secondary_in_dict = [int(stress[0]) for stress in accents if stress[1] == StressDict.StressType.SECONDARY]
                 phonemes = g2p_predictor.predict([word])[0]
-                g, p = Aligner.align(word, phonemes)
+                g, p = aligner.align(word, phonemes)
                 primary = ZalyzniakDict.align_stresses(g, p, primary_in_dict)
                 secondary = ZalyzniakDict.align_stresses(g, p, secondary_in_dict)
                 is_valid = True

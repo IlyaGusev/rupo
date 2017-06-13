@@ -11,6 +11,8 @@ from rupo.settings import RU_GRAPHEME_SET
 from rupo.g2p.phonemes import Phonemes
 from rupo.settings import RU_ALIGNER_DEFAULT_PATH, EN_ALIGNER_DEFAULT_PATH, \
     RU_G2P_DICT_PATH, EN_G2P_DICT_PATH, EN_GRAPHEME_SET
+from rupo.dict.wiki import WikiDict
+from rupo.dict.cmu import CMUDict
 
 
 class Aligner:
@@ -19,10 +21,14 @@ class Aligner:
             self.grapheme_set = RU_GRAPHEME_SET
             self.dict_path = RU_G2P_DICT_PATH
             self.dump_path = RU_ALIGNER_DEFAULT_PATH
+            if not os.path.exists(RU_G2P_DICT_PATH):
+                WikiDict.convert_to_g2p_only(RU_G2P_DICT_PATH)
         elif language == "en":
             self.grapheme_set = EN_GRAPHEME_SET
             self.dict_path = EN_G2P_DICT_PATH
             self.dump_path = EN_ALIGNER_DEFAULT_PATH
+            if not os.path.exists(EN_G2P_DICT_PATH):
+                CMUDict.convert_to_g2p_only(EN_G2P_DICT_PATH)
         self.probability_matrix = None
         if os.path.isfile(self.dump_path):
             self.load(self.dump_path)

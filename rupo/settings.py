@@ -3,6 +3,8 @@ foo_config = resource_filename(__name__, 'foo.conf')
 
 CLASSIFIER_DIR = resource_filename(__name__, "data/classifier/")
 
+DATA_DIR = resource_filename(__name__, "data")
+
 CMU_DICT = resource_filename(__name__, "data/dict/cmu.txt")
 ZALIZNYAK_DICT = resource_filename(__name__, "data/dict/zaliznyak.txt")
 RU_WIKI_DICT = resource_filename(__name__, "data/dict/wiki_ru.txt")

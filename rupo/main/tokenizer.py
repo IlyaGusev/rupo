@@ -6,10 +6,9 @@ from typing import List
 from enum import Enum, unique
 
 from rupo.settings import HYPHEN_TOKENS
-from rupo.main.markup import Annotation
 
 
-class Token(Annotation):
+class Token:
     @unique
     class TokenType(Enum):
         """
@@ -35,13 +34,18 @@ class Token(Annotation):
         :param end: конец позиции токена в тексте.
         """
         self.token_type = token_type
-        super(Token, self).__init__(begin, end, text)
+        self.begin = begin
+        self.end = end
+        self.text = text
 
     def __str__(self):
         return "'" + self.text + "'" + "|" + str(self.token_type) + " (" + str(self.begin) + ", " + str(self.end) + ")"
 
     def __repr__(self):
         return self.__str__()
+
+    def __eq__(self, other):
+        return self.text == other.text and self.token_type == other.token_type
 
 
 class Tokenizer(object):

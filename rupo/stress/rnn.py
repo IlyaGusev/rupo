@@ -14,7 +14,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint, Callback
 from keras.layers import LSTM, Bidirectional, Dropout, Activation, Dense, TimeDistributed, Input, Embedding
 
 
-class RNNStressPredictor:
+class RNNStressModel:
     phonetic_alphabet = " n̪ʃʆäʲ。ˌʰʷːːɐaɑəæbfv̪gɡxtdɛ̝̈ɬŋeɔɘɪjʝɵʂɕʐʑijkјɫlmɱnoprɾszᵻuʉɪ̯ʊɣʦʂʧʨɨɪ̯̯ɲʒûʕχѝíʌɒ‿͡ðwhɝθ"
 
     def __init__(self, dict_path: str=None, word_max_length: int = 30, language: str = "ru", rnn=LSTM,

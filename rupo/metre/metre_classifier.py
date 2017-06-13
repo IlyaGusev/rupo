@@ -10,7 +10,6 @@ from rupo.main.markup import Line, Markup
 from rupo.util.mixins import CommonMixin
 from rupo.metre.patterns import CompiledPatterns
 from rupo.util.preprocess import get_first_vowel_position
-from rupo.stress.stress_classifier import MLStressClassifier
 
 
 class StressCorrection(CommonMixin):
@@ -88,7 +87,6 @@ class ClassificationResult(CommonMixin):
         self.corrections = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[StressCorrection]]
         self.resolutions = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[StressCorrection]]
         self.additions = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[StressCorrection]]
-        self.ml_resolutions = []  # type: List[StressCorrection]
 
     def get_metre_errors_count(self):
         """
@@ -115,7 +113,6 @@ class ClassificationResult(CommonMixin):
         st += "Снятая омография: \n" + ClassificationResult.str_corrections(self.resolutions[self.metre]) + "\n"
         st += "Неправильные ударения: \n" + ClassificationResult.str_corrections(self.corrections[self.metre]) + "\n"
         st += "Новые ударения: \n" + ClassificationResult.str_corrections(self.additions[self.metre]) + "\n"
-        st += "ML: \n" + ClassificationResult.str_corrections(self.ml_resolutions) + "\n"
         return st
 
 
@@ -148,9 +145,9 @@ class MetreClassifier(object):
     line_inner_coef = OrderedDict(
         [("iambos", 1.0),
          ("choreios", 1.0),
-         ("daktylos", 1.2),
-         ("amphibrachys", 1.2),
-         ("anapaistos",  1.2),
+         ("daktylos", 1.0),
+         ("amphibrachys", 1.0),
+         ("anapaistos",  1.0),
          ("dolnik3", 2.0),
          ("dolnik2", 2.0),
          ("taktovik3", 3.0),
@@ -158,15 +155,15 @@ class MetreClassifier(object):
          ])
 
     line_outer_coef = OrderedDict(
-        [("iambos", 2.0),
-         ("choreios", 2.0),
+        [("iambos", 1.5),
+         ("choreios", 1.5),
          ("daktylos", 1.5),
-         ("amphibrachys", 1.5),
-         ("anapaistos",  1.5),
+         ("amphibrachys", 1.25),
+         ("anapaistos",  1.25),
          ("dolnik3", 1.0),
          ("dolnik2", 1.0),
-         ("taktovik3", 0.8),
-         ("taktovik2", 0.8)
+         ("taktovik3", 0.75),
+         ("taktovik2", 0.75)
          ])
 
     border_syllables_count = 18
@@ -287,29 +284,6 @@ class MetreClassifier(object):
         return corrections, resolutions, additions
 
     @staticmethod
-    def get_ml_resolutions(result: ClassificationResult, stress_classifier: MLStressClassifier) -> None:
-        """
-        Пытаемся снять омонимию с предыдущих этапов древесным классификатором.
-
-        :param result: результат классификации.
-        :param stress_classifier: древесный классификатор ударений.
-        """
-        result_additions = result.additions[result.metre]  # type: List[StressCorrection]
-        for i, add1 in enumerate(result_additions):
-            for j in range(i, len(result_additions)):
-                add2 = result_additions[j]
-                text1 = add1.word_text
-                text2 = add2.word_text
-                number1 = add1.syllable_number
-                number2 = add2.syllable_number
-                if text1 == text2 and number1 != number2:
-                    stress = stress_classifier.classify_stress(text1)
-                    if stress == number1:
-                        result.ml_resolutions.append(add1)
-                    if stress == number2:
-                        result.ml_resolutions.append(add2)
-
-    @staticmethod
     def get_improved_markup(markup: Markup, result: ClassificationResult) -> Markup:
         """
         Улучшаем разметку после классификации метра.
@@ -329,24 +303,15 @@ class MetreClassifier(object):
             syllable = markup.lines[pos.line_number].words[pos.word_number].syllables[pos.syllable_number]
             syllable.stress = syllable.begin + get_first_vowel_position(syllable.text)
 
-        for pos in result.ml_resolutions:
-            syllables = markup.lines[pos.line_number].words[pos.word_number].syllables
-            for i, syllable in enumerate(syllables):
-                syllable.stress = -1
-                if syllable.number == pos.syllable_number:
-                    syllable.stress = syllable.begin + get_first_vowel_position(syllable.text)
         return markup
 
     @staticmethod
-    def improve_markup(markup: Markup, stress_classifier: MLStressClassifier=None) -> \
+    def improve_markup(markup: Markup) -> \
             Tuple[Markup, ClassificationResult]:
         """
-        Улучшение разметки метрическим и машинным классификатором.
+        Улучшение разметки метрическим классификатором.
 
         :param markup: начальная разметка.
-        :param stress_classifier: классификатор ударений.
         """
         result = MetreClassifier.classify_metre(markup)
-        if stress_classifier is not None:
-            MetreClassifier.get_ml_resolutions(result, stress_classifier)
         return MetreClassifier.get_improved_markup(markup, result), result
