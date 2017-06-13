@@ -18,7 +18,8 @@ class MarkovModelContainer(object):
     """
     Марковские цепи.
     """
-    def __init__(self, dump_filename: str, vocabulary: Vocabulary, markup_dump_path: str=None, n_grams: int=2):
+    def __init__(self, dump_filename: str, vocabulary: Vocabulary, markup_dump_path: str=None,
+                 n_poems: int=None, n_grams: int=2):
         self.n_grams = n_grams
         self.transitions = defaultdict(Counter)  # type: Dict[Tuple, Counter]
         self.vocabulary = vocabulary
@@ -33,6 +34,8 @@ class MarkovModelContainer(object):
             for markup in markups:
                 self.add_markup(markup)
                 i += 1
+                if n_poems is not None and n_poems == i:
+                    break
                 if i % 500 == 0:
                     print(i)
             self.save()

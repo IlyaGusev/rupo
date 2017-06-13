@@ -33,6 +33,8 @@ class StressDict:
         PRIMARY = 0
         SECONDARY = 1
 
+    StressType = StressType
+
     def __init__(self, language: Language=Language.RUSSIAN, mode: Mode=Mode.GRAPHEMES) -> None:
         if language == self.Language.RUSSIAN and mode == self.Mode.GRAPHEMES:
             self.data = datrie.Trie(RU_GRAPHEME_SET)

@@ -116,12 +116,11 @@ class Phonetics:
         return stresses
 
     @staticmethod
-    def process_text(text: str, stress_dict: StressDict) -> Markup:
+    def process_text(text: str, g2p_model, stress_model, aligner) -> Markup:
         """
         Получение начального варианта разметки по слогам и ударениям.
 
         :param text: текст для разметки
-        :param stress_dict: экземпляр обёртки для словаря ударений
         :return markup: разметка по слогам и ударениям
         """
         begin_line = 0
@@ -134,7 +133,7 @@ class Phonetics:
                 word = Word(begin_line + token.begin, begin_line + token.end, token.text,
                             Phonetics.get_word_syllables(token.text))
                 # Проставляем ударения.
-                stresses = Phonetics.get_word_stresses(word.text.lower(), stress_dict)
+                stresses = Phonetics.get_g2p_stresses(token.text, g2p_model, stress_model, aligner)
                 # Сопоставляем ударения слогам.
                 word.set_stresses(stresses)
                 words.append(word)
@@ -167,3 +166,16 @@ class Phonetics:
                 return intersection[0]
             else:
                 return dict_stresses[0]
+
+    @staticmethod
+    def get_g2p_stresses(word: str, g2p_model, stress_model, aligner):
+        word = word.lower()
+        phonemes = g2p_model.predict([word])[0].replace(" ", "")
+        stresses = stress_model.predict([phonemes])[0]
+        stresses = [i for i, stress in enumerate(stresses) if stress == 1 or stress == 2]
+        g, p = aligner.align(word, phonemes)
+        stresses = aligner.align_stresses(g, p, stresses, is_grapheme=False)
+        for i, stress in enumerate(stresses):
+            stresses[i] -= len([ch for ch in g[:stress] if ch == " "])
+        stresses = [i for i in stresses if i < len(word)]
+        return stresses

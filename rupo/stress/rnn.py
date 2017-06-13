@@ -8,43 +8,49 @@ import os
 from typing import List, Tuple
 
 from sklearn.model_selection import train_test_split
-from keras.models import Sequential, load_model
+from keras.models import Model, load_model
 from keras.preprocessing import sequence
 from keras.callbacks import EarlyStopping, ModelCheckpoint, Callback
-from keras.layers import LSTM, Bidirectional, Dropout, Activation, Dense, TimeDistributed
+from keras.layers import LSTM, Bidirectional, Dropout, Activation, Dense, TimeDistributed, Input, Embedding
 
 
 class RNNStressPredictor:
     phonetic_alphabet = " n̪ʃʆäʲ。ˌʰʷːːɐaɑəæbfv̪gɡxtdɛ̝̈ɬŋeɔɘɪjʝɵʂɕʐʑijkјɫlmɱnoprɾszᵻuʉɪ̯ʊɣʦʂʧʨɨɪ̯̯ɲʒûʕχѝíʌɒ‿͡ðwhɝθ"
 
-    def __init__(self, dict_path: str, word_max_length: int=30, language: str="ru", rnn=LSTM,
-                 units: int=128, dropout: float=0.2):
+    def __init__(self, dict_path: str=None, word_max_length: int = 30, language: str = "ru", rnn=LSTM,
+                 units: int = 128, dropout: float = 0.2, batch_size=2048, emb_dimension=30):
         self.rnn = rnn
         self.dropout = dropout  # type: float
         self.units = units  # type: int
         self.language = language  # type: str
         self.dict_path = dict_path  # type: str
         self.word_max_length = word_max_length  # type: int
+        self.batch_size = batch_size
+        self.emb_dimension = emb_dimension
         self.model = None
 
     def build(self) -> None:
         """
         Построение модели. 
         """
-        model = Sequential()
-        model.add(Bidirectional(self.rnn(self.units, return_sequences=True),
-                                input_shape=(None, len(self.phonetic_alphabet))))
-        model.add(Dropout(self.dropout))
-        model.add(TimeDistributed(Dense(3)))
-        model.add(Activation('softmax'))
+        inp = Input(shape=(None,))
+
+        emb = Embedding(len(self.phonetic_alphabet), self.emb_dimension)(inp)
+        encoded = Bidirectional(self.rnn(self.units, return_sequences=True, recurrent_dropout=self.dropout))(emb)
+        encoded = Dropout(self.dropout)(encoded)
+        decoded = Bidirectional(self.rnn(self.units, return_sequences=True, recurrent_dropout=self.dropout))(encoded)
+        decoded = Dropout(self.dropout)(decoded)
+        predictions = TimeDistributed(Dense(3, activation="softmax"))(decoded)
+
+        model = Model(inputs=inp, outputs=predictions)
         model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         print(model.summary())
         self.model = model
 
-    def train(self, dir_name: str, enable_checkpoints: bool=False) -> None:
+    def train(self, dir_name: str, enable_checkpoints: bool = False) -> None:
         """
         Обучение сети.
-        
+
         :param dir_name: папка, в которую сохраняеются все весрии модели.
         :param enable_checkpoints: использовать ли чекпоинты.
         """
@@ -54,33 +60,34 @@ class RNNStressPredictor:
         # Деление на выборки.
         x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.1, random_state=42)
         # Основные раунды обучения.
-        callbacks = [EarlyStopping(monitor='val_loss', patience=2)]  # type: List[Callback]
+        callbacks = [EarlyStopping(monitor='val_acc', patience=3)]  # type: List[Callback]
         if enable_checkpoints:
             checkpoint_name = os.path.join(dir_name, "{epoch:02d}-{val_loss:.2f}.hdf5")
             callbacks.append(ModelCheckpoint(checkpoint_name, monitor='val_loss'))
-        self.model.fit(x_train, y_train, verbose=1, epochs=20, validation_data=(x_val, y_val), callbacks=callbacks)
+        self.model.fit(x_train, y_train, verbose=1, epochs=200, validation_data=(x_val, y_val),
+                       callbacks=callbacks, batch_size=self.batch_size)
         # Рассчёт точности на val выборке.
         accuracy = self.model.evaluate(x_val, y_val)[1]
         # Расчёт WER на всей выборке.
         wer = self.__evaluate_wer(x, y)[0]
         # Один раунд обучения на всём датасете.
-        self.model.fit(x, y, verbose=1, epochs=1)
+        self.model.fit(x, y, verbose=1, epochs=1, batch_size=self.batch_size)
         # Сохранение модели.
         filename = "stress_{language}_{rnn}{units}_dropout{dropout}_acc{acc}_wer{wer}.h5"
         filename = filename.format(language=self.language, rnn=self.rnn.__name__,
-                                   units=self.units, dropout=self.dropout, acc=int(accuracy*100),
-                                   wer=int(wer*100))
+                                   units=self.units, dropout=self.dropout, acc=int(accuracy * 100),
+                                   wer=int(wer * 100))
         self.model.save(os.path.join(dir_name, filename))
 
     def predict(self, words: List[str]) -> List[int]:
         """
         Предсказание ударений.
-        
+
         :param words: слова. 
         :return: ударения.
         """
         x, y = self.__prepare_data(words, None)
-        y = self.model.predict(x, verbose=0)
+        y = self.model.predict(x, verbose=0, batch_size=self.batch_size)
         answers = []
         for word in y:
             answer = []
@@ -96,7 +103,7 @@ class RNNStressPredictor:
     def __load_dict(self) -> Tuple[List[str], np.array]:
         """
         Парсинг словаря.
-        
+
         :return: фонетические слова и ударения.
         """
         x = []
@@ -127,17 +134,16 @@ class RNNStressPredictor:
         print("Skipped: " + str(skipped))
         return x, y
 
-    def __prepare_data(self, x: List[str], y: np.array=None) -> Tuple[np.array, List[int]]:
+    def __prepare_data(self, x: List[str], y: np.array = None) -> Tuple[np.array, List[int]]:
         """
         Подготовка данных
-        
+
         :param x: семплы.
         :param y: ответы.
         :return: очищенные семплы и овтеты.
         """
-        x = [[[int(ch == ch2) for ch2 in self.phonetic_alphabet] for ch in p] for p in x]
-        x = sequence.pad_sequences(x, maxlen=self.word_max_length, value=np.zeros(len(self.phonetic_alphabet)),
-                                   padding="post", truncating="post")
+        x = [[self.phonetic_alphabet.find(ch) for ch in p] for p in x]
+        x = sequence.pad_sequences(x, maxlen=self.word_max_length, padding='post', truncating='post')
         if y is not None:
             y = y.reshape((y.shape[0], y.shape[1], 1))
         return x, y

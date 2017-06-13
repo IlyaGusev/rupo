@@ -158,13 +158,13 @@ class MetreClassifier(object):
          ])
 
     line_outer_coef = OrderedDict(
-        [("iambos", 1.0),
-         ("choreios", 1.0),
-         ("daktylos", 1.0),
-         ("amphibrachys", 1.0),
-         ("anapaistos",  1.0),
-         ("dolnik3", 0.9),
-         ("dolnik2", 0.9),
+        [("iambos", 2.0),
+         ("choreios", 2.0),
+         ("daktylos", 1.5),
+         ("amphibrachys", 1.5),
+         ("anapaistos",  1.5),
+         ("dolnik3", 1.0),
+         ("dolnik2", 1.0),
          ("taktovik3", 0.8),
          ("taktovik2", 0.8)
          ])
@@ -201,6 +201,7 @@ class MetreClassifier(object):
                     line_clf_results[l].store_best_result(metre_name, pattern, error_count)
 
         lines_metres = [line_clf_results[l].get_best_metres() for l in range(len(markup.lines))]
+
         # Выбираем общий метр по метрам строк с учётом коэффициентов.
         counter = {k: 0 for k in MetreClassifier.metres.keys()}
         for l in range(len(markup.lines)):

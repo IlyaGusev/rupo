@@ -15,6 +15,10 @@ from rupo.main.phonetics import Phonetics
 from rupo.main.vocabulary import Vocabulary
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.rhymes.rhymes import Rhymes
+from rupo.stress.rnn import RNNStressPredictor
+from rupo.g2p.rnn import RNNPhonemePredictor
+from rupo.g2p.aligner import Aligner
+from rupo.settings import RU_STRESS_DEFAULT_MODEL, EN_STRESS_DEFAULT_MODEL, RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL
 
 
 class Engine:
@@ -25,6 +29,9 @@ class Engine:
         self.vocabulary = None  # type: Vocabulary
         self.markov = None  # type: MarkovModelContainer
         self.generator = None  # type: Generator
+        self.stress_models = dict()
+        self.g2p_models = dict()
+        self.aligners = dict()
 
     def load(self):
         self.stress_dict = None
@@ -47,24 +54,55 @@ class Engine:
             self.vocabulary = Vocabulary(dump_path, markup_path)
         return self.vocabulary
 
-    def get_markov(self, dump_path: str, vocab_dump_path: str, markup_path: str, n_grams: int=2) -> MarkovModelContainer:
+    def get_markov(self, dump_path: str, vocab_dump_path: str, markup_path: str, n_grams: int=2, n_poems: int=None) -> MarkovModelContainer:
         if self.markov is None:
             vocab = self.get_vocabulary(vocab_dump_path, markup_path)
-            self.markov = MarkovModelContainer(dump_path, vocab, markup_path, n_grams=n_grams)
+            self.markov = MarkovModelContainer(dump_path, vocab, markup_path, n_grams=n_grams, n_poems=n_poems)
         return self.markov
 
     def get_generator(self, dump_path: str, vocab_dump_path: str, markup_path: str) -> Generator:
         if self.generator is None:
-            self.generator = Generator(self.get_markov(dump_path, vocab_dump_path, markup_path, n_grams=3),
+            self.generator = Generator(self.get_markov(dump_path, vocab_dump_path, markup_path, n_grams=2, n_poems=4000),
                                        self.get_vocabulary(vocab_dump_path, markup_path))
         return self.generator
 
-    def get_stress(self, word: str) -> int:
+    def get_stress_model(self, language="ru"):
+        if self.stress_models.get(language) is None:
+            self.stress_models[language] = RNNStressPredictor(language=language)
+            if language == "ru":
+                model_path = RU_STRESS_DEFAULT_MODEL
+            elif language == "en":
+                model_path = EN_STRESS_DEFAULT_MODEL
+            else:
+                return None
+            self.stress_models[language].load(model_path)
+        return self.stress_models[language]
+
+    def get_g2p_model(self, language="ru"):
+        if self.g2p_models.get(language) is None:
+            self.g2p_models[language] = RNNPhonemePredictor(language=language)
+            if language == "ru":
+                model_path = RU_G2P_DEFAULT_MODEL
+            elif language == "en":
+                model_path = EN_G2P_DEFAULT_MODEL
+            else:
+                return None
+            self.g2p_models[language].load(model_path)
+        return self.g2p_models[language]
+
+    def get_aligner(self, language="ru"):
+        if self.aligners.get(language) is None:
+            self.aligners[language] = Aligner(language=language)
+        return self.aligners[language]
+
+    def get_stresses(self, word: str, language: str="ru") -> List[int]:
         """
         :param word: слово.
-        :return: ударение слова.
+        :param language: язык.
+        :return: ударения слова.
         """
-        return Phonetics.get_improved_word_stress(word, self.get_dict(), self.get_classifier())
+        return Phonetics.get_g2p_stresses(word, self.get_g2p_model(language),
+                                          self.get_stress_model(language), self.get_aligner(language))
 
     @staticmethod
     def get_word_syllables(word: str) -> List[str]:
@@ -82,12 +120,13 @@ class Engine:
         """
         return len(Phonetics.get_word_syllables(word))
 
-    def get_markup(self, text: str) -> Markup:
+    def get_markup(self, text: str, language: str="ru") -> Markup:
         """
         :param text: текст.
         :return: его разметка по словарю.
         """
-        return Phonetics.process_text(text, self.get_dict())
+        return Phonetics.process_text(text, self.get_g2p_model(language),
+                                      self.get_stress_model(language), self.get_aligner(language))
 
     def get_improved_markup(self, text: str) -> Tuple[Markup, ClassificationResult]:
         """
@@ -97,12 +136,14 @@ class Engine:
         markup = Phonetics.process_text(text, self.get_dict())
         return MetreClassifier.improve_markup(markup, self.get_classifier())
 
-    def classify_metre(self, text: str) -> str:
+    def classify_metre(self, text: str, language: str="ru") -> str:
         """
         :param text: текст.
         :return: его метр.
         """
-        return MetreClassifier.classify_metre(Phonetics.process_text(text, self.get_dict())).metre
+        return MetreClassifier.classify_metre(Phonetics.process_text(text, self.get_g2p_model(language),
+                                                                     self.get_stress_model(language),
+                                                                     self.get_aligner(language))).metre
 
     def generate_markups(self, input_path: str, input_type: FileType, output_path: str, output_type: FileType) -> None:
         """

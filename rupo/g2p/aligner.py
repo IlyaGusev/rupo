@@ -2,17 +2,45 @@
 # Автор: Гусев Илья
 # Описание: Выравнивание слова и транскрпции.
 
+import pickle
+import os
 from typing import List, Tuple, Dict
 from collections import defaultdict
 
 from rupo.settings import RU_GRAPHEME_SET
 from rupo.g2p.phonemes import Phonemes
+from rupo.settings import RU_ALIGNER_DEFAULT_PATH, EN_ALIGNER_DEFAULT_PATH, \
+    RU_G2P_DICT_PATH, EN_G2P_DICT_PATH, EN_GRAPHEME_SET
 
 
 class Aligner:
-    def __init__(self, grapheme_set: str=RU_GRAPHEME_SET):
-        self.grapheme_set = grapheme_set
+    def __init__(self, language="ru"):
+        if language == "ru":
+            self.grapheme_set = RU_GRAPHEME_SET
+            self.dict_path = RU_G2P_DICT_PATH
+            self.dump_path = RU_ALIGNER_DEFAULT_PATH
+        elif language == "en":
+            self.grapheme_set = EN_GRAPHEME_SET
+            self.dict_path = EN_G2P_DICT_PATH
+            self.dump_path = EN_ALIGNER_DEFAULT_PATH
         self.probability_matrix = None
+        if os.path.isfile(self.dump_path):
+            self.load(self.dump_path)
+        else:
+            with open(self.dict_path, 'r', encoding='utf-8') as r:
+                lines = r.readlines()
+                pairs = [tuple(line.strip().split("\t")) for line in lines]
+                self.train(pairs)
+                self.save(self.dump_path)
+
+    def save(self, filename) -> None:
+        with open(filename, "wb") as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+
+    def load(self, filename) -> None:
+        with open(filename, "rb") as f:
+            aligner = pickle.load(f)
+            self.__dict__.update(aligner.__dict__)
 
     def align(self, graphemes: str, phonemes: str):
         """
@@ -59,6 +87,21 @@ class Aligner:
                     if p == "ʲ":
                         probability_matrix[g][p] = 0
         self.probability_matrix = probability_matrix
+
+    @staticmethod
+    def align_stresses(aligned_g, aligned_p, stresses, is_grapheme=True):
+        index = -1
+        spaces_count = 0
+        word = aligned_g if is_grapheme else aligned_p
+        for i, stress in enumerate(stresses):
+            for j in range(len(word)):
+                if word[j] == " ":
+                    spaces_count += 1
+                else:
+                    index += 1
+                    if index == stress:
+                        stresses[i] += spaces_count
+        return stresses
 
     @staticmethod
     def __build_align_matrix(first_string: str, second_string: str,

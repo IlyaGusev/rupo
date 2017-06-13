@@ -105,7 +105,7 @@ class Generator(object):
         self.vocabulary = vocabulary
         self.lemmatized_vocabulary = lemmatized_vocabulary
 
-    def generate_poem(self, metre_schema: str="-+", rhyme_pattern: str="aabbсс", n_syllables: int=10,
+    def generate_poem(self, metre_schema: str="+-", rhyme_pattern: str="aabb", n_syllables: int=8,
                       letters_to_rhymes: dict=None, beam_width: int=4) -> str:
         """
         Генерация стихотворения с выбранными параметрами.

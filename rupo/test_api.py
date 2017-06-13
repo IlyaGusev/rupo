@@ -17,8 +17,21 @@ class TestApi(unittest.TestCase):
         cls.engine.load()
 
     def test_stress(self):
-        self.assertEqual(self.engine.get_stress("корова"), 3)
-        self.assertEqual(self.engine.get_stress("когда-нибудь"), 9)
+        self.assertEqual(self.engine.get_stresses("корова"), [3])
+        self.assertEqual(self.engine.get_stresses("авиамоделирование"), [0, 9])
+        self.assertEqual(self.engine.get_stresses("триплекс"), [2])
+        self.assertEqual(self.engine.get_stresses("квазар"), [4])
+        self.assertEqual(self.engine.get_stresses("горит"), [3])
+        self.assertEqual(self.engine.get_stresses("восток"), [4])
+        self.assertEqual(self.engine.get_stresses("зарёю"), [3])
+        self.assertEqual(self.engine.get_stresses("новой"), [1])
+        self.assertEqual(self.engine.get_stresses("равнине"), [4])
+        self.assertEqual(self.engine.get_stresses("холмам"), [4])
+        self.assertEqual(self.engine.get_stresses("грохочут"), [4])
+        self.assertEqual(self.engine.get_stresses("пушки"), [1])
+        self.assertEqual(self.engine.get_stresses("багровый"), [4])
+        self.assertEqual(self.engine.get_stresses("кругами"), [4])
+        self.assertEqual(self.engine.get_stresses("уж"), [0])
 
     def test_get_word_syllables(self):
         self.assertEqual(self.engine.get_word_syllables("корова"), ["ко", "ро", "ва"])
@@ -48,13 +61,13 @@ class TestApi(unittest.TestCase):
         self.assertIsNotNone(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml", markov_dump_file,
                                                        vocab_dump_file, rhyme_pattern="aa", n_syllables=6))
         print(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml", markov_dump_file,
-                                        vocab_dump_file, rhyme_pattern="aabb", n_syllables=8, beam_width=10))
+                                        vocab_dump_file, rhyme_pattern="aabbcc", n_syllables=10, beam_width=10))
         print(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml",
                                         markov_dump_file,
-                                        vocab_dump_file, rhyme_pattern="aabb", n_syllables=8, beam_width=10))
+                                        vocab_dump_file, rhyme_pattern="aabbcc", n_syllables=10, beam_width=10))
         print(self.engine.generate_poem("/home/yallen/Документы/Python/Poems/datasets/corpus/markup_dump.xml",
                                         markov_dump_file,
-                                        vocab_dump_file, rhyme_pattern="aabb", n_syllables=8, beam_width=10))
+                                        vocab_dump_file, rhyme_pattern="aabbcc", n_syllables=10, beam_width=10))
         os.remove(vocab_dump_file)
         os.remove(markov_dump_file)
         self.engine.vocabulary = None
