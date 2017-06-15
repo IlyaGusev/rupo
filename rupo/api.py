@@ -12,7 +12,7 @@ from rupo.main.markup import Markup
 from rupo.main.vocabulary import Vocabulary
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.rhymes.rhymes import Rhymes
-from rupo.stress.predictor import RNNStressPredictor
+from rupo.stress.predictor import StressPredictor, CombinedStressPredictor
 from rupo.g2p.rnn import RNNG2PModel
 from rupo.g2p.graphemes import Graphemes
 from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL
@@ -52,7 +52,7 @@ class Engine:
 
     def get_stress_predictor(self, language="ru"):
         if self.stress_predictors.get(language) is None:
-            self.stress_predictors[language] = RNNStressPredictor()
+            self.stress_predictors[language] = CombinedStressPredictor(language)
         return self.stress_predictors[language]
 
     def get_g2p_model(self, language="ru"):

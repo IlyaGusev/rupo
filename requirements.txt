@@ -9,3 +9,4 @@ keras == 2.0.5
 pymorphy2 == 0.8
 h5py == 2.7.0
 russian-tagsets == 0.5.2
+tqdm == 4.14.0

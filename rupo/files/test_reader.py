@@ -5,7 +5,7 @@
 import unittest
 
 from rupo.files.reader import Reader, FileType
-from rupo.stress.predictor import RNNStressPredictor
+from rupo.stress.predictor import CombinedStressPredictor
 from rupo.main.markup import Markup, Line, Word
 from rupo.settings import MARKUP_XML_EXAMPLE, TEXT_XML_EXAMPLE, MARKUP_JSON_EXAMPLE
 
@@ -13,7 +13,7 @@ from rupo.settings import MARKUP_XML_EXAMPLE, TEXT_XML_EXAMPLE, MARKUP_JSON_EXAM
 class TestReader(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.stress_predictor = RNNStressPredictor()
+        cls.stress_predictor = CombinedStressPredictor()
 
     def test_read(self):
         processed_xml = Reader.read_markups(MARKUP_XML_EXAMPLE, FileType.XML, is_processed=True)

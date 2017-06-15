@@ -6,14 +6,14 @@ import unittest
 import jsonpickle
 
 from rupo.main.markup import Markup
-from rupo.stress.predictor import RNNStressPredictor
+from rupo.stress.predictor import CombinedStressPredictor
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult, StressCorrection
 
 
 class TestMetreClassifier(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.stress_predictor = RNNStressPredictor()
+        cls.stress_predictor = CombinedStressPredictor()
 
     def test_classification_result(self):
         result = ClassificationResult(5)

@@ -6,13 +6,13 @@ import unittest
 
 from rupo.util.data import MARKUP_EXAMPLE
 from rupo.main.markup import Markup
-from rupo.stress.predictor import RNNStressPredictor
+from rupo.stress.predictor import CombinedStressPredictor
 
 
 class TestMarkup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.stress_predictor = RNNStressPredictor()
+        cls.stress_predictor = CombinedStressPredictor()
 
     def test_from_to(self):
         clean_markup = Markup()

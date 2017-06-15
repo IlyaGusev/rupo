@@ -89,3 +89,16 @@ class DictStressPredictor(StressPredictor):
                     if yo_pos != -1:
                         stresses.append(yo_pos)
         return stresses
+
+
+class CombinedStressPredictor(StressPredictor):
+    def __init__(self, language="ru"):
+        self.rnn = RNNStressPredictor(language)
+        self.dict = DictStressPredictor(language)
+
+    def predict(self, word: str) -> List[int]:
+        stresses = self.dict.predict(word)
+        if len(stresses) == 0:
+            return self.rnn.predict(word)
+        else:
+            return stresses
