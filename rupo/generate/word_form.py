@@ -1,7 +1,20 @@
+# -*- coding: utf-8 -*-
+# Авторы: Гусев Илья, Анастасьев Даниил
+# Описание: Словоформа.
+
+
 class WordForm(object):
-    def __init__(self, lemma, gram_vector_index, text):
+    """
+    Класс словоформы.
+    """
+    def __init__(self, lemma: str, gram_vector_index: int, text: str):
+        """
+        :param lemma: лемма словоформы (=начальная форма, нормальная форма).
+        :param gram_vector_index: индекс грамматического вектора.
+        :param text: вокабула словоформы.
+        """
         self.lemma = lemma  # type: str
-        self.gram_vector_index = gram_vector_index  # type: str
+        self.gram_vector_index = gram_vector_index  # type: int
         self.text = text  # type: str
 
     def __repr__(self):

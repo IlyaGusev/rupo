@@ -23,7 +23,7 @@ from rupo.generate.word_form_vocabulary import WordFormVocabulary
 from rupo.generate.lstm import LSTMGenerator
 
 
-filename = os.path.join(DATA_DIR, "generator_models", "Poetry_preds.txt_lemmatized_test")
+# filename = os.path.join(DATA_DIR, "generator_models", "Poetry_preds.txt_lemmatized_test")
 
 # vectorizer = GrammemeVectorizer()
 # vectorizer.collect_grammemes(filename)
@@ -35,7 +35,7 @@ filename = os.path.join(DATA_DIR, "generator_models", "Poetry_preds.txt_lemmatiz
 # vocab.load_from_corpus(filename, grammeme_vectorizer=vectorizer)
 # print(vocab.word_forms)
 
-lstm = LSTMGenerator()
-lstm.prepare([filename, ])
-lstm.build()
-lstm.train([filename, ])
+# lstm = LSTMGenerator(nn_batch_size=32, external_batch_size=5000, softmax_size=20000)
+# lstm.prepare([filename, ])
+# lstm.build()
+# lstm.train([filename, ])

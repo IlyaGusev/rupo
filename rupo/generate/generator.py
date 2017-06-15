@@ -13,6 +13,8 @@ from rupo.generate.filters import MetreFilter, RhymeFilter
 from rupo.main.vocabulary import Vocabulary
 from rupo.main.markup import Markup
 from rupo.metre.metre_classifier import MetreClassifier, CompilationsSingleton
+from rupo.generate.model_container import ModelContainer
+from rupo.generate.word_form_vocabulary import WordFormVocabulary
 
 
 class BeamPath(object):
@@ -65,7 +67,7 @@ class BeamPath(object):
             lines.append(line)
         return "\n".join(list(reversed(lines))) + "\n"
 
-    def get_current_model(self, model_container, vocabulary: Vocabulary, use_rhyme: bool=False) -> np.array:
+    def get_current_model(self, model_container: ModelContainer, vocabulary: Vocabulary, use_rhyme: bool=False) -> np.array:
         """
         Получить фильтрованные вероятности следующего слова.
         
@@ -95,14 +97,15 @@ class Generator(object):
     """
     Генератор стихов
     """
-    def __init__(self, model_container, vocabulary: Vocabulary, lemmatized_vocabulary=None):
+    def __init__(self, model_container: ModelContainer, vocabulary: Vocabulary,
+                 word_form_vocabulary: WordFormVocabulary=None):
         """
         :param model_container: модель с методом get_model.
         :param vocabulary: словарь с индексами.
         """
-        self.model_container = model_container
-        self.vocabulary = vocabulary
-        self.lemmatized_vocabulary = lemmatized_vocabulary
+        self.model_container = model_container  # type: ModelContainer
+        self.vocabulary = vocabulary  # type: Vocabulary
+        self.word_form_vocabulary = word_form_vocabulary  # type: WordFormVocabulary
 
     def generate_poem(self, metre_schema: str="+-", rhyme_pattern: str="aabb", n_syllables: int=8,
                       letters_to_rhymes: dict=None, beam_width: int=4) -> str:
@@ -121,7 +124,7 @@ class Generator(object):
             metre_pattern += metre_schema
         metre_pattern = metre_pattern[:n_syllables]
         metre_filter = MetreFilter(metre_pattern)
-        rhyme_filter = RhymeFilter(rhyme_pattern, letters_to_rhymes, self.lemmatized_vocabulary, score_border=5)
+        rhyme_filter = RhymeFilter(rhyme_pattern, letters_to_rhymes, self.word_form_vocabulary, score_border=5)
 
         result_paths = []
         empty_path = BeamPath([], metre_filter, rhyme_filter, 1.0, [])

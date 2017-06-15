@@ -10,6 +10,7 @@ import numpy as np
 from rupo.main.markup import Word
 from rupo.main.vocabulary import Vocabulary
 from rupo.rhymes.rhymes import Rhymes
+from rupo.generate.word_form_vocabulary import WordFormVocabulary
 
 
 class Filter(object):
@@ -117,8 +118,9 @@ class RhymeFilter(Filter):
     """
     Фильтр по шаблону рифмы.
     """
-    def __init__(self, rhyme_pattern: str, letters_to_rhymes: dict=None, lemmatized_vocabulary=None, score_border=4):
-        self.lemmatized_vocabulary = lemmatized_vocabulary
+    def __init__(self, rhyme_pattern: str, letters_to_rhymes: dict=None,
+                 word_form_vocabulary: WordFormVocabulary=None, score_border=4):
+        self.word_form_vocabulary = word_form_vocabulary  # type: WordFormVocabulary
         self.rhyme_pattern = rhyme_pattern
         self.position = len(self.rhyme_pattern) - 1
         self.letters_to_rhymes = defaultdict(set)
@@ -142,7 +144,7 @@ class RhymeFilter(Filter):
         first_word = list(self.letters_to_rhymes[self.rhyme_pattern[self.position]])[0]
 
         is_rhyme = Rhymes.is_rhyme(first_word, word, score_border=self.score_border, syllable_number_border=2,
-                                   lemmatized_vocabulary=self.lemmatized_vocabulary) and \
+                                   word_form_vocabulary=self.word_form_vocabulary) and \
             first_word.text != word.text
         return is_rhyme
 
