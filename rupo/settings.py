@@ -38,11 +38,12 @@ G2P_CURRENT_MODEL_DIR = resource_filename(__name__, "data/g2p_models/")
 ACCENT_CURRENT_MODEL_DIR = resource_filename(__name__, "data/stress_models/")
 GENERATOR_MODEL_DIR = resource_filename(__name__, "data/generator_models/")
 
+GENERATOR_LSTM_MODEL_PATH = resource_filename(__name__, "data/generator_models/lstm.h5")
 GENERATOR_MODEL_DESCRIPTION = resource_filename(__name__, "data/generator_models/build.json")
 GENERATOR_MODEL_WEIGHTS = resource_filename(__name__, "data/generator_models/weights.h5")
-GENERATOR_LEMMA_VOCAB_PATH = resource_filename(__name__, "data/generator_models/lemmatized_vocabulary.pkl")
+GENERATOR_WORD_FORM_VOCAB_PATH = resource_filename(__name__, "data/generator_models/word_form_vocabulary.pickle")
 GENERATOR_VOCAB_PATH = resource_filename(__name__, "data/generator_models/vocabulary.pickle")
-GENERATOR_TAGS_VECTORS = resource_filename(__name__, "data/generator_models/index2tags_vector.pkl")
+GENERATOR_GRAM_VECTORS = resource_filename(__name__, "data/generator_models/grammeme_vectorizer.pickle")
 
 TEMP_PATH = resource_filename(__name__, "data/temp.txt")
 
