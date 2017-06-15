@@ -1,28 +1,21 @@
-import pickle
 import numpy as np
 
-from time import strftime, localtime
 from typing import List
-from contextlib import redirect_stdout
 from keras.models import model_from_json
-from keras.callbacks import Callback
-from keras.models import Model
-from keras.layers import Input, Activation, Embedding, Dense, Merge, LSTM, SpatialDropout1D, Masking
+from keras.models import Model, load_model
+from keras.layers import Input, Embedding, Dense, Merge, LSTM, SpatialDropout1D, Masking
 from keras import backend as K
-from keras.utils.generic_utils import get_custom_objects
 
 from rupo.generate.word_form import WordForm
 from rupo.generate.word_form_vocabulary import WordFormVocabulary
 from rupo.generate.grammeme_vectorizer import GrammemeVectorizer
-
-from rupo.settings import GENERATOR_MODEL_DESCRIPTION, GENERATOR_MODEL_WEIGHTS, GENERATOR_LEMMA_VOCAB_PATH, \
-    GENERATOR_TAGS_VECTORS
+from rupo.settings import GENERATOR_LSTM_MODEL_PATH
 
 
 class BatchGenerator:
-    def __init__(self, filename, batch_size, softmax_size, sentence_maxlen,
+    def __init__(self, filenames, batch_size, softmax_size, sentence_maxlen,
                  word_form_vocabulary: WordFormVocabulary, grammeme_vectorizer: GrammemeVectorizer):
-        self.filename = filename
+        self.filenames = filenames
         self.batch_size = batch_size
         self.softmax_size = softmax_size
         self.sentence_maxlen = sentence_maxlen
@@ -62,76 +55,53 @@ class BatchGenerator:
 
     def __iter__(self):
         sentences = [[]]
-        with open(self.filename, encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if len(line) == 0:
-                    sentences.append([])
-                else:
-                    word, lemma, pos, tags = line.split('\t')
-                    gram_vector_index = self.grammeme_vectorizer.name_to_index[pos+"#"+tags]
-                    sentences[-1].append(WordForm(lemma + '_' + pos, gram_vector_index, word))
-                if len(sentences) >= self.batch_size:
-                    yield self.__to_tensor(sentences)
-                    sentences = [[]]
-
-
-class EvalCallback(Callback):
-    def __init__(self, name, softmax_size,
-                 word_form_vocabulary: WordFormVocabulary,
-                 grammeme_vectorizer: GrammemeVectorizer,
-                 model):
-        self._name = name
-        self.softmax_size = softmax_size
-        self.word_form_vocabulary = word_form_vocabulary
-        self.grammeme_vectorizer = grammeme_vectorizer
-        self.model = model
-        super(Callback, self).__init__()
-
-    def write(self, message):
-        print('[{}] {}'.format(strftime("%H:%M:%S", localtime()), message))
-
-    def _sample(self, prob, temperature=1.0):
-        prob = prob[:-1]  # Не хотим предсказывать UNKNOWN_WORD
-        prob = np.log(prob) / temperature
-        prob = np.exp(prob) / np.sum(np.exp(prob))
-        return np.random.choice(len(prob), p=prob)
-
-    def _generate(self):
-        cur_sent = [self.word_form_vocabulary.get_word_form_by_index(np.random.randint(0, self.softmax_size))]
-        for i in range(10):
-            x_emb = np.zeros((1, len(cur_sent)))
-            x_gram = np.zeros((1, len(cur_sent), self.grammeme_vectorizer.grammemes_count()))
-            for index, word in enumerate(cur_sent):
-                x_emb[0, index] = self.word_form_vocabulary.get_word_form_index_min(word, self.softmax_size)
-                x_gram[0, index] = self.grammeme_vectorizer.vectors[word.gr_tag]
-
-            preds = self.model.predict([x_emb, x_gram], verbose=0)[0]
-            cur_sent.append(self.word_form_vocabulary.get_word_form_by_index(self._sample(preds)))
-
-        print('Sentence', end=': ')
-        for word in cur_sent[::-1]:
-            print(word.word_form, end=' ')
-        print()
-
-    def on_epoch_end(self, epoch, logs={}):
-        self._generate()
+        for filename in self.filenames:
+            with open(filename, encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if len(line) == 0:
+                        sentences.append([])
+                    else:
+                        word, lemma, pos, tags = line.split('\t')[:4]
+                        gram_vector_index = self.grammeme_vectorizer.name_to_index[pos+"#"+tags]
+                        sentences[-1].append(WordForm(lemma + '_' + pos, gram_vector_index, word))
+                    if len(sentences) >= self.batch_size:
+                        yield self.__to_tensor(sentences)
+                        sentences = [[]]
 
 
 class LSTMGenerator:
-    def __init__(self, softmax_size=60000):
+    def __init__(self, softmax_size=60000, external_batch_size=10000, nn_batch_size=768, sentence_maxlen=10):
         self.softmax_size = softmax_size
+        self.external_batch_size = external_batch_size
+        self.nn_batch_size = nn_batch_size
+        self.sentence_maxlen = sentence_maxlen
         self.word_form_vocabulary = None
         self.grammeme_vectorizer = None
         self.model = None
 
-    def prepare_data(self, filename):
+    def prepare(self, filenames):
         self.grammeme_vectorizer = GrammemeVectorizer()
-        self.grammeme_vectorizer.collect_grammemes(filename)
-        self.grammeme_vectorizer.collect_possible_vectors(filename)
+        for filename in filenames:
+            self.grammeme_vectorizer.collect_grammemes(filename)
+        for filename in filenames:
+            self.grammeme_vectorizer.collect_possible_vectors(filename)
+        self.grammeme_vectorizer.save()
+
         self.word_form_vocabulary = WordFormVocabulary()
-        self.word_form_vocabulary.load_from_corpus(filename, self.grammeme_vectorizer)
+        for filename in filenames:
+            self.word_form_vocabulary.load_from_corpus(filename, self.grammeme_vectorizer)
         self.word_form_vocabulary.sort()
+        self.word_form_vocabulary.save()
+        self.word_form_vocabulary.inflate_vocab(self.softmax_size)
+
+    def load(self, model_filename):
+        self.model = load_model(model_filename)
+
+    def load_with_weights(self, json_filename, weights_filename):
+        json_string = open(json_filename, 'r', encoding='utf8').readline()
+        self.model = model_from_json(json_string)
+        self.model.load_weights(weights_filename)
 
     def build(self):
         def hard_tanh(x):
@@ -154,61 +124,54 @@ class LSTMGenerator:
         self.model.compile(loss='sparse_categorical_crossentropy', optimizer='adam')
         print(self.model.summary())
 
-    def train(self, filename):
-        batch_generator = BatchGenerator(filename,
-                                         batch_size=10000,
+    def train(self, filenames):
+        batch_generator = BatchGenerator(filenames,
+                                         batch_size=self.external_batch_size,
                                          softmax_size=self.softmax_size,
-                                         sentence_maxlen=10,
+                                         sentence_maxlen=self.sentence_maxlen,
                                          word_form_vocabulary=self.word_form_vocabulary,
                                          grammeme_vectorizer=self.grammeme_vectorizer)
-        name = 'Lemmatized_hard_tanh'
-        with open(name + '_log.txt', 'a') as f:
-            with redirect_stdout(f):
-                callback = EvalCallback(name, self.softmax_size, self.word_form_vocabulary,
-                                        self.grammeme_vectorizer, self.model)
-                for big_epoch in range(1000):
-                    print('------------Big Epoch {}------------'.format(big_epoch))
-                    for epoch, (X1, X2, y) in enumerate(batch_generator):
-                        self.model.fit([X1, X2], y, batch_size=768, epochs=1, verbose=2, callbacks=[callback])
-                        if epoch != 0 and epoch % 10 == 0:
-                            self.model.save_weights(name + '_model.h5')
-                        f.flush()
+        for big_epoch in range(1000):
+            print('------------Big Epoch {}------------'.format(big_epoch))
+            for epoch, (X1, X2, y) in enumerate(batch_generator):
+                self.model.fit([X1, X2], y, batch_size=self.nn_batch_size, epochs=1, verbose=1)
+                indices = [np.random.randint(0, self.softmax_size)]
+                for i in range(10):
+                    indices.append(self._sample(self.predict(indices)))
+                sentence = [self.word_form_vocabulary.get_word_form_by_index(index) for index in indices]
+                print('Sentence', end=': ')
+                for word in sentence[::-1]:
+                    print(word.text, end=' ')
+                print()
+
+                if epoch != 0 and epoch % 10 == 0:
+                    self.model.save(GENERATOR_LSTM_MODEL_PATH)
 
     def predict(self, word_indices: List[int]):
         if len(word_indices) == 0:
             return np.full(self.softmax_size, 1.0/self.softmax_size, dtype=np.float)
-        cur_sent = [self.word_form_vocabulary.get_word_by_index(ind) for ind in word_indices]
+        cur_sent = [self.word_form_vocabulary.get_word_form_by_index(ind) for ind in word_indices]
         x_emb = np.zeros((1, len(cur_sent)))
         x_gram = np.zeros((1, len(cur_sent), self.grammeme_vectorizer.grammemes_count()))
         for index, word in enumerate(cur_sent):
             x_emb[0, index] = self.word_form_vocabulary.get_word_form_index_min(word, self.softmax_size)
-            x_gram[0, index] = self.grammeme_vectorizer.vectors[word.gr_tag]
+            x_gram[0, index] = self.grammeme_vectorizer.vectors[word.gram_vector_index]
         return self.model.predict([x_emb, x_gram], verbose=0)[0]
+
+    @staticmethod
+    def _sample(prob, temperature=1.0):
+        prob = prob[:-1]
+        prob = np.log(prob) / temperature
+        prob = np.exp(prob) / np.sum(np.exp(prob))
+        return np.random.choice(len(prob), p=prob)
 
 
 class LSTMModelContainer(object):
     def __init__(self):
-        json_string = open(GENERATOR_MODEL_DESCRIPTION, 'r', encoding='utf8').readline()
-        self.model = model_from_json(json_string)
-        self.model.load_weights(GENERATOR_MODEL_WEIGHTS)
-        self.lemmatized_vocabulary = pickle.load(open(GENERATOR_LEMMA_VOCAB_PATH, "rb"))
-        self.num_of_words = len(self.lemmatized_vocabulary.lemmatizedWords)
-        self.index2tags_vector = pickle.load(open(GENERATOR_TAGS_VECTORS, "rb"))
-        self.GRAMMEMES_COUNT = 54
-        self.SOFTMAX_SIZE = 50000
-
-    def __get_word_index(self, word):
-        return min(self.lemmatized_vocabulary.get_word_form_index(word), self.SOFTMAX_SIZE)
+        self.lstm = LSTMGenerator()
+        self.lstm.load(GENERATOR_LSTM_MODEL_PATH)
 
     def get_model(self, word_indices: List[int]) -> np.array:
-        if len(word_indices) == 0:
-            return np.full(self.num_of_words, 1 / self.num_of_words, dtype=np.float)
-        cur_sent = [self.lemmatized_vocabulary.get_word_by_index(ind) for ind in word_indices]
-        X_emb = np.zeros((1, len(cur_sent)))
-        X_gr = np.zeros((1, len(cur_sent), self.GRAMMEMES_COUNT))
-        for ind, word in enumerate(cur_sent):
-            X_emb[0, ind] = self.__get_word_index(word)
-            X_gr[0, ind] = self.index2tags_vector[word.gr_tag]
-        return self.model.predict([X_emb, X_gr], verbose=0)[0]
+        return self.lstm.predict(word_indices)
 
 

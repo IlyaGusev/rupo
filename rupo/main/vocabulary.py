@@ -27,7 +27,7 @@ class Vocabulary(object):
 
         if os.path.isfile(self.dump_filename):
             self.load()
-        else:
+        elif markup_path is not None:
             if from_voc:
                 word_indexes = Reader.read_vocabulary(markup_path)
                 for word, index in word_indexes:

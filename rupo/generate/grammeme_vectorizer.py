@@ -1,13 +1,29 @@
+import pickle
 from collections import defaultdict
+from rupo.settings import GENERATOR_GRAM_VECTORS
+
+
+def get_empty_category():
+    return {GrammemeVectorizer.UNKNOWN_VALUE}
 
 
 class GrammemeVectorizer:
     UNKNOWN_VALUE = "Unknown"
 
-    def __init__(self):
-        self.all_grammemes = defaultdict(lambda: {GrammemeVectorizer.UNKNOWN_VALUE})
+    def __init__(self, dump_filename=GENERATOR_GRAM_VECTORS):
+        self.all_grammemes = defaultdict(get_empty_category)
         self.vectors = []
         self.name_to_index = {}
+        self.dump_filename = dump_filename
+
+    def save(self) -> None:
+        with open(self.dump_filename, "wb") as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+
+    def load(self):
+        with open(self.dump_filename, "rb") as f:
+            vocab = pickle.load(f)
+            self.__dict__.update(vocab.__dict__)
 
     def collect_grammemes(self, filename):
         with open(filename, "r", encoding="utf-8") as f:
