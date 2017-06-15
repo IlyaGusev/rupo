@@ -1,0 +1,38 @@
+забывши	забыть	VERB	Aspect=Perf|Tense=Past|VerbForm=Conv|Voice=Act
+волнения	волнение	NOUN	Animacy=Inan|Case=Gen|Gender=Neut|Number=Sing
+жизни	жизнь	NOUN	Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+мятежной	мятежный	ADJ	Case=Gen|Gender=Fem|Number=Sing
+
+один	один	DET	Case=Nom|Gender=Masc|Number=Sing
+жил	жить	VERB	Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin
+в	в	ADP	_
+пустыне	пустыня	NOUN	Animacy=Inan|Case=Loc|Gender=Fem|Number=Sing
+рыбак	рыбак	NOUN	Animacy=Anim|Case=Nom|Gender=Masc|Number=Sing
+молодой	молодая	NOUN	Animacy=Anim|Case=Gen|Gender=Fem|Number=Sing
+
+однажды	однажды	ADV	_
+на	на	ADP	_
+скале	скал	NOUN	Animacy=Inan|Case=Loc|Gender=Masc|Number=Sing
+прибрежной	прибрежный	ADJ	Case=Gen|Gender=Fem|Number=Sing
+
+над	над	ADP	_
+тихой	тихий	ADJ	Case=Gen|Gender=Fem|Number=Sing
+прозрачной	прозрачный	ADJ	Case=Gen|Gender=Fem|Number=Sing
+рекой	река	NOUN	Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+
+он	он	PRON	Case=Nom|Gender=Masc|Number=Sing|Person=3
+с	с	ADP	_
+удой	уда	PROPN	Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+беспечно	беспечно	ADV	_
+
+сидел	сидеть	VERB	Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin
+
+и	и	CONJ	_
+думой	дума	NOUN	Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+сердечной	сердечный	ADJ	Case=Gen|Gender=Fem|Number=Sing
+
+к	к	ADP	_
+прошедшему	прошедшее	NOUN	Animacy=Inan|Case=Dat|Gender=Neut|Number=Sing
+счастью	счастие	NOUN	Animacy=Inan|Case=Dat|Gender=Neut|Number=Sing
+летел	лететь	VERB	Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin
+
