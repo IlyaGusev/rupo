@@ -178,7 +178,10 @@ class Generator(object):
         model = path.get_current_model(self.model_container, self.vocabulary, use_rhyme)
         if np.sum(model) == 0.0:
             return []
-        new_indices = Generator.__choose(model, beam_width)
+        if len(path.indices) != 0:
+            new_indices = Generator.__choose(model, beam_width)
+        else:
+            new_indices = Generator.__choose_uniform(self.vocabulary.size(), beam_width)
         new_paths = []
         for index in new_indices:
             word = self.vocabulary.get_word(index)
@@ -242,6 +245,10 @@ class Generator(object):
         """
         norm_model = model / np.sum(model)
         return choice(range(len(norm_model)), n, p=norm_model)
+
+    @staticmethod
+    def __choose_uniform(size: int, n: int=1):
+        return [np.random.randint(1, size) for _ in range(n)]
 
     @staticmethod
     def __top(model: np.array, n: int=1):

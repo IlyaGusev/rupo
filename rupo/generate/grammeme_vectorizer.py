@@ -107,6 +107,10 @@ class GrammemeVectorizer:
     def is_empty(self) -> int:
         return len(self.vectors) == 0
 
+    def get_name_by_index(self, index):
+        d = {index: name for name, index in self.name_to_index.items()}
+        return d[index]
+
     def __build_vector(self, pos_tag: str, grammemes: List[str]) -> List[int]:
         """
         Построение вектора по части речи и грамматическим значениям.

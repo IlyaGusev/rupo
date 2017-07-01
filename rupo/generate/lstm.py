@@ -4,6 +4,7 @@
 
 import numpy as np
 from typing import List, Tuple
+import keras.activations
 from keras.models import model_from_json
 from keras.models import Model, load_model
 from keras.layers import Input, Embedding, Dense, Merge, LSTM, SpatialDropout1D, Masking
@@ -14,6 +15,11 @@ from rupo.generate.word_form_vocabulary import WordFormVocabulary
 from rupo.generate.grammeme_vectorizer import GrammemeVectorizer
 from rupo.generate.model_container import ModelContainer
 from rupo.settings import GENERATOR_LSTM_MODEL_PATH
+
+
+def hard_tanh(x):
+    return K.minimum(K.maximum(x, K.constant(-1)), K.constant(1))
+keras.activations.hard_tanh = hard_tanh
 
 
 class BatchGenerator:
@@ -97,12 +103,17 @@ class BatchGenerator:
                         sentences.append([])
                     else:
                         word, lemma, pos, tags = line.split('\t')[:4]
+                        word = word.lower()
+                        lemma = lemma.lower()
                         gram_vector_index = self.grammeme_vectorizer.name_to_index[pos+"#"+tags]
                         sentences[-1].append(WordForm(lemma + '_' + pos, gram_vector_index, word))
                     if len(sentences) >= self.batch_size:
                         sentences, next_words = self.__generate_seqs(sentences)
                         yield self.__to_tensor(sentences, next_words)
                         sentences = [[]]
+                sentences, next_words = self.__generate_seqs(sentences)
+                yield self.__to_tensor(sentences, next_words)
+                sentences = [[]]
 
 
 class LSTMGenerator:
@@ -129,7 +140,7 @@ class LSTMGenerator:
         self.grammeme_dense_units = grammeme_dense_units  # type: int
         self.model = None  # type: Model
 
-    def prepare(self, filenames: List[str]) -> None:
+    def prepare(self, filenames: List[str]=list()) -> None:
         """
         Подготовка векторизатора грамматических значений и словаря словоформ по корпусу.
         
@@ -174,9 +185,6 @@ class LSTMGenerator:
         """
         Описание модели.
         """
-        def hard_tanh(x):
-            return K.minimum(K.maximum(x, K.constant(-1)), K.constant(1))
-
         words = Input(shape=(None,), name='words')
 
         words_embedding = SpatialDropout1D(.3)(Embedding(self.softmax_size + 1, self.embeddings_dimension, name='embeddings')(words))
@@ -206,18 +214,15 @@ class LSTMGenerator:
                                          sentence_maxlen=self.sentence_maxlen,
                                          word_form_vocabulary=self.word_form_vocabulary,
                                          grammeme_vectorizer=self.grammeme_vectorizer)
-        for big_epoch in range(1000):
+        for big_epoch in range(0, 1000):
             print('------------Big Epoch {}------------'.format(big_epoch))
             for epoch, (X1, X2, y) in enumerate(batch_generator):
-                print("X words:", X1[1])
-                print("X gram:", X2[1])
-                print("Y:", y[1])
-                self.model.fit([X1, X2], y, batch_size=self.nn_batch_size, epochs=1, verbose=1)
+                self.model.fit([X1, X2], y, batch_size=self.nn_batch_size, epochs=1, verbose=2)
                 indices = [np.random.randint(0, self.softmax_size)]
                 for i in range(10):
                     indices.append(self._sample(self.predict(indices)))
                 sentence = [self.word_form_vocabulary.get_word_form_by_index(index) for index in indices]
-                print('Sentence', end=': ')
+                print('Sentence', str(big_epoch), str(epoch), end=': ')
                 for word in sentence[::-1]:
                     print(word.text, end=' ')
                 print()
@@ -240,7 +245,8 @@ class LSTMGenerator:
         for index, word in enumerate(cur_sent):
             x_emb[0, index] = self.word_form_vocabulary.get_word_form_index_min(word, self.softmax_size)
             x_gram[0, index] = self.grammeme_vectorizer.vectors[word.gram_vector_index]
-        return self.model.predict([x_emb, x_gram], verbose=0)[0]
+        prob = self.model.predict([x_emb, x_gram], verbose=0)[0]
+        return prob
 
     @staticmethod
     def _sample(prob: np.array, temperature: float=1.0) -> int:
@@ -262,7 +268,8 @@ class LSTMModelContainer(ModelContainer):
     Контейнер для языковой модели на основе LSTM.
     """
     def __init__(self):
-        self.lstm = LSTMGenerator()
+        self.lstm = LSTMGenerator(softmax_size=50000)
+        self.lstm.prepare()
         self.lstm.load(GENERATOR_LSTM_MODEL_PATH)
 
     def get_model(self, word_indices: List[int]) -> np.array:

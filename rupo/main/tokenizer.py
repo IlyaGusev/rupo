@@ -69,7 +69,11 @@ class Tokenizer(object):
                     begin = i
             else:
                 if begin != -1:
-                    tokens.append(Token(text[begin:i], Token.TokenType.WORD, begin, i))
+                    word = text[begin:i]
+                    if word != "-":
+                        tokens.append(Token(word, Token.TokenType.WORD, begin, i))
+                    else:
+                        tokens.append(Token("-", Token.TokenType.PUNCTUATION, begin, begin+1))
                     begin = -1
                 token_type = Token.TokenType.UNKNOWN
                 if ch in punctuation:
@@ -80,7 +84,11 @@ class Tokenizer(object):
                     token_type = Token.TokenType.SPACE
                 tokens.append(Token(ch, token_type, i, i + 1))
         if begin != -1:
-            tokens.append(Token(text[begin:len(text)], Token.TokenType.WORD, begin, len(text)))
+            word = text[begin:len(text)]
+            if word != "-":
+                tokens.append(Token(word, Token.TokenType.WORD, begin, len(text)))
+            else:
+                tokens.append(Token("-", Token.TokenType.PUNCTUATION, begin, begin+1))
         tokens = Tokenizer.__hyphen_map(tokens)
         return tokens
 

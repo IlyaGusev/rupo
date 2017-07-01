@@ -62,6 +62,8 @@ class WordFormVocabulary(object):
                 if line == "\n":
                     continue
                 form, lemma, pos_tag, grammemes = line.split("\t")[:4]
+                form = form.lower()
+                lemma = lemma.lower()
                 vector_name = pos_tag + "#" + grammemes
                 self.add_word_form(form, lemma + "_" + pos_tag, grammeme_vectorizer.name_to_index[vector_name])
 
@@ -85,7 +87,7 @@ class WordFormVocabulary(object):
 
     def get_word_form_index(self, word_form: WordForm) -> int:
         return self.word_form_indices[word_form]
-            
+
     def get_word_form_by_index(self, index: int) -> WordForm:
         return self.word_forms[index]
 

@@ -24,7 +24,25 @@ class RussianMorphology:
                         out.write("%s\t%s\t%s\t%s\n" % (text, lemma, pos, gram))
                     out.write("\n")
 
-
-
-
-
+    @staticmethod
+    def do_markup_from_vocab(filename, output, word_form_vocabulary, grammeme_vectorizer):
+        with open(filename, "r", encoding="utf-8") as r:
+            with open(output, "w", encoding="utf-8") as w:
+                for line in r:
+                    tokens = Tokenizer.tokenize(line)
+                    accepted_types = [Token.TokenType.WORD]
+                    tokens = [token for token in tokens if token.token_type in accepted_types]
+                    for token in tokens:
+                        text = token.text.lower()
+                        word_forms = word_form_vocabulary.get_word_forms_by_text(text)
+                        if len(word_forms) == 0:
+                            print(text)
+                        else:
+                            indices = [word_form_vocabulary.get_word_form_index(form) for form in word_forms]
+                            index = min(indices)
+                            word_form = word_form_vocabulary.get_word_form_by_index(index)
+                            name = grammeme_vectorizer.get_name_by_index(word_form.gram_vector_index)
+                            pos = name.split("#")[0]
+                            gram = name.split("#")[1]
+                            w.write("%s\t%s\t%s\t%s\n" % (text, word_form.lemma, pos, gram))
+                    w.write("\n")
