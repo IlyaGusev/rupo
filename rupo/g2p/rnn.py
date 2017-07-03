@@ -45,9 +45,10 @@ class RNNG2PModel:
         inp = Input(shape=(None,))
 
         emb = Embedding(len(self.grapheme_alphabet), self.emb_dimension)(inp)
-        encoded = Bidirectional(self.rnn(self.units1, return_sequences=True, recurrent_dropout=self.dropout))(emb)
+        encoded = Bidirectional(self.rnn(self.units1//2, return_sequences=True, recurrent_dropout=self.dropout))(emb)
         encoded = Dropout(self.dropout)(encoded)
-        decoded = Bidirectional(self.rnn(self.units2, return_sequences=True, recurrent_dropout=self.dropout))(encoded)
+        encoded = TimeDistributed(Dense(self.units2, activation="relu"))(encoded)
+        decoded = Bidirectional(self.rnn(self.units2//2, return_sequences=True, recurrent_dropout=self.dropout))(encoded)
         decoded = Dropout(self.dropout)(decoded)
         predictions = TimeDistributed(Dense(len(self.phonetic_alphabet), activation="softmax"))(decoded)
 

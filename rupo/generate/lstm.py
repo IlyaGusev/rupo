@@ -267,10 +267,10 @@ class LSTMModelContainer(ModelContainer):
     """
     Контейнер для языковой модели на основе LSTM.
     """
-    def __init__(self):
+    def __init__(self, model_path=GENERATOR_LSTM_MODEL_PATH):
         self.lstm = LSTMGenerator(softmax_size=50000)
         self.lstm.prepare()
-        self.lstm.load(GENERATOR_LSTM_MODEL_PATH)
+        self.lstm.load(model_path)
 
     def get_model(self, word_indices: List[int]) -> np.array:
         return self.lstm.predict(word_indices)
