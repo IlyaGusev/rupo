@@ -6,8 +6,10 @@ from typing import List, Tuple, Dict
 
 from rupo.files.reader import FileType, Reader
 from rupo.files.writer import Writer
-from rupo.generate.generator import Generator
 from rupo.generate.markov import MarkovModelContainer
+from rupo.generate.lstm import LSTMModelContainer
+from rupo.generate.generator import Generator
+from rupo.generate.word_form_vocabulary import WordFormVocabulary
 from rupo.main.markup import Markup
 from rupo.main.vocabulary import Vocabulary
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
@@ -23,7 +25,8 @@ class Engine:
         self.language = language  # type: str
         self.vocabulary = None  # type: Vocabulary
         self.markov = None  # type: MarkovModelContainer
-        self.generator = None  # type: Generator
+        self.markov_generator = None  # type: Generator
+        self.lstm_generator = None  # type: Generator
         self.g2p_models = dict()  # type: Dict[str, RNNG2PModel]
         self.stress_predictors = dict()  # type: Dict[str, StressPredictor]
 
@@ -44,11 +47,20 @@ class Engine:
             self.markov = MarkovModelContainer(dump_path, vocab, markup_path, n_grams=n_grams, n_poems=n_poems)
         return self.markov
 
-    def get_generator(self, dump_path: str, vocab_dump_path: str, markup_path: str) -> Generator:
-        if self.generator is None:
-            self.generator = Generator(self.get_markov(dump_path, vocab_dump_path, markup_path, n_grams=2, n_poems=4000),
-                                       self.get_vocabulary(vocab_dump_path, markup_path))
-        return self.generator
+    def get_markov_generator(self, dump_path: str, vocab_dump_path: str, markup_path: str) -> Generator:
+        if self.markov_generator is None:
+            self.markov_generator = Generator(self.get_markov(dump_path, vocab_dump_path, markup_path, n_grams=2, n_poems=4000),
+                                              self.get_vocabulary(vocab_dump_path, markup_path))
+        return self.markov_generator
+
+    def get_lstm_generator(self, model_path: str, word_form_vocab_dump_path: str,
+                           stress_vocab_dump_path: str) -> Generator:
+        if self.lstm_generator is None:
+            lstm = LSTMModelContainer(model_path)
+            word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
+            vocabulary = Vocabulary(stress_vocab_dump_path)
+            self.lstm_generator = Generator(lstm, vocabulary, word_form_vocabulary)
+        return self.lstm_generator
 
     def get_stress_predictor(self, language="ru"):
         if self.stress_predictors.get(language) is None:
@@ -144,8 +156,8 @@ class Engine:
         markup_word2.set_stresses(self.get_stresses(word2))
         return Rhymes.is_rhyme(markup_word1, markup_word2)
 
-    def generate_poem(self, markup_path: str, dump_path: str, vocab_dump_path: str, metre_schema: str="-+",
-                      rhyme_pattern: str="abab", n_syllables: int=8, beam_width=5) -> str:
+    def generate_markov_poem(self, markup_path: str, dump_path: str, vocab_dump_path: str, metre_schema: str="-+",
+                             rhyme_pattern: str="abab", n_syllables: int=8, beam_width=5) -> str:
         """
         Сгенерировать стих по данным из разметок.
 
@@ -155,24 +167,43 @@ class Engine:
         :param metre_schema: схема метра.
         :param rhyme_pattern: схема рифм.
         :param n_syllables: количество слогов в строке.
+        :param beam_width: ширина лучевого поиска.
         :return: стих.
         """
-        generator = self.get_generator(dump_path, vocab_dump_path, markup_path)
+        generator = self.get_markov_generator(dump_path, vocab_dump_path, markup_path)
         return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables, beam_width=beam_width)
 
-    def generate_poem_by_line(self, markup_path: str, dump_path: str, vocab_dump_path: str,
-                              line, rhyme_pattern="abab") -> str:
+    def generate_poem(self, model_path: str, word_form_vocab_dump_path: str,
+                      stress_vocab_dump_path: str, metre_schema: str="-+",
+                      rhyme_pattern: str="abab", n_syllables: int=8, beam_width: int=5) -> str:
+        """
+        Сгенерировать стих.
+
+        :param model_path: путь к модели.
+        :param word_form_vocab_dump_path: путь к дампу словаря словоформ.
+        :param stress_vocab_dump_path: путь к словарю ударений.
+        :param metre_schema: схема метра.
+        :param rhyme_pattern: схема рифм.
+        :param n_syllables: количество слогов в строке.
+        :param beam_width: ширина лучевого поиска.
+        :return: стих. None, если генерация не была успешной.
+        """
+        generator = self.get_lstm_generator(model_path, word_form_vocab_dump_path, stress_vocab_dump_path)
+        return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables, beam_width=beam_width)
+
+    def generate_poem_by_line(self, model_path: str, word_form_vocab_dump_path: str,
+                              stress_vocab_dump_path: str, line: str, rhyme_pattern: str="abab") -> str:
         """
         Сгенерировать стих по первой строчке.
 
-        :param markup_path: путь к разметкам.
-        :param dump_path: путь, куда сохраняется модель.
-        :param vocab_dump_path: путь, куда сохраняется словарь.
+        :param model_path: путь к модели.
+        :param word_form_vocab_dump_path: путь к дампу словаря словоформ.
+        :param stress_vocab_dump_path: путь к словарю ударений.
         :param line: первая строчка
         :param rhyme_pattern: схема рифм.
-        :return: стих.
+        :return: стих. None, если генерация не была успешной.
         """
-        generator = self.get_generator(dump_path, vocab_dump_path, markup_path)
+        generator = self.get_lstm_generator(model_path, word_form_vocab_dump_path, stress_vocab_dump_path)
         return generator.generate_poem_by_line(line, rhyme_pattern, self.get_stress_predictor())
 
     def get_word_rhymes(self, word: str, vocab_dump_path: str, markup_path: str=None) -> List[str]:

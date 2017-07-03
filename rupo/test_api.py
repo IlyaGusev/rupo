@@ -4,8 +4,10 @@
 
 import unittest
 import os
+import random
 
-from rupo.settings import MARKUP_XML_EXAMPLE, EXAMPLES_DIR
+from rupo.settings import MARKUP_XML_EXAMPLE, EXAMPLES_DIR, GENERATOR_LSTM_MODEL_PATH, \
+    GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH
 from rupo.main.markup import Markup
 from rupo.api import Engine
 
@@ -28,7 +30,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(self.engine.get_stresses("равнине"), [4])
         self.assertEqual(self.engine.get_stresses("холмам"), [4])
         self.assertEqual(self.engine.get_stresses("грохочут"), [4])
-        self.assertEqual(self.engine.get_stresses("пушки"), [1])
+        self.assertEqual(self.engine.get_stresses("пушки"), [4, 1])
         self.assertEqual(self.engine.get_stresses("багровый"), [4])
         self.assertEqual(self.engine.get_stresses("кругами"), [4])
         self.assertEqual(self.engine.get_stresses("уж"), [0])
@@ -55,17 +57,28 @@ class TestApi(unittest.TestCase):
                "Кругами всходит к небесам."
         self.assertEqual(self.engine.classify_metre(text), "iambos")
 
-    def test_generate_poem(self):
+    def test_markov_generate_poem(self):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
         markov_dump_file = os.path.join(EXAMPLES_DIR, "markov.pickle")
         self.assertIsNotNone(
-            self.engine.generate_poem(MARKUP_XML_EXAMPLE, markov_dump_file,
-                                      vocab_dump_file, rhyme_pattern="a", n_syllables=6, beam_width=10, metre_schema="-+-"))
+            self.engine.generate_markov_poem(MARKUP_XML_EXAMPLE, markov_dump_file, vocab_dump_file,
+                                             rhyme_pattern="a", n_syllables=6, beam_width=10, metre_schema="-+-"))
         os.remove(vocab_dump_file)
         os.remove(markov_dump_file)
         self.engine.vocabulary = None
         self.engine.markov = None
-        self.engine.generator = None
+        self.engine.markov_generator = None
+
+    def test_lstm_generate_poem(self):
+        if os.path.exists(GENERATOR_LSTM_MODEL_PATH) and \
+                os.path.exists(GENERATOR_WORD_FORM_VOCAB_PATH) and \
+                os.path.exists(GENERATOR_VOCAB_PATH):
+            random.seed(42)
+            poem = self.engine.generate_poem(GENERATOR_LSTM_MODEL_PATH,
+                                             GENERATOR_WORD_FORM_VOCAB_PATH,
+                                             GENERATOR_VOCAB_PATH,
+                                             beam_width=10, n_syllables=4)
+            self.assertIsNotNone(poem)
 
     def test_get_word_rhymes(self):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
