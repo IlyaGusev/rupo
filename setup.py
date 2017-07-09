@@ -5,19 +5,11 @@ from setuptools.command.install import install
 
 class PostDevelopCommand(develop):
     def run(self):
-        from rupo.stress.dict import StressDict
-        from rupo.stress.stress_classifier import MLStressClassifier
-        d = StressDict()
-        MLStressClassifier(d)
         develop.run(self)
 
 
 class PostInstallCommand(install):
     def run(self):
-        from rupo.stress.dict import StressDict
-        from rupo.stress.stress_classifier import MLStressClassifier
-        d = StressDict()
-        MLStressClassifier(d)
         install.run(self)
 
 
@@ -32,7 +24,11 @@ setup(
     download_url='https://github.com/IlyaGusev/rupo/archive/0.1.4.tar.gz',
     keywords=['poetry', 'nlp', 'russian'],
     package_data={
-        'rupo': ['data/dict/*.txt', 'data/examples/*', 'data/hyphen-tokens.txt'],
+        'rupo': ['data/dict/*.txt', 'data/examples/*', 'data/hyphen-tokens.txt',
+                 'data/dict/ru_grapheme_stress.trie',
+                 'data/g2p_models/g2p_ru_maxlen40_BLSTM256_BLSTM256_dropout0.2_acc992_wer140.h5',
+                 'data/g2p_models/ru_aligner.pickle',
+                 'data/stress_models/stress_ru_word30_LSTM256_dropout0.4_acc99_wer3.h5'],
     },
     install_requires=[
         'dicttoxml==1.7.4',
@@ -40,7 +36,13 @@ setup(
         'numpy==1.11.3',
         'scipy==0.18.1',
         'scikit-learn==0.18.1',
-        'jsonpickle==0.9.4'
+        'jsonpickle==0.9.4',
+        'tensorflow==1.1.0',
+        'keras==2.0.5',
+        'pymorphy2==0.8',
+        'h5py == 2.7.0',
+        'russian-tagsets == 0.5.2',
+        'tqdm == 4.14.0'
     ],
     cmdclass={
         'develop': PostDevelopCommand,
