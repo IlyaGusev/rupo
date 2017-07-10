@@ -5,7 +5,13 @@ from rupo.main.tokenizer import Tokenizer, Token
 
 class RussianMorphology:
     @staticmethod
-    def do_markup(input_filename, output_filename):
+    def pymorphy_process(input_filename, output_filename):
+        """
+        Сделать морфоразметку на вход генератору с помощью pymorphy2 и russian-tagsets.
+        
+        :param input_filename: входной файл - raw текст.
+        :param output_filename: выходной файл - разметка.
+        """
         morph = pymorphy2.MorphAnalyzer()
         to_ud = converters.converter('opencorpora-int', 'ud14')
         with open(input_filename, "r", encoding="utf-8") as inp:
@@ -25,9 +31,18 @@ class RussianMorphology:
                     out.write("\n")
 
     @staticmethod
-    def do_markup_from_vocab(filename, output, word_form_vocabulary, grammeme_vectorizer):
-        with open(filename, "r", encoding="utf-8") as r:
-            with open(output, "w", encoding="utf-8") as w:
+    def vocab_process(input_filename, output_filename, word_form_vocabulary, grammeme_vectorizer):
+        """
+        Сделать морфоразметку по словарю словоформ.
+        
+        :param input_filename: входной файл - raw текст.
+        :param output_filename: выходной файл - разметка.
+        :param word_form_vocabulary: слоаврь словоформ.
+        :param grammeme_vectorizer: векторы граммем.
+        :return: 
+        """
+        with open(input_filename, "r", encoding="utf-8") as r:
+            with open(output_filename, "w", encoding="utf-8") as w:
                 for line in r:
                     tokens = Tokenizer.tokenize(line)
                     accepted_types = [Token.TokenType.WORD]

@@ -12,6 +12,7 @@ sudo pip3 install rupo
 ```
 
 ### Usage manual ###
+#### Analysis ####
 ```
 >>> from rupo.api import Engine
 >>> engine = Engine(language="ru")
@@ -24,6 +25,20 @@ sudo pip3 install rupo
 
 >>> engine.is_rhyme("корова", "здорова")
 True
+
+>>> text = "Горит восток зарёю новой.\nУж на равнине, по холмам\nГрохочут пушки. Дым багровый\nКругами всходит к небесам."
+>>> engine.classify_metre(text)
+iambos
+```
+
+#### Generation ####
+Path to model and vocabulary archive: 
+```
+>>> from rupo.api import Engine
+>>> engine = Engine(language="ru")
+>>> engine.load()
+>>> engine.generate_poem(<LSTM model path>, <word form vocabulary path>, <gram_vectors_path>, <stress vocabulary path>, <width of beam search>, <number of syllables in each line>)
+<poem> or None if could't generate
 ```
 
 ### Литература ###

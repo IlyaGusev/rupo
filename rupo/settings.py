@@ -42,7 +42,7 @@ GENERATOR_LSTM_MODEL_PATH = resource_filename(__name__, "data/generator_models/l
 GENERATOR_MODEL_DESCRIPTION = resource_filename(__name__, "data/generator_models/build.json")
 GENERATOR_MODEL_WEIGHTS = resource_filename(__name__, "data/generator_models/weights.h5")
 GENERATOR_WORD_FORM_VOCAB_PATH = resource_filename(__name__, "data/generator_models/word_form_vocabulary.pickle")
-GENERATOR_VOCAB_PATH = resource_filename(__name__, "data/generator_models/vocabulary.pickle")
+GENERATOR_VOCAB_PATH = resource_filename(__name__, "data/generator_models/stress_vocabulary.pickle")
 GENERATOR_GRAM_VECTORS = resource_filename(__name__, "data/generator_models/grammeme_vectorizer.pickle")
 
 TEMP_PATH = resource_filename(__name__, "data/temp.txt")
