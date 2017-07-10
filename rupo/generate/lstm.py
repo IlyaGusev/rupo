@@ -14,7 +14,7 @@ from rupo.generate.word_form import WordForm
 from rupo.generate.word_form_vocabulary import WordFormVocabulary
 from rupo.generate.grammeme_vectorizer import GrammemeVectorizer
 from rupo.generate.model_container import ModelContainer
-from rupo.settings import GENERATOR_LSTM_MODEL_PATH
+from rupo.settings import GENERATOR_LSTM_MODEL_PATH, GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_GRAM_VECTORS
 
 
 def hard_tanh(x):
@@ -140,13 +140,17 @@ class LSTMGenerator:
         self.grammeme_dense_units = grammeme_dense_units  # type: int
         self.model = None  # type: Model
 
-    def prepare(self, filenames: List[str]=list()) -> None:
+    def prepare(self, filenames: List[str]=list(),
+                word_form_vocab_dump_path: str=GENERATOR_WORD_FORM_VOCAB_PATH,
+                gram_dump_path: str=GENERATOR_GRAM_VECTORS) -> None:
         """
         Подготовка векторизатора грамматических значений и словаря словоформ по корпусу.
         
         :param filenames: имена файлов с морфоразметкой.
+        :param word_form_vocab_dump_path: путь к дампу словаря словоформ.
+        :param gram_dump_path: путь к векторам грамматических значений.
         """
-        self.grammeme_vectorizer = GrammemeVectorizer()
+        self.grammeme_vectorizer = GrammemeVectorizer(gram_dump_path)
         if self.grammeme_vectorizer.is_empty():
             for filename in filenames:
                 self.grammeme_vectorizer.collect_grammemes(filename)
@@ -154,13 +158,12 @@ class LSTMGenerator:
                 self.grammeme_vectorizer.collect_possible_vectors(filename)
             self.grammeme_vectorizer.save()
 
-        self.word_form_vocabulary = WordFormVocabulary()
+        self.word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
         if self.word_form_vocabulary.is_empty():
             for filename in filenames:
                 self.word_form_vocabulary.load_from_corpus(filename, self.grammeme_vectorizer)
             self.word_form_vocabulary.sort()
             self.word_form_vocabulary.save()
-        # self.word_form_vocabulary.inflate_vocab(self.softmax_size)
 
     def load(self, model_filename: str) -> None:
         """
@@ -267,9 +270,11 @@ class LSTMModelContainer(ModelContainer):
     """
     Контейнер для языковой модели на основе LSTM.
     """
-    def __init__(self, model_path=GENERATOR_LSTM_MODEL_PATH):
+    def __init__(self, model_path=GENERATOR_LSTM_MODEL_PATH,
+                 word_form_vocab_dump_path: str=GENERATOR_WORD_FORM_VOCAB_PATH,
+                 gram_dump_path: str=GENERATOR_GRAM_VECTORS):
         self.lstm = LSTMGenerator(softmax_size=50000)
-        self.lstm.prepare()
+        self.lstm.prepare(list(), word_form_vocab_dump_path, gram_dump_path)
         self.lstm.load(model_path)
 
     def get_model(self, word_indices: List[int]) -> np.array:

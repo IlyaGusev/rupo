@@ -7,7 +7,7 @@ import os
 import random
 
 from rupo.settings import MARKUP_XML_EXAMPLE, EXAMPLES_DIR, GENERATOR_LSTM_MODEL_PATH, \
-    GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH
+    GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH, GENERATOR_GRAM_VECTORS
 from rupo.main.markup import Markup
 from rupo.api import Engine
 
@@ -74,10 +74,8 @@ class TestApi(unittest.TestCase):
                 os.path.exists(GENERATOR_WORD_FORM_VOCAB_PATH) and \
                 os.path.exists(GENERATOR_VOCAB_PATH):
             random.seed(42)
-            poem = self.engine.generate_poem(GENERATOR_LSTM_MODEL_PATH,
-                                             GENERATOR_WORD_FORM_VOCAB_PATH,
-                                             GENERATOR_VOCAB_PATH,
-                                             beam_width=10, n_syllables=4)
+            poem = self.engine.generate_poem(GENERATOR_LSTM_MODEL_PATH, GENERATOR_WORD_FORM_VOCAB_PATH,
+                                             GENERATOR_GRAM_VECTORS, GENERATOR_VOCAB_PATH, beam_width=10, n_syllables=4)
             self.assertIsNotNone(poem)
 
     def test_get_word_rhymes(self):

@@ -54,9 +54,9 @@ class Engine:
         return self.markov_generator
 
     def get_lstm_generator(self, model_path: str, word_form_vocab_dump_path: str,
-                           stress_vocab_dump_path: str) -> Generator:
+                           stress_vocab_dump_path: str, gram_dump_path: str) -> Generator:
         if self.lstm_generator is None:
-            lstm = LSTMModelContainer(model_path)
+            lstm = LSTMModelContainer(model_path, word_form_vocab_dump_path, gram_dump_path)
             word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
             vocabulary = Vocabulary(stress_vocab_dump_path)
             self.lstm_generator = Generator(lstm, vocabulary, word_form_vocabulary)
@@ -173,7 +173,7 @@ class Engine:
         generator = self.get_markov_generator(dump_path, vocab_dump_path, markup_path)
         return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables, beam_width=beam_width)
 
-    def generate_poem(self, model_path: str, word_form_vocab_dump_path: str,
+    def generate_poem(self, model_path: str, word_form_vocab_dump_path: str, gram_dump_path: str,
                       stress_vocab_dump_path: str, metre_schema: str="-+",
                       rhyme_pattern: str="abab", n_syllables: int=8, beam_width: int=5) -> str:
         """
@@ -181,6 +181,7 @@ class Engine:
 
         :param model_path: путь к модели.
         :param word_form_vocab_dump_path: путь к дампу словаря словоформ.
+        :param gram_dump_path: путь к векторам грамматических значений.
         :param stress_vocab_dump_path: путь к словарю ударений.
         :param metre_schema: схема метра.
         :param rhyme_pattern: схема рифм.
@@ -188,7 +189,8 @@ class Engine:
         :param beam_width: ширина лучевого поиска.
         :return: стих. None, если генерация не была успешной.
         """
-        generator = self.get_lstm_generator(model_path, word_form_vocab_dump_path, stress_vocab_dump_path)
+        generator = self.get_lstm_generator(model_path, word_form_vocab_dump_path,
+                                            stress_vocab_dump_path, gram_dump_path)
         return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables, beam_width=beam_width)
 
     def generate_poem_by_line(self, model_path: str, word_form_vocab_dump_path: str,
