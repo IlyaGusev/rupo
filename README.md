@@ -32,7 +32,7 @@ iambos
 ```
 
 #### Generation ####
-Path to model and vocabulary archive: 
+[Model and vocabulary archive](https://www.dropbox.com/s/fppl6j5y6pyjyui/model.zip?dl=0)
 ```
 >>> from rupo.api import Engine
 >>> engine = Engine(language="ru")
