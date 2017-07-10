@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from rupo.morph.pymorphy import RussianMorphology
+from rupo.morph.morph import RussianMorphology
 from rupo.settings import EXAMPLES_DIR
 
 
