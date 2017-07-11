@@ -1,4 +1,4 @@
-from rupo.g2p.aligner import Aligner
+import os
 from rupo.g2p.phonemes import Phonemes
 from rupo.settings import RU_G2P_DEFAULT_MODEL, ZALIZNYAK_DICT, RU_G2P_DICT_PATH, RU_GRAPHEME_STRESS_PATH, \
     RU_PHONEME_STRESS_BIG_PATH
@@ -31,11 +31,12 @@ class ZalyzniakDict:
                     if len(primary) != 0:
                         w.write(clean_word + "\t" + ",".join([str(a) for a in primary]) + "\t" +
                                 ",".join([str(a) for a in secondary]) + "\n")
+        os.chmod(RU_GRAPHEME_STRESS_PATH, 0o777)
 
     @staticmethod
     def convert_to_g2p_only():
-        from rupo.g2p.rnn_g2p import RNNPhonemePredictor
-        g2p_predictor = RNNPhonemePredictor()
+        from rupo.g2p.rnn import RNNG2PModel
+        g2p_predictor = RNNG2PModel()
         g2p_predictor.load(RU_G2P_DEFAULT_MODEL)
         with open(ZALIZNYAK_DICT, 'r', encoding='utf-8') as r:
             lines = r.readlines()
@@ -100,5 +101,5 @@ class ZalyzniakDict:
                         stresses[i] += spaces_count
         return stresses
 
-# if __name__ == '__main__':
-#     ZalyzniakDict.convert_to_phoneme_stress()
+if __name__ == '__main__':
+    ZalyzniakDict.convert_to_accent_only()
