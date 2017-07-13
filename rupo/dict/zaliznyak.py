@@ -31,7 +31,6 @@ class ZalyzniakDict:
                     if len(primary) != 0:
                         w.write(clean_word + "\t" + ",".join([str(a) for a in primary]) + "\t" +
                                 ",".join([str(a) for a in secondary]) + "\n")
-        os.chmod(RU_GRAPHEME_STRESS_PATH, 0o777)
 
     @staticmethod
     def convert_to_g2p_only():

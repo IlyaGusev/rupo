@@ -32,7 +32,7 @@ setup(
     },
     install_requires=[
         'dicttoxml>=1.7.4',
-        'datrie==0.7.1',
+        'pygtrie>=2.2',
         'numpy>=1.11.3',
         'scipy>=0.18.1',
         'scikit-learn>=0.18.1',

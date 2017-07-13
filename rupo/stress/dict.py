@@ -2,8 +2,9 @@
 # Автор: Гусев Илья
 # Описание: Класс для удобной работы со словарём ударений.
 
-import datrie
+import pygtrie
 import os
+import pickle
 from enum import Enum
 from typing import List, Tuple
 
@@ -11,8 +12,7 @@ from rupo.dict.cmu import CMUDict
 from rupo.dict.zaliznyak import ZalyzniakDict
 from rupo.settings import RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH, \
     EN_PHONEME_STRESS_PATH, EN_PHONEME_STRESS_TRIE_PATH, \
-    RU_PHONEME_STRESS_PATH, RU_PHONEME_STRESS_TRIE_PATH, RU_GRAPHEME_SET
-from rupo.g2p.phonemes import Phonemes
+    RU_PHONEME_STRESS_PATH, RU_PHONEME_STRESS_TRIE_PATH
 
 
 class StressDict:
@@ -32,20 +32,18 @@ class StressDict:
     StressType = StressType
 
     def __init__(self, language: str="ru", mode: Mode=Mode.GRAPHEMES) -> None:
+        self.data = pygtrie.Trie()
         if language == "ru" and mode == self.Mode.GRAPHEMES:
-            self.data = datrie.Trie(RU_GRAPHEME_SET)
             src_filename = RU_GRAPHEME_STRESS_PATH
             if not os.path.exists(RU_GRAPHEME_STRESS_PATH):
                 ZalyzniakDict.convert_to_accent_only()
             dst_filename = RU_GRAPHEME_STRESS_TRIE_PATH
         elif mode == self.Mode.PHONEMES and language == "en":
-            self.data = datrie.Trie(Phonemes.get_all())
             src_filename = EN_PHONEME_STRESS_PATH
             if not os.path.exists(EN_PHONEME_STRESS_PATH):
                 CMUDict.convert_to_phoneme_stress(EN_PHONEME_STRESS_PATH)
             dst_filename = EN_PHONEME_STRESS_TRIE_PATH
         elif mode == self.Mode.PHONEMES and language == "ru":
-            self.data = datrie.Trie(Phonemes.get_all())
             src_filename = RU_PHONEME_STRESS_PATH
             if not os.path.exists(RU_PHONEME_STRESS_PATH):
                 ZalyzniakDict.convert_to_phoneme_stress()
@@ -55,7 +53,7 @@ class StressDict:
         if not os.path.isfile(src_filename):
             raise FileNotFoundError("Не найден файл словаря.")
         if os.path.isfile(dst_filename):
-            self.data = datrie.Trie.load(dst_filename)
+            self.load(dst_filename)
         else:
             self.create(src_filename, dst_filename)
 
@@ -74,15 +72,20 @@ class StressDict:
                 if secondary.strip() != "":
                     stresses += [(int(a), StressDict.StressType.SECONDARY) for a in secondary.strip().split(",")]
                 self.update(word, stresses)
-        self.data.save(dst_filename)
+        self.save(dst_filename)
 
     def save(self, dst_filename: str) -> None:
         """
         Сохранение дампа.
-
+        
         :param dst_filename: имя файла, в который сохраняем дамп словаря.
         """
-        self.data.save(dst_filename)
+        with open(dst_filename, "wb") as f:
+            pickle.dump(self.data, f, pickle.HIGHEST_PROTOCOL)
+
+    def load(self, dst_filename: str) -> None:
+        with open(dst_filename, "rb") as f:
+            self.data = pickle.load(f)
 
     def get_stresses(self, word: str, stress_type: StressType=StressType.ANY) -> List[int]:
         """
