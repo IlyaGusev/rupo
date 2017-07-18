@@ -11,8 +11,7 @@ from typing import List, Tuple
 from rupo.dict.cmu import CMUDict
 from rupo.dict.zaliznyak import ZalyzniakDict
 from rupo.settings import RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH, \
-    EN_PHONEME_STRESS_PATH, EN_PHONEME_STRESS_TRIE_PATH, \
-    RU_PHONEME_STRESS_PATH, RU_PHONEME_STRESS_TRIE_PATH
+    EN_PHONEME_STRESS_PATH, EN_PHONEME_STRESS_TRIE_PATH, ZALYZNYAK_DICT, CMU_DICT
 
 
 class StressDict:
@@ -31,31 +30,33 @@ class StressDict:
 
     StressType = StressType
 
-    def __init__(self, language: str="ru", mode: Mode=Mode.GRAPHEMES) -> None:
+    def __init__(self, language: str="ru", mode: Mode=Mode.GRAPHEMES, raw_dict_path=None, trie_path=None,
+                 zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT) -> None:
         self.data = pygtrie.Trie()
+        self.raw_dict_path = raw_dict_path
+        self.trie_path = trie_path
         if language == "ru" and mode == self.Mode.GRAPHEMES:
-            src_filename = RU_GRAPHEME_STRESS_PATH
-            if not os.path.exists(RU_GRAPHEME_STRESS_PATH):
-                ZalyzniakDict.convert_to_accent_only()
-            dst_filename = RU_GRAPHEME_STRESS_TRIE_PATH
+            self.__init_defaults(RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH)
+            if not os.path.exists(self.raw_dict_path):
+                ZalyzniakDict.convert_to_accent_only(zalyzniak_dict, self.raw_dict_path)
         elif mode == self.Mode.PHONEMES and language == "en":
-            src_filename = EN_PHONEME_STRESS_PATH
-            if not os.path.exists(EN_PHONEME_STRESS_PATH):
-                CMUDict.convert_to_phoneme_stress(EN_PHONEME_STRESS_PATH)
-            dst_filename = EN_PHONEME_STRESS_TRIE_PATH
-        elif mode == self.Mode.PHONEMES and language == "ru":
-            src_filename = RU_PHONEME_STRESS_PATH
-            if not os.path.exists(RU_PHONEME_STRESS_PATH):
-                ZalyzniakDict.convert_to_phoneme_stress()
-            dst_filename = RU_PHONEME_STRESS_TRIE_PATH
+            self.__init_defaults(EN_PHONEME_STRESS_PATH, EN_PHONEME_STRESS_TRIE_PATH)
+            if not os.path.exists(self.raw_dict_path):
+                CMUDict.convert_to_phoneme_stress(cmu_dict, self.raw_dict_path)
         else:
             assert False
-        if not os.path.isfile(src_filename):
+        if not os.path.isfile(self.raw_dict_path):
             raise FileNotFoundError("Не найден файл словаря.")
-        if os.path.isfile(dst_filename):
-            self.load(dst_filename)
+        if os.path.isfile(self.trie_path):
+            self.load(self.trie_path)
         else:
-            self.create(src_filename, dst_filename)
+            self.create(self.raw_dict_path, self.trie_path)
+
+    def __init_defaults(self, raw_dict_path, trie_path):
+        if self.raw_dict_path is None:
+            self.raw_dict_path = raw_dict_path
+        if self.trie_path is None:
+            self.trie_path = trie_path
 
     def create(self, src_filename: str, dst_filename: str) -> None:
         """
@@ -65,8 +66,7 @@ class StressDict:
         :param dst_filename: имя файла, в который будет сохранён дамп.
         """
         with open(src_filename, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            for line in lines:
+            for line in f:
                 word, primary, secondary = line.split("\t")
                 stresses = [(int(a), StressDict.StressType.PRIMARY) for a in primary.strip().split(",")]
                 if secondary.strip() != "":

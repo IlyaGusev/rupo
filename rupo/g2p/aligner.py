@@ -10,34 +10,39 @@ from collections import defaultdict
 from rupo.settings import RU_GRAPHEME_SET
 from rupo.g2p.phonemes import Phonemes
 from rupo.settings import RU_ALIGNER_DEFAULT_PATH, EN_ALIGNER_DEFAULT_PATH, \
-    RU_G2P_DICT_PATH, EN_G2P_DICT_PATH, EN_GRAPHEME_SET
+    RU_G2P_DICT_PATH, EN_G2P_DICT_PATH, EN_GRAPHEME_SET, RU_WIKI_DICT, CMU_DICT
 from rupo.dict.wiki import WikiDict
 from rupo.dict.cmu import CMUDict
 
 
 class Aligner:
-    def __init__(self, language="ru"):
+    def __init__(self, language="ru", grapheme_set=None, g2p_dict_path=None, dump_path=None,
+                 ru_wiki_dict=RU_WIKI_DICT, cmu_dict=CMU_DICT):
+        self.grapheme_set = grapheme_set
+        self.g2p_dict_path = g2p_dict_path
+        self.dump_path = dump_path
         if language == "ru":
-            self.grapheme_set = RU_GRAPHEME_SET
-            self.dict_path = RU_G2P_DICT_PATH
-            self.dump_path = RU_ALIGNER_DEFAULT_PATH
-            if not os.path.exists(RU_G2P_DICT_PATH):
-                WikiDict.convert_to_g2p_only(RU_G2P_DICT_PATH)
+            self.__init_language_defaults(RU_GRAPHEME_SET, RU_G2P_DICT_PATH, RU_ALIGNER_DEFAULT_PATH)
+            if not os.path.exists(self.g2p_dict_path):
+                WikiDict.convert_to_g2p_only(ru_wiki_dict, self.g2p_dict_path)
         elif language == "en":
-            self.grapheme_set = EN_GRAPHEME_SET
-            self.dict_path = EN_G2P_DICT_PATH
-            self.dump_path = EN_ALIGNER_DEFAULT_PATH
-            if not os.path.exists(EN_G2P_DICT_PATH):
-                CMUDict.convert_to_g2p_only(EN_G2P_DICT_PATH)
+            self.__init_language_defaults(EN_GRAPHEME_SET, EN_G2P_DICT_PATH, EN_ALIGNER_DEFAULT_PATH)
+            if not os.path.exists(self.g2p_dict_path):
+                CMUDict.convert_to_g2p_only(cmu_dict, self.g2p_dict_path)
         self.probability_matrix = None
         if os.path.isfile(self.dump_path):
             self.load(self.dump_path)
         else:
-            with open(self.dict_path, 'r', encoding='utf-8') as r:
-                lines = r.readlines()
-                pairs = [tuple(line.strip().split("\t")) for line in lines]
-                self.train(pairs)
-                self.save(self.dump_path)
+            self.train_from_dict()
+            self.save(self.dump_path)
+
+    def __init_language_defaults(self, grapheme_set, g2p_dict_path, dump_path):
+        if self.grapheme_set is None:
+            self.grapheme_set = grapheme_set
+        if self.g2p_dict_path is None:
+            self.g2p_dict_path = g2p_dict_path
+        if self.dump_path is None:
+            self.dump_path = dump_path
 
     def save(self, filename) -> None:
         with open(filename, "wb") as f:
@@ -60,6 +65,12 @@ class Aligner:
         trace = Aligner.__build_align_matrix(graphemes, phonemes, self.probability_matrix)
         g, p = Aligner.__process_align_trace(trace, graphemes, phonemes)
         return g, p
+
+    def train_from_dict(self):
+        with open(self.dict_path, 'r', encoding='utf-8') as r:
+            lines = r.readlines()
+            pairs = [tuple(line.strip().split("\t")) for line in lines]
+            self.train(pairs)
 
     def train(self, pairs: List[Tuple[str, str]], n_epochs: int=3):
         """

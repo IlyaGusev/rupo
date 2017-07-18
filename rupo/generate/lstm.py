@@ -120,7 +120,7 @@ class LSTMGenerator:
     """
     Языковая модель на основе двухуровневой LSTM RNN.
     """
-    def __init__(self, softmax_size: int=60000, external_batch_size: int=10000,
+    def __init__(self, softmax_size: int=50000, external_batch_size: int=10000,
                  nn_batch_size: int=768, sentence_maxlen: int=10, lstm_units=368,
                  embeddings_dimension=150, grammeme_dense_units=25):
         """

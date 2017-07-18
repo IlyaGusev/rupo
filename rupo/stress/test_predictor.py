@@ -5,12 +5,24 @@
 import unittest
 
 from rupo.stress.predictor import CombinedStressPredictor
+from rupo.settings import RU_STRESS_DEFAULT_MODEL, RU_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT, RU_WIKI_DICT, \
+    RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH, RU_ALIGNER_DEFAULT_PATH, RU_G2P_DICT_PATH
 
 
 class TestStressPredictor(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.stress_predictor = CombinedStressPredictor()
+        cls.stress_predictor = CombinedStressPredictor(
+            stress_model_path=RU_STRESS_DEFAULT_MODEL,
+            g2p_model_path=RU_G2P_DEFAULT_MODEL,
+            zalyzniak_dict=ZALYZNYAK_DICT,
+            ru_wiki_dict=RU_WIKI_DICT,
+            cmu_dict=CMU_DICT,
+            raw_stress_dict_path=RU_GRAPHEME_STRESS_PATH,
+            stress_trie_path=RU_GRAPHEME_STRESS_TRIE_PATH,
+            aligner_dump_path=RU_ALIGNER_DEFAULT_PATH,
+            g2p_dict_path=RU_G2P_DICT_PATH
+        )
 
     def test_stress(self):
         checks = {
@@ -33,7 +45,6 @@ class TestStressPredictor(unittest.TestCase):
             'автоподъёмник': [8],
         }
         for word, pos in checks.items():
-            print(word)
             self.assertEqual(sorted(self.stress_predictor.predict(word)), sorted(pos))
 
 

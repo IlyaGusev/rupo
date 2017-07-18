@@ -2,6 +2,7 @@
 # Автор: Гусев Илья
 # Описание: Класс для определения ударения.
 
+import os
 from typing import List
 from rupo.stress.rnn import RNNStressModel
 from rupo.stress.dict import StressDict
@@ -9,6 +10,7 @@ from rupo.g2p.rnn import RNNG2PModel
 from rupo.settings import RU_STRESS_DEFAULT_MODEL, EN_STRESS_DEFAULT_MODEL, RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL
 from rupo.g2p.aligner import Aligner
 from rupo.util.preprocess import count_vowels, get_first_vowel_position
+from rupo.settings import CMU_DICT, ZALYZNYAK_DICT, RU_GRAPHEME_SET, RU_WIKI_DICT
 
 
 class StressPredictor:
@@ -17,20 +19,35 @@ class StressPredictor:
 
 
 class RNNStressPredictor(StressPredictor):
-    def __init__(self, language="ru"):
-        self.stress_model = RNNStressModel(language=language)
-        self.g2p_model = RNNG2PModel(language=language)
+    def __init__(self, language: str="ru", stress_model_path: str=None, g2p_model_path: str=None,
+                 grapheme_set=RU_GRAPHEME_SET, g2p_dict_path=None, aligner_dump_path=None,
+                 ru_wiki_dict=RU_WIKI_DICT, cmu_dict=CMU_DICT):
+        self.language = language
+        self.stress_model_path = stress_model_path
+        self.g2p_model_path = g2p_model_path
+
         if language == "ru":
-            stress_model_path = RU_STRESS_DEFAULT_MODEL
-            g2p_model_path = RU_G2P_DEFAULT_MODEL
+            self.__init_language_defaults(RU_STRESS_DEFAULT_MODEL, RU_G2P_DEFAULT_MODEL)
         elif language == "en":
-            stress_model_path = EN_STRESS_DEFAULT_MODEL
-            g2p_model_path = EN_G2P_DEFAULT_MODEL
+            self.__init_language_defaults(EN_STRESS_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL)
         else:
             raise RuntimeError("Wrong language")
-        self.stress_model.load(stress_model_path)
-        self.g2p_model.load(g2p_model_path)
-        self.aligner = Aligner(language=language)
+
+        if not os.path.exists(self.stress_model_path) or not os.path.exists(self.g2p_model_path):
+            raise RuntimeError("No stress or g2p models available (or wrong paths)")
+
+        self.stress_model = RNNStressModel(language=language)
+        self.stress_model.load(self.stress_model_path)
+        self.g2p_model = RNNG2PModel(language=language)
+        self.g2p_model.load(self.g2p_model_path)
+        self.aligner = Aligner(language, grapheme_set, g2p_dict_path, aligner_dump_path,
+                               ru_wiki_dict=ru_wiki_dict, cmu_dict=cmu_dict)
+
+    def __init_language_defaults(self, stress_model_path, g2p_model_path):
+        if self.stress_model_path is None:
+            self.stress_model_path = stress_model_path
+        if self.g2p_model_path is None:
+            self.g2p_model_path = g2p_model_path
 
     def predict(self, word: str) -> List[int]:
         word = word.lower()
@@ -46,15 +63,16 @@ class RNNStressPredictor(StressPredictor):
 
 
 class DictStressPredictor(StressPredictor):
-    def __init__(self, language="ru"):
-        self.stress_dict = StressDict(language)
+    def __init__(self, language="ru", raw_dict_path=None, trie_path=None,
+                 zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT):
+        self.stress_dict = StressDict(language, raw_dict_path=raw_dict_path, trie_path=trie_path,
+                                      zalyzniak_dict=zalyzniak_dict, cmu_dict=cmu_dict)
 
     def predict(self, word: str) -> List[int]:
         """
         Определение ударения в слове по словарю. Возможно несколько вариантов ударения.
 
         :param word: слово для простановки ударений.
-        :param stress_dict: экземпляр обёртки для словаря ударений.
         :return stresses: позиции букв, на которые падает ударение.
         """
         stresses = []
@@ -92,9 +110,12 @@ class DictStressPredictor(StressPredictor):
 
 
 class CombinedStressPredictor(StressPredictor):
-    def __init__(self, language="ru"):
-        self.rnn = RNNStressPredictor(language)
-        self.dict = DictStressPredictor(language)
+    def __init__(self, language="ru", stress_model_path: str=None, g2p_model_path: str=None,
+                 grapheme_set=RU_GRAPHEME_SET, g2p_dict_path=None, aligner_dump_path=None, raw_stress_dict_path=None,
+                 stress_trie_path=None, zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT, ru_wiki_dict=RU_WIKI_DICT):
+        self.rnn = RNNStressPredictor(language, stress_model_path, g2p_model_path, grapheme_set,
+                                      g2p_dict_path, aligner_dump_path, ru_wiki_dict, cmu_dict)
+        self.dict = DictStressPredictor(language, raw_stress_dict_path, stress_trie_path, zalyzniak_dict, cmu_dict)
 
     def predict(self, word: str) -> List[int]:
         stresses = self.dict.predict(word)
