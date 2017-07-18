@@ -11,9 +11,10 @@ from keras.layers import Input, Embedding, Dense, Merge, LSTM, SpatialDropout1D,
 from keras import backend as K
 
 from rupo.generate.word_form import WordForm
-from rupo.generate.word_form_vocabulary import WordFormVocabulary
+from rupo.generate.word_form_vocabulary import WordFormVocabulary, SEQ_END_WF
 from rupo.generate.grammeme_vectorizer import GrammemeVectorizer
 from rupo.generate.model_container import ModelContainer
+from rupo.generate.tqdm_open import tqdm_open
 from rupo.settings import GENERATOR_LSTM_MODEL_PATH, GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_GRAM_VECTORS
 
 
@@ -26,7 +27,8 @@ class BatchGenerator:
     """
     Генератор наборов примеров для обучения.
     """
-    def __init__(self, filenames: List[str], batch_size: int, softmax_size: int, sentence_maxlen: int,
+    def __init__(self, filenames: List[str], batch_size: int, 
+                 embedding_size: int, softmax_size: int, sentence_maxlen: int,
                  word_form_vocabulary: WordFormVocabulary, grammeme_vectorizer: GrammemeVectorizer):
         """
         :param filenames: имена файлов с морфоразметкой.
@@ -38,11 +40,11 @@ class BatchGenerator:
         """
         self.filenames = filenames  # type: List[str]
         self.batch_size = batch_size  # type: int
+        self.embedding_size = embedding_size # type: int
         self.softmax_size = softmax_size  # type: int
         self.sentence_maxlen = sentence_maxlen  # type: int
         self.word_form_vocabulary = word_form_vocabulary  # type: WordFormVocabulary
         self.grammeme_vectorizer = grammeme_vectorizer  # type: GrammemeVectorizer
-        assert self.word_form_vocabulary.sorted
 
     def __generate_seqs(self, sentences: List[List[WordForm]]) -> Tuple[List[List[WordForm]], List[WordForm]]:
         """
@@ -57,10 +59,10 @@ class BatchGenerator:
             sentence = sentence[::-1]
             for i in range(1, len(sentence)):
                 word_form = sentence[i]
-                # Если следующяя слоформа не из предсказываемых, пропускаем семпл.
-                if self.word_form_vocabulary.get_word_form_index(word_form) >= self.softmax_size:
+                # Если следующая словооформа не из предсказываемых, пропускаем её.
+                if self.word_form_vocabulary.lemma_indices[word_form] >= self.softmax_size:
                     continue
-                seqs.append(sentence[max(0, i-self.sentence_maxlen):i])
+                seqs.append(sentence[max(0, i-self.sentence_maxlen) : i])
                 next_words.append(word_form)
         return seqs, next_words
 
@@ -70,7 +72,7 @@ class BatchGenerator:
         Перевод семплов из словоформ в индексы словоформ, поиск грамматических векторов по индексу.
         
         :param sentences: семплы из словоформ.
-        :param next_words: овтеты-словоформы на семплы.
+        :param next_words: следующие за последовательностями из sentences слова.
         :return: индексы словоформ, грамматические векторы, ответы-индексы.
         """
         n_samples = len(sentences)
@@ -81,39 +83,36 @@ class BatchGenerator:
         for i in range(n_samples):
             sentence = sentences[i]
             next_word = next_words[i]
-            # Функция get_word_form_index_min нужна здесь для игнорирования неиспользуемых словоформ.
-            x_words[i, -len(sentence):] = [self.word_form_vocabulary.get_word_form_index_min(x, self.softmax_size)
+            x_words[i, -len(sentence):] = [min(self.word_form_vocabulary.lemma_indices[x], self.embedding_size) 
                                            for x in sentence]
-            x_grammemes[i, -len(sentence):] = [self.grammeme_vectorizer.vectors[x.gram_vector_index] for x in sentence]
-            y[i] = self.word_form_vocabulary.get_word_form_index(next_word)
+            x_grammemes[i, -len(sentence):] = [self.grammeme_vectorizer.get_vector_by_index(x.gram_vector_index)
+                                               for x in sentence]
+            y[i] = min(self.word_form_vocabulary.word_form_indices[next_word], self.softmax_size)
         return x_words, x_grammemes, y
 
     def __iter__(self):
         """
-        Получние очередного батча.
+        Получение очередного батча.
         
         :return: индексы словоформ, грамматические векторы, ответы-индексы.
         """
         sentences = [[]]
         for filename in self.filenames:
-            with open(filename, encoding='utf-8') as f:
+            with tqdm_open(filename, encoding='utf-8') as f:
                 for line in f:
                     line = line.strip()
                     if len(line) == 0:
+                        sentences[-1].append(SEQ_END_WF)
                         sentences.append([])
                     else:
                         word, lemma, pos, tags = line.split('\t')[:4]
-                        word = word.lower()
-                        lemma = lemma.lower()
+                        word, lemma = word.lower(), lemma.lower()
                         gram_vector_index = self.grammeme_vectorizer.name_to_index[pos+"#"+tags]
                         sentences[-1].append(WordForm(lemma + '_' + pos, gram_vector_index, word))
                     if len(sentences) >= self.batch_size:
                         sentences, next_words = self.__generate_seqs(sentences)
                         yield self.__to_tensor(sentences, next_words)
                         sentences = [[]]
-                sentences, next_words = self.__generate_seqs(sentences)
-                yield self.__to_tensor(sentences, next_words)
-                sentences = [[]]
 
 
 class LSTMGenerator:
