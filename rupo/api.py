@@ -17,7 +17,8 @@ from rupo.rhymes.rhymes import Rhymes
 from rupo.stress.predictor import StressPredictor, CombinedStressPredictor
 from rupo.g2p.rnn import RNNG2PModel
 from rupo.g2p.graphemes import Graphemes
-from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL
+from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, RU_WIKI_DICT, \
+    CMU_DICT, RU_GRAPHEME_SET
 
 
 class Engine:
@@ -30,18 +31,23 @@ class Engine:
         self.g2p_models = dict()  # type: Dict[str, RNNG2PModel]
         self.stress_predictors = dict()  # type: Dict[str, StressPredictor]
 
-    def load(self, language="ru"):
+    def load(self, stress_model_path: str=None, g2p_model_path: str=None,
+             grapheme_set=RU_GRAPHEME_SET, g2p_dict_path=None, aligner_dump_path=None, raw_stress_dict_path=None,
+             stress_trie_path=None, zalyzniak_dict=ZALYZNYAK_DICT, ru_wiki_dict=RU_WIKI_DICT, cmu_dict=CMU_DICT):
         self.g2p_models = dict()
         self.stress_predictors = dict()
-        self.get_stress_predictor(language)
-        self.get_g2p_model(language)
+        self.get_stress_predictor(self.language, stress_model_path, g2p_model_path, grapheme_set, g2p_dict_path,
+                                  aligner_dump_path, raw_stress_dict_path, stress_trie_path, zalyzniak_dict,
+                                  ru_wiki_dict, cmu_dict)
+        self.get_g2p_model(self.language, g2p_model_path)
 
     def get_vocabulary(self, dump_path: str, markup_path: str) -> Vocabulary:
         if self.vocabulary is None:
             self.vocabulary = Vocabulary(dump_path, markup_path)
         return self.vocabulary
 
-    def get_markov(self, dump_path: str, vocab_dump_path: str, markup_path: str, n_grams: int=2, n_poems: int=None) -> MarkovModelContainer:
+    def get_markov(self, dump_path: str, vocab_dump_path: str, markup_path: str, n_grams: int=2,
+                   n_poems: int=None) -> MarkovModelContainer:
         if self.markov is None:
             vocab = self.get_vocabulary(vocab_dump_path, markup_path)
             self.markov = MarkovModelContainer(dump_path, vocab, markup_path, n_grams=n_grams, n_poems=n_poems)
@@ -62,17 +68,23 @@ class Engine:
             self.lstm_generator = Generator(lstm, vocabulary, word_form_vocabulary)
         return self.lstm_generator
 
-    def get_stress_predictor(self, language="ru"):
+    def get_stress_predictor(self, language="ru", stress_model_path: str=None, g2p_model_path: str=None,
+                             grapheme_set=RU_GRAPHEME_SET, g2p_dict_path=None, aligner_dump_path=None,
+                             raw_stress_dict_path=None, stress_trie_path=None, zalyzniak_dict=ZALYZNYAK_DICT,
+                             ru_wiki_dict=RU_WIKI_DICT, cmu_dict=CMU_DICT):
         if self.stress_predictors.get(language) is None:
-            self.stress_predictors[language] = CombinedStressPredictor(language)
+            self.stress_predictors[language] = CombinedStressPredictor(language, stress_model_path, g2p_model_path,
+                                                                       grapheme_set, g2p_dict_path, aligner_dump_path,
+                                                                       raw_stress_dict_path, stress_trie_path,
+                                                                       zalyzniak_dict, cmu_dict, ru_wiki_dict)
         return self.stress_predictors[language]
 
-    def get_g2p_model(self, language="ru"):
+    def get_g2p_model(self, language="ru", model_path=None):
         if self.g2p_models.get(language) is None:
             self.g2p_models[language] = RNNG2PModel(language=language)
-            if language == "ru":
+            if language == "ru" and model_path is None:
                 model_path = RU_G2P_DEFAULT_MODEL
-            elif language == "en":
+            elif language == "en" and model_path is None:
                 model_path = EN_G2P_DEFAULT_MODEL
             else:
                 return None

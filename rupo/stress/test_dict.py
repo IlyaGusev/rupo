@@ -7,20 +7,27 @@ import os
 
 from rupo.stress.dict import StressDict
 from rupo.util.preprocess import VOWELS
-from rupo.settings import RU_GRAPHEME_STRESS_PATH, ZALIZNYAK_DICT, RU_GRAPHEME_STRESS_TRIE_PATH
+from rupo.settings import RU_GRAPHEME_STRESS_PATH, ZALYZNYAK_DICT, RU_GRAPHEME_STRESS_TRIE_PATH
 
 
 class TestStressDict(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.dict = StressDict()
+        cls.dict = StressDict(language="ru", zalyzniak_dict=ZALYZNYAK_DICT,
+                              raw_dict_path=RU_GRAPHEME_STRESS_PATH, trie_path=RU_GRAPHEME_STRESS_TRIE_PATH)
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.dict
 
     def test_load_and_create(self):
-        self.assertTrue(os.path.exists(ZALIZNYAK_DICT))
+        self.assertTrue(os.path.exists(ZALYZNYAK_DICT))
         self.assertTrue(os.path.exists(RU_GRAPHEME_STRESS_PATH))
         os.remove(RU_GRAPHEME_STRESS_TRIE_PATH)
-        StressDict()
+        d = StressDict(language="ru", zalyzniak_dict=ZALYZNYAK_DICT,
+                       raw_dict_path=RU_GRAPHEME_STRESS_PATH, trie_path=RU_GRAPHEME_STRESS_TRIE_PATH)
         self.assertTrue(os.path.exists(RU_GRAPHEME_STRESS_TRIE_PATH))
+        del d
 
     def test_get_stresses(self):
         self.assertCountEqual(self.dict.get_stresses("данный", StressDict.StressType.PRIMARY), [1])

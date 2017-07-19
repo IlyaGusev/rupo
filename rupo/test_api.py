@@ -7,7 +7,9 @@ import os
 import random
 
 from rupo.settings import MARKUP_XML_EXAMPLE, EXAMPLES_DIR, GENERATOR_LSTM_MODEL_PATH, \
-    GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH, GENERATOR_GRAM_VECTORS
+    GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH, GENERATOR_GRAM_VECTORS, RU_STRESS_DEFAULT_MODEL, \
+    RU_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT, RU_WIKI_DICT, RU_GRAPHEME_STRESS_PATH, \
+    RU_GRAPHEME_STRESS_TRIE_PATH, RU_ALIGNER_DEFAULT_PATH, RU_G2P_DICT_PATH
 from rupo.main.markup import Markup
 from rupo.api import Engine
 
@@ -16,7 +18,21 @@ class TestApi(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.engine = Engine(language="ru")
-        cls.engine.load()
+        cls.engine.load(
+            stress_model_path=RU_STRESS_DEFAULT_MODEL,
+            g2p_model_path=RU_G2P_DEFAULT_MODEL,
+            zalyzniak_dict=ZALYZNYAK_DICT,
+            ru_wiki_dict=RU_WIKI_DICT,
+            cmu_dict=CMU_DICT,
+            raw_stress_dict_path=RU_GRAPHEME_STRESS_PATH,
+            stress_trie_path=RU_GRAPHEME_STRESS_TRIE_PATH,
+            aligner_dump_path=RU_ALIGNER_DEFAULT_PATH,
+            g2p_dict_path=RU_G2P_DICT_PATH
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.engine
 
     def test_stress(self):
         self.assertEqual(self.engine.get_stresses("корова"), [3])
@@ -62,7 +78,7 @@ class TestApi(unittest.TestCase):
         markov_dump_file = os.path.join(EXAMPLES_DIR, "markov.pickle")
         self.assertIsNotNone(
             self.engine.generate_markov_poem(MARKUP_XML_EXAMPLE, markov_dump_file, vocab_dump_file,
-                                             rhyme_pattern="a", n_syllables=6, beam_width=10, metre_schema="-+-"))
+                                             rhyme_pattern="a", n_syllables=4, beam_width=20, metre_schema="-+"))
         os.remove(vocab_dump_file)
         os.remove(markov_dump_file)
         self.engine.vocabulary = None
@@ -75,7 +91,7 @@ class TestApi(unittest.TestCase):
                 os.path.exists(GENERATOR_VOCAB_PATH):
             random.seed(42)
             poem = self.engine.generate_poem(GENERATOR_LSTM_MODEL_PATH, GENERATOR_WORD_FORM_VOCAB_PATH,
-                                             GENERATOR_GRAM_VECTORS, GENERATOR_VOCAB_PATH, beam_width=10, n_syllables=4)
+                                             GENERATOR_GRAM_VECTORS, GENERATOR_VOCAB_PATH, beam_width=20, n_syllables=4)
             self.assertIsNotNone(poem)
 
     def test_get_word_rhymes(self):

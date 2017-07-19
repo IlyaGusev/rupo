@@ -2,8 +2,6 @@
 # Автор: Гусев Илья
 # Описание: Конвертер CMU словаря.
 
-from rupo.settings import CMU_DICT, EN_PHONEME_STRESS_PATH, EN_G2P_DICT_PATH
-
 
 class CMUDict:
     aprabet2ipa = {
@@ -60,9 +58,9 @@ class CMUDict:
     diphtongs = ["EY", "AY", "OW", "AW", "OY"]
 
     @staticmethod
-    def convert_to_g2p_only(destination_file):
+    def convert_to_g2p_only(source_file, destination_file):
         clean = []
-        with open(CMU_DICT, 'r', encoding="utf-8", errors="ignore") as f:
+        with open(source_file, 'r', encoding="utf-8", errors="ignore") as f:
             lines = f.readlines()
             for line in lines:
                 g = line.split("  ")[0].lower()
@@ -82,9 +80,9 @@ class CMUDict:
                 w.write(g+"\t"+p+"\n")
 
     @staticmethod
-    def convert_to_phoneme_stress(destination_file):
+    def convert_to_phoneme_stress(source_file, destination_file):
         clean = []
-        with open(CMU_DICT, 'r', encoding="utf-8", errors="ignore") as f:
+        with open(source_file, 'r', encoding="utf-8", errors="ignore") as f:
             for line in f:
                 g = line.split("  ")[0].lower()
                 if not ("a" <= g[0] <= "z"):
@@ -115,6 +113,3 @@ class CMUDict:
         with open(destination_file, 'w', encoding="utf-8") as w:
             for p, f, s in clean:
                 w.write(p + "\t" + ",".join(f) + "\t" + ",".join(s) + "\n")
-# if __name__ == '__main__':
-#     CMUDict.convert_to_phoneme_stress(EN_PHONEME_STRESS_PATH)
-#     CMUDict.convert_to_g2p_only(EN_G2P_DICT_PATH)

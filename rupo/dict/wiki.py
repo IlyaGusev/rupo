@@ -1,13 +1,13 @@
 import re
 
-from rupo.settings import RU_G2P_DICT_PATH, RU_PHONEME_STRESS_PATH, RU_WIKI_DICT, RU_GRAPHEME_SET
+from rupo.settings import RU_GRAPHEME_SET
 from rupo.g2p.phonemes import Phonemes
 
 
 class WikiDict:
     @staticmethod
-    def convert_to_g2p_only(destination_file):
-        with open(RU_WIKI_DICT, 'r', encoding='utf-8') as r:
+    def convert_to_g2p_only(source_file, destination_file):
+        with open(source_file, 'r', encoding='utf-8') as r:
             lines = r.readlines()
         with open(destination_file, 'w', encoding='utf-8') as w:
             words = []
@@ -19,8 +19,8 @@ class WikiDict:
                 w.write(word + "\t" + phonetic_words[i] + "\n")
 
     @staticmethod
-    def convert_to_phoneme_stress(destination_file):
-        with open(RU_WIKI_DICT, 'r', encoding='utf-8') as r:
+    def convert_to_phoneme_stress(source_file, destination_file):
+        with open(source_file, 'r', encoding='utf-8') as r:
             lines = r.readlines()
         with open(destination_file, 'w', encoding='utf-8') as w:
             for line in lines:
@@ -50,10 +50,10 @@ class WikiDict:
                 w.write(clean_word + "\t" + ",".join(primary_stresses) + "\t" + ",".join(secondary_stresses) + "\n")
 
     @staticmethod
-    def first_clean_up():
+    def first_clean_up(filename):
         words = []
         phonetic_words = []
-        with open(RU_WIKI_DICT, "r") as f:
+        with open(filename, "r") as f:
             lines = f.readlines()
             print(len(lines))
             for line in lines:
@@ -82,12 +82,6 @@ class WikiDict:
                 words.append(word)
                 phonetic_words.append(phonetic_word)
         print(len(words))
-        with open(RU_WIKI_DICT, "w") as f:
+        with open(filename, "w") as f:
             for i, word in enumerate(words):
                 f.write(word + "\t" + phonetic_words[i] + "\n")
-
-
-# if __name__ == '__main__':
-    # WikiDict.first_clean_up()
-    # WikiDict.convert_to_g2p_only(RU_G2P_DICT_PATH)
-    # WikiDict.convert_to_phoneme_stress(RU_PHONEME_STRESS_PATH)
