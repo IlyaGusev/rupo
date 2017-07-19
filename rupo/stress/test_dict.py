@@ -20,15 +20,6 @@ class TestStressDict(unittest.TestCase):
     def tearDownClass(cls):
         del cls.dict
 
-    def test_load_and_create(self):
-        self.assertTrue(os.path.exists(ZALYZNYAK_DICT))
-        self.assertTrue(os.path.exists(RU_GRAPHEME_STRESS_PATH))
-        os.remove(RU_GRAPHEME_STRESS_TRIE_PATH)
-        d = StressDict(language="ru", zalyzniak_dict=ZALYZNYAK_DICT,
-                       raw_dict_path=RU_GRAPHEME_STRESS_PATH, trie_path=RU_GRAPHEME_STRESS_TRIE_PATH)
-        self.assertTrue(os.path.exists(RU_GRAPHEME_STRESS_TRIE_PATH))
-        del d
-
     def test_get_stresses(self):
         self.assertCountEqual(self.dict.get_stresses("данный", StressDict.StressType.PRIMARY), [1])
         self.assertCountEqual(self.dict.get_stresses("союза", StressDict.StressType.PRIMARY), [2])
