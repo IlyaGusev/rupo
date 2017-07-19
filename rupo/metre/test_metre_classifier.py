@@ -27,6 +27,10 @@ class TestMetreClassifier(unittest.TestCase):
             g2p_dict_path=RU_G2P_DICT_PATH
         )
 
+    @classmethod
+    def tearDownClass(cls):
+        del cls.stress_predictor
+
     def test_classification_result(self):
         result = ClassificationResult(5)
         result.additions["iambos"].append(StressCorrection(0, 0, 0, "", 0))

@@ -30,6 +30,10 @@ class TestApi(unittest.TestCase):
             g2p_dict_path=RU_G2P_DICT_PATH
         )
 
+    @classmethod
+    def tearDownClass(cls):
+        del cls.engine
+
     def test_stress(self):
         self.assertEqual(self.engine.get_stresses("корова"), [3])
         self.assertCountEqual(self.engine.get_stresses("авиамоделирование"), [0, 9])
@@ -87,7 +91,8 @@ class TestApi(unittest.TestCase):
                 os.path.exists(GENERATOR_VOCAB_PATH):
             random.seed(42)
             poem = self.engine.generate_poem(GENERATOR_LSTM_MODEL_PATH, GENERATOR_WORD_FORM_VOCAB_PATH,
-                                             GENERATOR_GRAM_VECTORS, GENERATOR_VOCAB_PATH, beam_width=20, n_syllables=4)
+                                             GENERATOR_GRAM_VECTORS, GENERATOR_VOCAB_PATH, beam_width=30, n_syllables=4,
+                                             rhyme_pattern="aa", metre_schema="-+")
             self.assertIsNotNone(poem)
 
     def test_get_word_rhymes(self):
