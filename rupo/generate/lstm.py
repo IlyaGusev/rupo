@@ -4,23 +4,20 @@
 
 import numpy as np
 from typing import List, Tuple
+from itertools import islice
 import keras.activations
 from keras.models import model_from_json
 from keras.models import Model, load_model
-from keras.layers import Input, Embedding, Dense, Merge, LSTM, SpatialDropout1D, Masking
+from keras.layers import Input, Embedding, Dense, Merge, LSTM, SpatialDropout1D, Masking, BatchNormalization, Activation
 from keras import backend as K
 
 from rupo.generate.word_form import WordForm
-from rupo.generate.word_form_vocabulary import WordFormVocabulary, SEQ_END_WF
+from rupo.generate.word_form_vocabulary import WordFormVocabulary
+from rupo.generate.corpora_information_loader import CorporaInformationLoader, SEQ_END_WF
 from rupo.generate.grammeme_vectorizer import GrammemeVectorizer
 from rupo.generate.model_container import ModelContainer
 from rupo.generate.tqdm_open import tqdm_open
 from rupo.settings import GENERATOR_LSTM_MODEL_PATH, GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_GRAM_VECTORS
-
-
-def hard_tanh(x):
-    return K.minimum(K.maximum(x, K.constant(-1)), K.constant(1))
-keras.activations.hard_tanh = hard_tanh
 
 
 class BatchGenerator:
@@ -77,18 +74,18 @@ class BatchGenerator:
         """
         n_samples = len(sentences)
         max_len = max(len(sent) for sent in sentences)
-        x_words = np.zeros((n_samples, max_len), dtype=np.int)
-        x_grammemes = np.zeros((n_samples, max_len, self.grammeme_vectorizer.grammemes_count()), dtype=np.int)
+        lemmas = np.zeros((n_samples, max_len), dtype=np.int)
+        grammemes = np.zeros((n_samples, max_len, self.grammeme_vectorizer.grammemes_count()), dtype=np.int)
         y = np.zeros(n_samples, dtype=np.int)
         for i in range(n_samples):
             sentence = sentences[i]
             next_word = next_words[i]
-            x_words[i, -len(sentence):] = [min(self.word_form_vocabulary.lemma_indices[x], self.embedding_size) 
-                                           for x in sentence]
-            x_grammemes[i, -len(sentence):] = [self.grammeme_vectorizer.get_vector_by_index(x.gram_vector_index)
-                                               for x in sentence]
+            lemmas[i, -len(sentence):] = [min(self.word_form_vocabulary.lemma_indices[x], self.embedding_size) 
+                                          for x in sentence]
+            grammemes[i, -len(sentence):] = [self.grammeme_vectorizer.get_vector_by_index(x.gram_vector_index)
+                                             for x in sentence]
             y[i] = min(self.word_form_vocabulary.word_form_indices[next_word], self.softmax_size)
-        return x_words, x_grammemes, y
+        return lemmas, grammemes, y
 
     def __iter__(self):
         """
@@ -119,15 +116,18 @@ class LSTMGenerator:
     """
     Языковая модель на основе двухуровневой LSTM RNN.
     """
-    def __init__(self, softmax_size: int=60000, external_batch_size: int=10000,
-                 nn_batch_size: int=768, sentence_maxlen: int=10, lstm_units=368,
-                 embeddings_dimension=150, grammeme_dense_units=25):
+    def __init__(self, embedding_size: int=30000, softmax_size: int=60000, 
+                 external_batch_size: int=10000, nn_batch_size: int=768, 
+                 sentence_maxlen: int=10, lstm_units=368, embeddings_dimension: int=150, 
+                 grammeme_dense_units: List[int]=[35, 15], dense_units: int=256):
         """
+        :param embeddings_size: размер входного слоя (=размер словаря)
         :param softmax_size: размер выхода softmax-слоя (=размер итогового набора вероятностей)
         :param external_batch_size: размер набора семплов для BatchGenerator'а.
         :param nn_batch_size: размер набора семплов для обучения.
         :param sentence_maxlen: маскимальная длина куска предложения.
         """
+        self.embedding_size = embedding_size  # type: int
         self.softmax_size = softmax_size  # type: int
         self.external_batch_size = external_batch_size  # type: int
         self.nn_batch_size = nn_batch_size  # type: int
@@ -136,7 +136,8 @@ class LSTMGenerator:
         self.grammeme_vectorizer = None  # type: GrammemeVectorizer
         self.lstm_units = lstm_units  # type: int
         self.embeddings_dimension = embeddings_dimension  # type: int
-        self.grammeme_dense_units = grammeme_dense_units  # type: int
+        self.grammeme_dense_units = grammeme_dense_units  # type: List[int]
+        self.dense_units = dense_units  # type: int
         self.model = None  # type: Model
 
     def prepare(self, filenames: List[str]=list(),
@@ -150,18 +151,12 @@ class LSTMGenerator:
         :param gram_dump_path: путь к векторам грамматических значений.
         """
         self.grammeme_vectorizer = GrammemeVectorizer(gram_dump_path)
-        if self.grammeme_vectorizer.is_empty():
-            for filename in filenames:
-                self.grammeme_vectorizer.collect_grammemes(filename)
-            for filename in filenames:
-                self.grammeme_vectorizer.collect_possible_vectors(filename)
-            self.grammeme_vectorizer.save()
-
         self.word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
-        if self.word_form_vocabulary.is_empty():
-            for filename in filenames:
-                self.word_form_vocabulary.load_from_corpus(filename, self.grammeme_vectorizer)
-            self.word_form_vocabulary.sort()
+        if self.grammeme_vectorizer.is_empty() or self.word_form_vocabulary.is_empty():
+            loader = CorporaInformationLoader()
+
+            self.word_form_vocabulary, self.grammeme_vectorizer = loader.parse_corpora(filenames)
+            self.grammeme_vectorizer.save()
             self.word_form_vocabulary.save()
 
     def load(self, model_filename: str) -> None:
@@ -187,24 +182,45 @@ class LSTMGenerator:
         """
         Описание модели.
         """
-        words = Input(shape=(None,), name='words')
+        # Вход лемм
+        lemmas = Input(shape=(None,), name='lemmas')
+        lemmas_embedding = Embedding(self.embedding_size + 1, self.embeddings_dimension, name='embeddings')(lemmas)
+        lemmas_embedding = SpatialDropout1D(.3)(lemmas_embedding)
 
-        words_embedding = SpatialDropout1D(.3)(Embedding(self.softmax_size + 1, self.embeddings_dimension, name='embeddings')(words))
+        # Вход граммем
         grammemes_input = Input(shape=(None, self.grammeme_vectorizer.grammemes_count()), name='grammemes')
         grammemes_layer = Masking(mask_value=0.)(grammemes_input)
-        grammemes_layer = Dense(self.grammeme_dense_units, activation=hard_tanh)(grammemes_layer)
-        grammemes_layer = Dense(self.grammeme_dense_units, activation=hard_tanh)(grammemes_layer)
-        layer = Merge(mode='concat', name='LSTM_input')([words_embedding, grammemes_layer])
+        for grammeme_dense_layer_units in self.grammeme_dense_units:
+            grammemes_layer = Dense(grammeme_dense_layer_units, activation='relu')(grammemes_layer)
+
+        layer = Merge(mode='concat', name='LSTM_input')([lemmas_embedding, grammemes_layer])
         layer = LSTM(self.lstm_units, dropout=.2, recurrent_dropout=.2, return_sequences=True, name='LSTM_1')(layer)
         layer = LSTM(self.lstm_units, dropout=.2, recurrent_dropout=.2, return_sequences=False, name='LSTM_2')(layer)
 
+        layer = Dense(self.dense_units)(layer)
+        layer = BatchNormalization()(layer)
+        layer = Activation('relu')(layer)
+
         output = Dense(self.softmax_size + 1, activation='softmax')(layer)
 
-        self.model = Model(inputs=[words, grammemes_input], outputs=[output])
+        self.model = Model(inputs=[lemmas, grammemes_input], outputs=[output])
         self.model.compile(loss='sparse_categorical_crossentropy', optimizer='adam')
         print(self.model.summary())
 
-    def train(self, filenames: List[str]) -> None:
+    @staticmethod
+    def __get_validation_data(batch_generator, size):
+        """
+        Берет первые size батчей и batch_generator для валидационной выборки
+        """
+        lemmas_list, grammemes_list, y_list = [], [], []
+        for lemmas, grammemes, y in islice(batch_generator, size):
+            lemmas_list.append(lemmas)
+            grammemes_list.append(grammemes)
+            y_list.append(y)
+        return np.vstack(lemmas_list), np.vstack(grammemes_list), np.hstack(y_list)
+
+    def train(self, filenames: List[str], validation_size: int=5, 
+            validation_verbosity: int=5, dump_model_freq: int = 10) -> None:
         """
         Обучение модели.
         
@@ -212,16 +228,26 @@ class LSTMGenerator:
         """
         batch_generator = BatchGenerator(filenames,
                                          batch_size=self.external_batch_size,
+                                         embedding_size=self.embedding_size,
                                          softmax_size=self.softmax_size,
                                          sentence_maxlen=self.sentence_maxlen,
                                          word_form_vocabulary=self.word_form_vocabulary,
                                          grammeme_vectorizer=self.grammeme_vectorizer)
+
+        lemmas_val, grammemes_val, y_val = LSTMGenerator.__get_validation_data(batch_generator, validation_size)
         for big_epoch in range(0, 1000):
             print('------------Big Epoch {}------------'.format(big_epoch))
-            for epoch, (X1, X2, y) in enumerate(batch_generator):
-                self.model.fit([X1, X2], y, batch_size=self.nn_batch_size, epochs=1, verbose=2)
-                indices = [np.random.randint(0, self.softmax_size)]
-                for i in range(10):
+            for epoch, (lemmas, grammemes, y) in enumerate(batch_generator):
+                if epoch < validation_size:
+                    continue
+                self.model.fit([lemmas, grammemes], y, batch_size=self.nn_batch_size, epochs=1, verbose=2)
+
+                if epoch != 0 and epoch % validation_verbosity == 0:
+                    print('val loss:', self.model.evaluate([lemmas_val, grammemes_val], 
+                        y_val, batch_size=self.nn_batch_size * 2, verbose=0))
+
+                indices = [self.word_form_vocabulary.get_sequence_end_index(SEQ_END_WF)]
+                for _ in range(10):
                     indices.append(self._sample(self.predict(indices)))
                 sentence = [self.word_form_vocabulary.get_word_form_by_index(index) for index in indices]
                 print('Sentence', str(big_epoch), str(epoch), end=': ')
@@ -229,7 +255,7 @@ class LSTMGenerator:
                     print(word.text, end=' ')
                 print()
 
-                if epoch != 0 and epoch % 10 == 0:
+                if epoch != 0 and epoch % dump_model_freq == 0:
                     self.model.save(GENERATOR_LSTM_MODEL_PATH)
 
     def predict(self, word_indices: List[int]) -> np.array:
@@ -240,14 +266,14 @@ class LSTMGenerator:
         :return: проекция языковой модели (вероятности следующего слова).
         """
         if len(word_indices) == 0:
-            return np.full(self.softmax_size, 1.0/self.softmax_size, dtype=np.float)
+            return np.full(self.softmax_size, 1.0 / self.softmax_size, dtype=np.float)
         cur_sent = [self.word_form_vocabulary.get_word_form_by_index(ind) for ind in word_indices]
-        x_emb = np.zeros((1, len(cur_sent)))
-        x_gram = np.zeros((1, len(cur_sent), self.grammeme_vectorizer.grammemes_count()))
+        x_lemmas = np.zeros((1, len(cur_sent)))
+        x_grammemes = np.zeros((1, len(cur_sent), self.grammeme_vectorizer.grammemes_count()))
         for index, word in enumerate(cur_sent):
-            x_emb[0, index] = self.word_form_vocabulary.get_word_form_index_min(word, self.softmax_size)
-            x_gram[0, index] = self.grammeme_vectorizer.vectors[word.gram_vector_index]
-        prob = self.model.predict([x_emb, x_gram], verbose=0)[0]
+            x_lemmas[0, index] = self.word_form_vocabulary.get_word_form_index_min(word, self.softmax_size)
+            x_grammemes[0, index] = self.grammeme_vectorizer.vectors[word.gram_vector_index]
+        prob = self.model.predict([x_lemmas, x_grammemes], verbose=0)[0]
         return prob
 
     @staticmethod
@@ -278,5 +304,3 @@ class LSTMModelContainer(ModelContainer):
 
     def get_model(self, word_indices: List[int]) -> np.array:
         return self.lstm.predict(word_indices)
-
-

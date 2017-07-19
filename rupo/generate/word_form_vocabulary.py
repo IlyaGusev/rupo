@@ -76,6 +76,13 @@ class WordFormVocabulary(object):
     def get_lemma_index(self, word_form: WordForm) -> int:
         return self.lemma_indices[word_form]
 
+    def get_sequence_end_index(self, seq_end: WordForm) -> int:
+        """
+        Возвращает индекс завершающего строку символа. Предполагается, что он последний в lemma_indices
+        """
+        assert seq_end in self.lemma_indices and self.lemma_indices[seq_end] == len(self.lemma_indices) - 1
+        return len(self.lemma_indices) - 1
+
     def inflate_vocab(self, top_n=None) -> None:
         """
         Получение словаря с ударениями по этому словарю.
