@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-# Авторы: Гусев Илья
+# Авторы: Гусев Илья, Анастасьев Даниил
 # Описание: Модуль векторизатора граммем.
 
 import pickle
 import os
 from collections import defaultdict
-from tqdm import tqdm
 from typing import Dict, List, Set
 
 from rupo.settings import GENERATOR_GRAM_VECTORS
+from rupo.generate.tqdm_open import tqdm_open
 
 
 def get_empty_category():
@@ -47,35 +47,41 @@ class GrammemeVectorizer:
         
         :param filename: файл с морфоразметкой.
         """
-        with open(filename, "r", encoding="utf-8") as f:
-            for line in tqdm(f, desc="Collecting grammemes"):
-                if line == "\n":
+        with tqdm_open(filename, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if len(line) == 0:
                     continue
                 pos_tag, grammemes = line.split("\t")[2:4]
-                self.all_grammemes["POS"].add(pos_tag)
-                grammemes = grammemes.split("|") if grammemes != "_" else []
-                for grammeme in grammemes:
-                    category = grammeme.split("=")[0]
-                    value = grammeme.split("=")[1]
-                    self.all_grammemes[category].add(value)
+                self.add_grammemes(pos_tag, grammemes)
 
-    def collect_possible_vectors(self, filename: str) -> None:
+    def add_grammemes(self, pos_tag: str, grammemes: str) -> int:
         """
-        Собрать возможные вектора.
-        
-        :param filename: файл с морфоразметкой.
+        Добавить новое грамматическое значение в список известных
         """
-        with open(filename, "r", encoding="utf-8") as f:
-            for line in tqdm(f, desc="Collecting vectors"):
-                if line == "\n":
-                    continue
-                pos_tag, grammemes = line.split("\t")[2:4]
-                vector_name = pos_tag + "#" + grammemes
-                if vector_name not in self.name_to_index:
-                    grammemes = grammemes.split("|") if grammemes != "_" else []
-                    vector = self.__build_vector(pos_tag, grammemes)
-                    self.vectors.append(vector)
-                    self.name_to_index[vector_name] = len(self.vectors) - 1
+        vector_name = pos_tag + '#' + grammemes
+        if vector_name not in self.name_to_index:
+            self.name_to_index[vector_name] = len(self.name_to_index)
+            self.all_grammemes["POS"].add(pos_tag)
+            grammemes = grammemes.split("|") if grammemes != "_" else []
+            for grammeme in grammemes:
+                category = grammeme.split("=")[0]
+                value = grammeme.split("=")[1]
+                self.all_grammemes[category].add(value)
+            self.is_initialized = False
+        return self.name_to_index[vector_name]
+
+    def init_possible_vectors(self) -> None:
+        """
+        Инициализировать все возможные векторы по известным грамматическим значениям
+        """
+        self.vectors = []
+        for grammar_val, index in sorted(self.name_to_index.items(), key=lambda x: x[1]):
+            pos_tag, grammemes = grammar_val.split('#')
+            grammemes = grammemes.split("|") if grammemes != "_" else []
+            vector = self.__build_vector(pos_tag, grammemes)
+            self.vectors.append(vector)
+        self.is_initialized = True
 
     def get_vector(self, vector_name: str) -> List[int]:
         """
@@ -85,8 +91,17 @@ class GrammemeVectorizer:
         :return: вектор.
         """
         if vector_name not in self.name_to_index:
-            raise RuntimeError("Unknown POS tag and grammemes combination")
+            return [0] * len(self.vectors[0])
         return self.vectors[self.name_to_index[vector_name]]
+
+    def get_vector_by_index(self, index: int) -> List[int]:
+        """
+        Получить вектор по индексу
+        
+        :param vector_index
+        :return: вектор.
+        """
+        return self.vectors[index] if 0 <= index < len(self.vectors) else [0] * len(self.vectors[0])
 
     def get_ordered_grammemes(self) -> List[str]:
         """
