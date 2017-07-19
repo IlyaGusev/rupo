@@ -30,6 +30,10 @@ class TestApi(unittest.TestCase):
             g2p_dict_path=RU_G2P_DICT_PATH
         )
 
+    @classmethod
+    def tearDownClass(cls):
+        del cls.engine
+
     def test_stress(self):
         self.assertEqual(self.engine.get_stresses("корова"), [3])
         self.assertCountEqual(self.engine.get_stresses("авиамоделирование"), [0, 9])
@@ -74,7 +78,7 @@ class TestApi(unittest.TestCase):
         markov_dump_file = os.path.join(EXAMPLES_DIR, "markov.pickle")
         self.assertIsNotNone(
             self.engine.generate_markov_poem(MARKUP_XML_EXAMPLE, markov_dump_file, vocab_dump_file,
-                                             rhyme_pattern="a", n_syllables=6, beam_width=10, metre_schema="-+-"))
+                                             rhyme_pattern="a", n_syllables=4, beam_width=20, metre_schema="-+"))
         os.remove(vocab_dump_file)
         os.remove(markov_dump_file)
         self.engine.vocabulary = None
