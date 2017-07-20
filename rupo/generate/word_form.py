@@ -4,6 +4,7 @@
 
 from enum import IntEnum
 
+
 class LemmaCase(IntEnum):
     """
     Тип капитализации словоформы
@@ -40,12 +41,12 @@ class WordForm(object):
             return self.text.upper()
         
     def __repr__(self):
-        return "<Lemma = {}; GrTag = {}; WordForm = {}; LemmaCase = {}>".format(self.lemma, 
+        return "<Lemma = {}; GrTag = {}; WordForm = {}; LemmaCase = {}>".format(self.lemma,
             self.gram_vector_index, self.text, self.case)
 
     def __eq__(self, other):
-        return (self.lemma, self.gram_vector_index, self.text, self.case) == \
-            (other.lemma, other.gram_vector_index, other.text, other.case)
+        return (self.lemma, self.gram_vector_index, self.text) == \
+               (other.lemma, other.gram_vector_index, other.text)
 
     def __hash__(self):
-        return hash((self.lemma, self.gram_vector_index, self.text, self.case))
+        return hash((self.lemma, self.gram_vector_index, self.text))

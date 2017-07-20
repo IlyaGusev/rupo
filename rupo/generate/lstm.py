@@ -5,15 +5,13 @@
 import numpy as np
 from typing import List, Tuple
 from itertools import islice
-import keras.activations
 from keras.models import model_from_json
 from keras.models import Model, load_model
 from keras.layers import Input, Embedding, Dense, Merge, LSTM, SpatialDropout1D, Masking, BatchNormalization, Activation
-from keras import backend as K
 
 from rupo.generate.word_form import WordForm
-from rupo.generate.word_form_vocabulary import WordFormVocabulary
-from rupo.generate.corpora_information_loader import CorporaInformationLoader, SEQ_END_WF
+from rupo.generate.word_form_vocabulary import WordFormVocabulary, SEQ_END_WF
+from rupo.generate.corpora_information_loader import CorporaInformationLoader
 from rupo.generate.grammeme_vectorizer import GrammemeVectorizer
 from rupo.generate.model_container import ModelContainer
 from rupo.generate.tqdm_open import tqdm_open
@@ -57,7 +55,7 @@ class BatchGenerator:
             for i in range(1, len(sentence)):
                 word_form = sentence[i]
                 # Если следующая словооформа не из предсказываемых, пропускаем её.
-                if self.word_form_vocabulary.lemma_indices[word_form] >= self.softmax_size:
+                if self.word_form_vocabulary.get_word_form_index(word_form) >= self.softmax_size:
                     continue
                 seqs.append(sentence[max(0, i-self.sentence_maxlen) : i])
                 next_words.append(word_form)
@@ -73,14 +71,14 @@ class BatchGenerator:
         :return: индексы словоформ, грамматические векторы, ответы-индексы.
         """
         n_samples = len(sentences)
-        max_len = max(len(sent) for sent in sentences)
+        max_len = self.sentence_maxlen
         lemmas = np.zeros((n_samples, max_len), dtype=np.int)
         grammemes = np.zeros((n_samples, max_len, self.grammeme_vectorizer.grammemes_count()), dtype=np.int)
         y = np.zeros(n_samples, dtype=np.int)
         for i in range(n_samples):
             sentence = sentences[i]
             next_word = next_words[i]
-            lemmas[i, -len(sentence):] = [min(self.word_form_vocabulary.lemma_indices[x], self.embedding_size) 
+            lemmas[i, -len(sentence):] = [min(self.word_form_vocabulary.get_lemma_index(x), self.embedding_size)
                                           for x in sentence]
             grammemes[i, -len(sentence):] = [self.grammeme_vectorizer.get_vector_by_index(x.gram_vector_index)
                                              for x in sentence]
@@ -103,9 +101,9 @@ class BatchGenerator:
                         sentences.append([])
                     else:
                         word, lemma, pos, tags = line.split('\t')[:4]
-                        word, lemma = word.lower(), lemma.lower()
+                        word, lemma = word.lower(), lemma.lower() + '_' + pos
                         gram_vector_index = self.grammeme_vectorizer.name_to_index[pos+"#"+tags]
-                        sentences[-1].append(WordForm(lemma + '_' + pos, gram_vector_index, word))
+                        sentences[-1].append(WordForm(lemma, gram_vector_index, word))
                     if len(sentences) >= self.batch_size:
                         sentences, next_words = self.__generate_seqs(sentences)
                         yield self.__to_tensor(sentences, next_words)
@@ -154,7 +152,6 @@ class LSTMGenerator:
         self.word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
         if self.grammeme_vectorizer.is_empty() or self.word_form_vocabulary.is_empty():
             loader = CorporaInformationLoader()
-
             self.word_form_vocabulary, self.grammeme_vectorizer = loader.parse_corpora(filenames)
             self.grammeme_vectorizer.save()
             self.word_form_vocabulary.save()
@@ -210,7 +207,7 @@ class LSTMGenerator:
     @staticmethod
     def __get_validation_data(batch_generator, size):
         """
-        Берет первые size батчей и batch_generator для валидационной выборки
+        Берет первые size батчей из batch_generator для валидационной выборки
         """
         lemmas_list, grammemes_list, y_list = [], [], []
         for lemmas, grammemes, y in islice(batch_generator, size):
@@ -219,12 +216,15 @@ class LSTMGenerator:
             y_list.append(y)
         return np.vstack(lemmas_list), np.vstack(grammemes_list), np.hstack(y_list)
 
-    def train(self, filenames: List[str], validation_size: int=5, 
-            validation_verbosity: int=5, dump_model_freq: int = 10) -> None:
+    def train(self, filenames: List[str], validation_size: int=5,
+              validation_verbosity: int=5, dump_model_freq: int=10) -> None:
         """
         Обучение модели.
         
         :param filenames: имена файлов с морфоразметкой.
+        :param validation_size: размер val выборки.
+        :param validation_verbosity: каждый validation_verbosity-шаг делается валидация.
+        :param dump_model_freq: каждый dump_model_freq-шаг сохраняется модель.
         """
         batch_generator = BatchGenerator(filenames,
                                          batch_size=self.external_batch_size,
@@ -243,10 +243,11 @@ class LSTMGenerator:
                 self.model.fit([lemmas, grammemes], y, batch_size=self.nn_batch_size, epochs=1, verbose=2)
 
                 if epoch != 0 and epoch % validation_verbosity == 0:
-                    print('val loss:', self.model.evaluate([lemmas_val, grammemes_val], 
-                        y_val, batch_size=self.nn_batch_size * 2, verbose=0))
+                    print('val loss:',
+                          self.model.evaluate([lemmas_val, grammemes_val],
+                                              y_val, batch_size=self.nn_batch_size * 2, verbose=0))
 
-                indices = [self.word_form_vocabulary.get_sequence_end_index(SEQ_END_WF)]
+                indices = [self.word_form_vocabulary.get_sequence_end_index()]
                 for _ in range(10):
                     indices.append(self._sample(self.predict(indices)))
                 sentence = [self.word_form_vocabulary.get_word_form_by_index(index) for index in indices]
@@ -271,7 +272,7 @@ class LSTMGenerator:
         x_lemmas = np.zeros((1, len(cur_sent)))
         x_grammemes = np.zeros((1, len(cur_sent), self.grammeme_vectorizer.grammemes_count()))
         for index, word in enumerate(cur_sent):
-            x_lemmas[0, index] = self.word_form_vocabulary.get_word_form_index_min(word, self.softmax_size)
+            x_lemmas[0, index] = self.word_form_vocabulary.get_lemma_index(word)
             x_grammemes[0, index] = self.grammeme_vectorizer.vectors[word.gram_vector_index]
         prob = self.model.predict([x_lemmas, x_grammemes], verbose=0)[0]
         return prob

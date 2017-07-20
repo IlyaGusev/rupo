@@ -4,17 +4,19 @@
 
 import pickle
 import os
-from collections import defaultdict, Counter
-from typing import List, Dict
+from collections import Counter
+from typing import List, Dict, Set
 from tqdm import tqdm
 
 from rupo.generate.word_form import WordForm, LemmaCase
-from rupo.generate.grammeme_vectorizer import GrammemeVectorizer
 from rupo.settings import GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH
-from rupo.main.vocabulary import Vocabulary
-from rupo.stress.predictor import CombinedStressPredictor
 from rupo.main.markup import Word
 from rupo.g2p.graphemes import Graphemes
+
+# Индикатор конца последовательности
+SEQ_END = '</s>'
+SEQ_END_WF = WordForm(SEQ_END, -1, SEQ_END)
+
 
 class WordFormVocabulary(object):
     """
@@ -25,10 +27,11 @@ class WordFormVocabulary(object):
         :param dump_filename: путь к дампу словаря.
         """
         self.dump_filename = dump_filename  # type: str
-        self.word_forms = []  # type: List[WordForm]`
-        self.word_form_indices = {}  # WordForm -> index в self.word_forms
-        self.word_form_indices_rev = {}  # index в self.word_forms -> WordForm
-        self.lemma_indices = {}  # Lemma -> index
+        self.word_forms = []  # type: List[WordForm]
+        # WordForm -> index в self.word_forms
+        self.word_form_indices = {}  # type: Dict[WordForm, int]
+        # WordForm -> lemma index
+        self.lemma_indices = {}  # type: Dict[WordForm, int]
         if os.path.exists(self.dump_filename):
             self.load()
 
@@ -47,7 +50,7 @@ class WordFormVocabulary(object):
             vocab = pickle.load(f)
             self.__dict__.update(vocab.__dict__)
 
-    def init_by_vocabulary(self, lemma_counter: Counter, lemma_to_word_forms: Dict[str, List[WordForm]], 
+    def init_by_vocabulary(self, lemma_counter: Counter, lemma_to_word_forms: Dict[str, Set[WordForm]],
                            lemma_case: Dict[str, LemmaCase]):
         """
         Строит словарь по предподсчитанным данным
@@ -60,9 +63,10 @@ class WordFormVocabulary(object):
             for word_form in lemma_to_word_forms[lemma]:
                 word_form.set_case(lemma_case[word_form.lemma])
                 self.word_forms.append(word_form)
-                self.word_form_indices[word_form] = len(self.word_forms)
-                self.lemma_indices[word_form] = i + 1
-        self.word_form_indices_rev = {self.word_form_indices[x] : x for x in self.word_form_indices}
+                self.word_form_indices[word_form] = len(self.word_forms) - 1
+                assert self.word_forms[self.word_form_indices[word_form]] == word_form
+                self.lemma_indices[word_form] = i + 1  # 0 - зарезервирован для паддинга.
+        assert self.lemma_indices[SEQ_END_WF] == 1
 
     def get_word_form_index(self, word_form: WordForm) -> int:
         return self.word_form_indices[word_form]
@@ -73,21 +77,33 @@ class WordFormVocabulary(object):
     def get_word_form_index_min(self, word_form: WordForm, size: int) -> int:
         return min(self.get_word_form_index(word_form), size)
 
+    def get_lemma_index_min(self, word_form: WordForm, size: int) -> int:
+        return min(self.get_lemma_index(word_form), size)
+
     def get_lemma_index(self, word_form: WordForm) -> int:
         return self.lemma_indices[word_form]
 
-    def get_sequence_end_index(self, seq_end: WordForm) -> int:
+    def get_sequence_end_index(self) -> int:
         """
-        Возвращает индекс завершающего строку символа. Предполагается, что он последний в lemma_indices
+        Возвращает индекс словоформы завершающего строку символа.
         """
-        assert seq_end in self.lemma_indices and self.lemma_indices[seq_end] == len(self.lemma_indices) - 1
-        return len(self.lemma_indices) - 1
+        assert SEQ_END_WF in self.word_form_indices and self.word_form_indices[SEQ_END_WF] == 0
+        return 0
+
+    def get_sequence_end_lemma_index(self) -> int:
+        """
+        Возвращает индекс леммы завершающего строку символа.
+        """
+        assert SEQ_END_WF in self.lemma_indices and self.lemma_indices[SEQ_END_WF] == 1
+        return 1
 
     def inflate_vocab(self, top_n=None) -> None:
         """
         Получение словаря с ударениями по этому словарю.
         :param top_n: сколько первых записей взять?
         """
+        from rupo.main.vocabulary import Vocabulary
+        from rupo.stress.predictor import CombinedStressPredictor
         vocab = Vocabulary(GENERATOR_VOCAB_PATH)
         stress_predictor = CombinedStressPredictor()
         forms = self.word_forms

@@ -1,14 +1,16 @@
+# -*- coding: utf-8 -*-
+# Автор: Даниил Анастасьев
+# Описание: Загрузка словарей из корпуса.
+
 from collections import defaultdict, Counter
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Set
+import sys
 
 from rupo.generate.grammeme_vectorizer import GrammemeVectorizer
-from rupo.generate.word_form_vocabulary import WordFormVocabulary
+from rupo.generate.word_form_vocabulary import WordFormVocabulary, SEQ_END, SEQ_END_WF
 from rupo.generate.word_form import WordForm, LemmaCase
 from rupo.generate.tqdm_open import tqdm_open
 
-# Индикатор конца последовательности
-SEQ_END = '</s>'
-SEQ_END_WF = WordForm(SEQ_END, -1, SEQ_END)
 
 class CorporaInformationLoader(object):
     """
@@ -17,7 +19,7 @@ class CorporaInformationLoader(object):
     def __init__(self):
         self.grammeme_vectorizer = GrammemeVectorizer()
         self.word_form_vocabulary = WordFormVocabulary()
-        self.lemma_to_word_forms = defaultdict(set)  # type: Dict[str, List[int]]
+        self.lemma_to_word_forms = defaultdict(set)  # type: Dict[str, Set[WordForm]]
         self.lemma_case = {}
         self.lemma_counter = Counter()  # type: Counter
 
@@ -33,10 +35,17 @@ class CorporaInformationLoader(object):
                     if line == "\n":
                         continue
                     self.__process_line(line)
+
+        self.__add_seq_end()
         self.grammeme_vectorizer.init_possible_vectors()
         self.word_form_vocabulary.init_by_vocabulary(self.lemma_counter, self.lemma_to_word_forms, self.lemma_case)
-        self.word_form_vocabulary.lemma_indices[SEQ_END_WF] = len(self.word_form_vocabulary.lemma_indices)
+        self.word_form_vocabulary.lemma_indices[SEQ_END_WF] = 1
         return self.word_form_vocabulary, self.grammeme_vectorizer
+
+    def __add_seq_end(self):
+        self.lemma_to_word_forms[SEQ_END].add(SEQ_END_WF)
+        self.lemma_case[SEQ_END] = SEQ_END_WF.case
+        self.lemma_counter[SEQ_END] = sys.maxsize
 
     def __process_line(self, line: str) -> None:
         text, lemma, pos_tag, grammemes = line.split("\t")[:4]
