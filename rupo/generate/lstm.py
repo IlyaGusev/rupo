@@ -5,9 +5,9 @@
 import numpy as np
 from typing import List, Tuple
 from itertools import islice
-from keras.models import model_from_json
-from keras.models import Model, load_model
-from keras.layers import Input, Embedding, Dense, Merge, LSTM, SpatialDropout1D, Masking, BatchNormalization, Activation
+from keras.models import model_from_json,  Model, load_model
+from keras.layers import Input, Embedding, Dense, Merge, LSTM, SpatialDropout1D, Masking, \
+    BatchNormalization, Activation, concatenate
 
 from rupo.generate.word_form import WordForm
 from rupo.generate.word_form_vocabulary import WordFormVocabulary, SEQ_END_WF
@@ -190,7 +190,7 @@ class LSTMGenerator:
         for grammeme_dense_layer_units in self.grammeme_dense_units:
             grammemes_layer = Dense(grammeme_dense_layer_units, activation='relu')(grammemes_layer)
 
-        layer = Merge(mode='concat', name='LSTM_input')([lemmas_embedding, grammemes_layer])
+        layer = concatenate([lemmas_embedding, grammemes_layer], name="LSTM_input")
         layer = LSTM(self.lstm_units, dropout=.2, recurrent_dropout=.2, return_sequences=True, name='LSTM_1')(layer)
         layer = LSTM(self.lstm_units, dropout=.2, recurrent_dropout=.2, return_sequences=False, name='LSTM_2')(layer)
 
@@ -299,7 +299,7 @@ class LSTMModelContainer(ModelContainer):
     def __init__(self, model_path=GENERATOR_LSTM_MODEL_PATH,
                  word_form_vocab_dump_path: str=GENERATOR_WORD_FORM_VOCAB_PATH,
                  gram_dump_path: str=GENERATOR_GRAM_VECTORS):
-        self.lstm = LSTMGenerator(softmax_size=50000)
+        self.lstm = LSTMGenerator()
         self.lstm.prepare(list(), word_form_vocab_dump_path, gram_dump_path)
         self.lstm.load(model_path)
 
