@@ -6,12 +6,14 @@ from contextlib import contextmanager
 from os.path import getsize, basename
 from tqdm import tqdm
 
-"""
-Открытие файла, обёрнутое в tqdm
-"""
+
 @contextmanager
 def tqdm_open(filename, encoding='utf8'):
+    """
+    Открытие файла, обёрнутое в tqdm
+    """
     total = getsize(filename)
+
     def wrapped_line_iterator(fd):
         with tqdm(total=total, unit="B", unit_scale=True, desc=basename(filename), miniters=1) as pb:
             processed_bytes = 0

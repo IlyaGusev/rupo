@@ -6,7 +6,7 @@ import numpy as np
 from typing import List, Tuple
 from itertools import islice
 from keras.models import model_from_json,  Model, load_model
-from keras.layers import Input, Embedding, Dense, Merge, LSTM, SpatialDropout1D, Masking, \
+from keras.layers import Input, Embedding, Dense, LSTM, SpatialDropout1D, Masking, \
     BatchNormalization, Activation, concatenate
 
 from rupo.generate.word_form import WordForm
@@ -117,7 +117,7 @@ class LSTMGenerator:
     def __init__(self, embedding_size: int=30000, softmax_size: int=60000, 
                  external_batch_size: int=10000, nn_batch_size: int=768, 
                  sentence_maxlen: int=10, lstm_units=368, embeddings_dimension: int=150, 
-                 grammeme_dense_units: List[int]=[35, 15], dense_units: int=256):
+                 grammeme_dense_units: Tuple[int]=(35, 15), dense_units: int=256):
         """
         :param embeddings_size: размер входного слоя (=размер словаря)
         :param softmax_size: размер выхода softmax-слоя (=размер итогового набора вероятностей)
