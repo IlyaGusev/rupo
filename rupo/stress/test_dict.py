@@ -3,7 +3,6 @@
 # Описание: Тесты для словаря ударений.
 
 import unittest
-import os
 
 from rupo.stress.dict import StressDict
 from rupo.util.preprocess import VOWELS

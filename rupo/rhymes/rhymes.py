@@ -27,8 +27,8 @@ class Rhymes(object):
         :return result: является рифмой или нет.
         """
         if word_form_vocabulary is not None:
-            lemma1 = word_form_vocabulary.get_word_forms_by_text(word1.text.lower())[0].lemma.lower()
-            lemma2 = word_form_vocabulary.get_word_forms_by_text(word2.text.lower())[0].lemma.lower()
+            lemma1 = word_form_vocabulary.get_word_form_by_text(word1.text.lower()).lemma.lower()
+            lemma2 = word_form_vocabulary.get_word_form_by_text(word2.text.lower()).lemma.lower()
             if lemma1 == lemma2:
                 return False
         features1 = Rhymes.__get_rhyme_profile(word1)

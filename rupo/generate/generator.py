@@ -14,7 +14,7 @@ from rupo.main.vocabulary import Vocabulary
 from rupo.main.markup import Markup
 from rupo.metre.metre_classifier import MetreClassifier, CompilationsSingleton
 from rupo.generate.model_container import ModelContainer
-from rupo.generate.word_form_vocabulary import WordFormVocabulary
+from rupo.generate.word_form_vocabulary import WordFormVocabulary, SEQ_END_WF, SEQ_END
 
 
 class BeamPath(object):
@@ -59,7 +59,7 @@ class BeamPath(object):
         :return: стихотворение.
         """
         words = self.get_words(vocabulary)
-        prev_end = 0
+        prev_end = 1
         lines = []
         for end in self.line_ends:
             line = " ".join(list(reversed(words[prev_end:end]))).capitalize()
@@ -67,7 +67,8 @@ class BeamPath(object):
             lines.append(line)
         return "\n".join(list(reversed(lines))) + "\n"
 
-    def get_current_model(self, model_container: ModelContainer, vocabulary: Vocabulary, use_rhyme: bool=False) -> np.array:
+    def get_current_model(self, model_container: ModelContainer,
+                          vocabulary: Vocabulary, use_rhyme: bool=False) -> np.array:
         """
         Получить фильтрованные вероятности следующего слова.
         
@@ -127,7 +128,7 @@ class Generator(object):
         rhyme_filter = RhymeFilter(rhyme_pattern, letters_to_rhymes, self.word_form_vocabulary, score_border=5)
 
         result_paths = []
-        empty_path = BeamPath([], metre_filter, rhyme_filter, 1.0, [])
+        empty_path = BeamPath([self.word_form_vocabulary.get_sequence_end_index()], metre_filter, rhyme_filter, 1.0, [])
         paths = [empty_path]
         while len(paths) != 0:
             paths = self.__top_paths(paths, beam_width)
@@ -150,17 +151,17 @@ class Generator(object):
         :return: новые пути.
         """
         path.metre_filter.reset()
-        paths = self.generate_paths(path, use_rhyme=True)
+        paths = self.generate_paths(path, beam_width, use_rhyme=True)
         result_paths = []
         while len(paths) != 0:
             paths = self.__top_paths(paths, beam_width)
             for i, path in enumerate(copy.copy(paths)):
-                new_paths = self.generate_paths(path, beam_width=beam_width, use_rhyme=False)
+                new_paths = self.generate_paths(path, beam_width, use_rhyme=False)
                 paths.pop(0)
                 paths += new_paths
             paths, to_result = self.__filter_path_by_metre(paths)
             result_paths += to_result
-        result_paths = self.__top_paths(result_paths, 10)
+        result_paths = self.__top_paths(result_paths, beam_width)
         for i in range(len(result_paths)):
             result_paths[i].put_line_end()
         return result_paths
@@ -172,16 +173,13 @@ class Generator(object):
         :param path: оригинальный путь.
         :param beam_width: колцичество новых путей.
         :param use_rhyme: использовать ли фильтр по рифме.
-        :param use_top: брать ли топ по языковой модели или делать случайный выбор.
         :return: новые пути.
         """
         model = path.get_current_model(self.model_container, self.vocabulary, use_rhyme)
         if np.sum(model) == 0.0:
             return []
-        if len(path.indices) != 0:
-            new_indices = Generator.__choose(model, beam_width)
-        else:
-            new_indices = Generator.__choose_uniform(self.vocabulary.size(), beam_width)
+        assert len(path.indices) != 0
+        new_indices = Generator.__choose(model, beam_width)
         new_paths = []
         for index in new_indices:
             word = self.vocabulary.get_word(index)
@@ -241,14 +239,14 @@ class Generator(object):
         Выбор слова из языковой модели.
 
         :param model: языковая модель.
-        :return: слово из модели.
+        :param: количество слов.
+        :return: индексы слов из модели.
         """
         norm_model = model / np.sum(model)
-        return choice(range(len(norm_model)), n, p=norm_model)
-
-    @staticmethod
-    def __choose_uniform(size: int, n: int=1):
-        return [np.random.randint(1, size) for _ in range(n)]
+        try:
+            return choice(range(len(norm_model)), n, p=norm_model, replace=False)
+        except ValueError:
+            return choice(range(len(norm_model)), n, p=norm_model, replace=True)
 
     @staticmethod
     def __top(model: np.array, n: int=1):

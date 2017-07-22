@@ -32,6 +32,7 @@ class WordFormVocabulary(object):
         self.word_form_indices = {}  # type: Dict[WordForm, int]
         # WordForm -> lemma index
         self.lemma_indices = {}  # type: Dict[WordForm, int]
+        self.text_to_word_form = None
         if os.path.exists(self.dump_filename):
             self.load()
 
@@ -97,14 +98,16 @@ class WordFormVocabulary(object):
         assert SEQ_END_WF in self.lemma_indices and self.lemma_indices[SEQ_END_WF] == 1
         return 1
 
-    def inflate_vocab(self, top_n=None) -> None:
+    def inflate_vocab(self, dump_path, top_n=None) -> None:
         """
         Получение словаря с ударениями по этому словарю.
+        
         :param top_n: сколько первых записей взять?
+        :param dump_path: путь, куда сохранить словарь.
         """
         from rupo.main.vocabulary import Vocabulary
         from rupo.stress.predictor import CombinedStressPredictor
-        vocab = Vocabulary(GENERATOR_VOCAB_PATH)
+        vocab = Vocabulary(dump_path)
         stress_predictor = CombinedStressPredictor()
         forms = self.word_forms
         if top_n is not None:
@@ -116,6 +119,16 @@ class WordFormVocabulary(object):
             word.set_stresses(stresses)
             vocab.add_word(word, index)
         vocab.save()
+
+    def inflate_text_mappings(self):
+        self.text_to_word_form = {}
+        for i, form in enumerate(self.word_forms):
+            self.text_to_word_form[form.text] = i
+
+    def get_word_form_by_text(self, text):
+        if self.text_to_word_form is None:
+            self.inflate_text_mappings()
+        return self.word_forms[self.text_to_word_form[text]]
 
     def is_empty(self) -> int:
         return len(self.word_forms) == 0

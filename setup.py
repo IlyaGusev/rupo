@@ -16,19 +16,15 @@ class PostInstallCommand(install):
 setup(
     name='rupo',
     packages=find_packages(),
-    version='0.2.3',
+    version='0.2.4',
     description='RuPo: library for russian poetry analysis and generation',
     author='Ilya Gusev',
     author_email='phoenixilya@gmail.com',
     url='https://github.com/IlyaGusev/rupo',
-    download_url='https://github.com/IlyaGusev/rupo/archive/0.2.3.tar.gz',
+    download_url='https://github.com/IlyaGusev/rupo/archive/0.2.4.tar.gz',
     keywords=['poetry', 'nlp', 'russian'],
     package_data={
-        'rupo': ['data/dict/cmu.txt', 'data/dict/zaliznyak.txt', 'data/dict/wiki_ru.txt',
-                 'data/examples/*', 'data/hyphen-tokens.txt',
-                 'data/g2p_models/g2p_ru_maxlen40_BLSTM256_BLSTM256_dropout0.2_acc992_wer140.h5',
-                 'data/g2p_models/ru_aligner.pickle',
-                 'data/stress_models/stress_ru_word30_LSTM256_dropout0.4_acc99_wer3.h5'],
+        'rupo': ['data/examples/*', 'data/hyphen-tokens.txt']
     },
     install_requires=[
         'dicttoxml>=1.7.4',
