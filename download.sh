@@ -1,4 +1,4 @@
-wget https://www.dropbox.com/s/qmq82pkkw3f153k/generator_models.zip
+wget https://www.dropbox.com/s/eefgbo53e000by5/generator_models.zip
 mkdir -p ./rupo/data/generator_models
 unzip generator_models.zip -d ./rupo/data/generator_models
 rm generator_models.zip

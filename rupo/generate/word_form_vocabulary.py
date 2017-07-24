@@ -98,6 +98,18 @@ class WordFormVocabulary(object):
         assert SEQ_END_WF in self.lemma_indices and self.lemma_indices[SEQ_END_WF] == 1
         return 1
 
+    def get_softmax_size_by_lemma_size(self, lemma_size: int):
+        assert lemma_size + 1 < len(self.lemma_indices)
+        final_lemma = SEQ_END
+        for form, index in self.lemma_indices.items():
+            if index == lemma_size + 1:
+                final_lemma = form.lemma
+                break
+        for i, form in enumerate(self.word_forms):
+            if form.lemma == final_lemma:
+                return i
+        assert False
+
     def inflate_vocab(self, dump_path, top_n=None) -> None:
         """
         Получение словаря с ударениями по этому словарю.
