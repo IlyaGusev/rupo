@@ -12,14 +12,6 @@ rupo.main.markup module
     :undoc-members:
     :show-inheritance:
 
-rupo.main.phonetics module
---------------------------
-
-.. automodule:: rupo.main.phonetics
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 rupo.main.test_markup module
 ----------------------------
 
@@ -28,10 +20,34 @@ rupo.main.test_markup module
     :undoc-members:
     :show-inheritance:
 
-rupo.main.test_phonetics module
+rupo.main.test_tokenizer module
 -------------------------------
 
-.. automodule:: rupo.main.test_phonetics
+.. automodule:: rupo.main.test_tokenizer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+rupo.main.test_vocabulary module
+--------------------------------
+
+.. automodule:: rupo.main.test_vocabulary
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+rupo.main.tokenizer module
+--------------------------
+
+.. automodule:: rupo.main.tokenizer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+rupo.main.vocabulary module
+---------------------------
+
+.. automodule:: rupo.main.vocabulary
     :members:
     :undoc-members:
     :show-inheritance:

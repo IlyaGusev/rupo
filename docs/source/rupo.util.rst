@@ -28,22 +28,6 @@ rupo.util.preprocess module
     :undoc-members:
     :show-inheritance:
 
-rupo.util.test_vocabulary module
---------------------------------
-
-.. automodule:: rupo.util.test_vocabulary
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-rupo.util.vocabulary module
----------------------------
-
-.. automodule:: rupo.util.vocabulary
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------
