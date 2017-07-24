@@ -128,7 +128,10 @@ class Generator(object):
         rhyme_filter = RhymeFilter(rhyme_pattern, letters_to_rhymes, self.word_form_vocabulary, score_border=5)
 
         result_paths = []
-        empty_path = BeamPath([self.word_form_vocabulary.get_sequence_end_index()], metre_filter, rhyme_filter, 1.0, [])
+        indices = []
+        if self.word_form_vocabulary is not None:
+            indices = [self.word_form_vocabulary.get_sequence_end_index()]
+        empty_path = BeamPath(indices, metre_filter, rhyme_filter, 1.0, [])
         paths = [empty_path]
         while len(paths) != 0:
             paths = self.__top_paths(paths, beam_width)
