@@ -54,10 +54,14 @@ class BatchGenerator:
             sentence = sentence[::-1]
             for i in range(1, len(sentence)):
                 word_form = sentence[i]
+                current_part = sentence[max(0, i-self.sentence_maxlen): i]
+                if sum([self.word_form_vocabulary.get_lemma_index(x) >= self.embedding_size
+                        for x in current_part]) != 0:
+                    continue
                 # Если следующая словооформа не из предсказываемых, пропускаем её.
                 if self.word_form_vocabulary.get_word_form_index(word_form) >= self.softmax_size:
                     continue
-                seqs.append(sentence[max(0, i-self.sentence_maxlen) : i])
+                seqs.append(current_part)
                 next_words.append(word_form)
         return seqs, next_words
 
@@ -116,7 +120,8 @@ class LSTMGenerator:
     """
     def __init__(self, embedding_size: int=30000, external_batch_size: int=10000, nn_batch_size: int=768,
                  sentence_maxlen: int=10, lstm_units=368, embeddings_dimension: int=150, 
-                 grammeme_dense_units: Tuple[int]=(35, 15), dense_units: int=256, softmax_size: int=60000):
+                 grammeme_dense_units: Tuple[int]=(35, 15), dense_units: int=256, softmax_size: int=60000,
+                 recalculate_softmax=False):
         """
         :param embeddings_size: размер входного слоя (=размер словаря)
         :param softmax_size: размер выхода softmax-слоя (=размер итогового набора вероятностей)
@@ -136,6 +141,7 @@ class LSTMGenerator:
         self.grammeme_dense_units = grammeme_dense_units  # type: List[int]
         self.dense_units = dense_units  # type: int
         self.model = None  # type: Model
+        self.recalculate_softmax = recalculate_softmax
 
     def prepare(self, filenames: List[str]=list(),
                 word_form_vocab_dump_path: str=GENERATOR_WORD_FORM_VOCAB_PATH,
@@ -154,8 +160,9 @@ class LSTMGenerator:
             self.word_form_vocabulary, self.grammeme_vectorizer = loader.parse_corpora(filenames)
             self.grammeme_vectorizer.save()
             self.word_form_vocabulary.save()
-        # self.softmax_size = self.word_form_vocabulary.get_softmax_size_by_lemma_size(self.embedding_size)
-        # print("Softmax: ", self.softmax_size)
+        if self.recalculate_softmax:
+            self.softmax_size = self.word_form_vocabulary.get_softmax_size_by_lemma_size(self.embedding_size)
+            print("Recalculated softmax: ", self.softmax_size)
 
     def load(self, model_filename: str) -> None:
         """
@@ -239,6 +246,8 @@ class LSTMGenerator:
         for big_epoch in range(0, 1000):
             print('------------Big Epoch {}------------'.format(big_epoch))
             for epoch, (lemmas, grammemes, y) in enumerate(batch_generator):
+                if epoch < 360:
+                    continue
                 if epoch < validation_size:
                     continue
                 self.model.fit([lemmas, grammemes], y, batch_size=self.nn_batch_size, epochs=1, verbose=2)
@@ -299,10 +308,11 @@ class LSTMModelContainer(ModelContainer):
     """
     def __init__(self, model_path=GENERATOR_LSTM_MODEL_PATH,
                  word_form_vocab_dump_path: str=GENERATOR_WORD_FORM_VOCAB_PATH,
-                 gram_dump_path: str=GENERATOR_GRAM_VECTORS):
-        self.lstm = LSTMGenerator()
+                 gram_dump_path: str=GENERATOR_GRAM_VECTORS, cut_context=10):
+        self.lstm = LSTMGenerator(embedding_size=5000, recalculate_softmax=True)
         self.lstm.prepare(list(), word_form_vocab_dump_path, gram_dump_path)
         self.lstm.load(model_path)
+        self.cut_context = cut_context
 
     def get_model(self, word_indices: List[int]) -> np.array:
-        return self.lstm.predict(word_indices)
+        return self.lstm.predict(word_indices[-self.cut_context:])

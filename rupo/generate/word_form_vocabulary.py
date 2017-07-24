@@ -117,18 +117,18 @@ class WordFormVocabulary(object):
         :param top_n: сколько первых записей взять?
         :param dump_path: путь, куда сохранить словарь.
         """
-        from rupo.main.vocabulary import Vocabulary
+        from rupo.main.vocabulary import StressVocabulary
+        from rupo.stress.word import StressedWord, Stress
         from rupo.stress.predictor import CombinedStressPredictor
-        vocab = Vocabulary(dump_path)
+        vocab = StressVocabulary(dump_path)
         stress_predictor = CombinedStressPredictor()
         forms = self.word_forms
         if top_n is not None:
             forms = forms[:top_n]
         for index, word_form in tqdm(enumerate(forms), desc="Accenting words"):
             text = word_form.text
-            stresses = stress_predictor.predict(text)
-            word = Word(-1, -1, text, Graphemes.get_syllables(text))
-            word.set_stresses(stresses)
+            stresses = [Stress(pos, Stress.Type.PRIMARY) for pos in stress_predictor.predict(text)]
+            word = StressedWord(text, set(stresses))
             vocab.add_word(word, index)
         vocab.save()
 

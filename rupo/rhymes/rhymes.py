@@ -3,9 +3,10 @@
 # Описание: Класс рифм.
 
 from typing import Tuple
-from rupo.main.markup import Word
+from rupo.g2p.graphemes import Graphemes
 from rupo.util.preprocess import VOWELS
 from rupo.generate.word_form_vocabulary import WordFormVocabulary
+from rupo.stress.word import StressedWord
 
 
 class Rhymes(object):
@@ -14,7 +15,7 @@ class Rhymes(object):
     """
 
     @staticmethod
-    def is_rhyme(word1: Word, word2: Word, score_border: int=4, syllable_number_border: int=4,
+    def is_rhyme(word1: StressedWord, word2: StressedWord, score_border: int=4, syllable_number_border: int=4,
                  word_form_vocabulary: WordFormVocabulary=None) -> bool:
         """
         Проверка рифмованности 2 слов.
@@ -50,7 +51,7 @@ class Rhymes(object):
                features1[0] <= syllable_number_border
 
     @staticmethod
-    def __get_rhyme_profile(word: Word) -> Tuple[int, str, str, str]:
+    def __get_rhyme_profile(word: StressedWord) -> Tuple[int, str, str, str]:
         """
         Получение профиля рифмовки (набора признаков для сопоставления).
 

@@ -5,13 +5,14 @@
 import pygtrie
 import os
 import pickle
-from enum import Enum
-from typing import List, Tuple
+from typing import List, Dict, ItemsView, Set
 
 from rupo.dict.cmu import CMUDict
 from rupo.dict.zaliznyak import ZalyzniakDict
 from rupo.settings import RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH, \
     EN_PHONEME_STRESS_PATH, EN_PHONEME_STRESS_TRIE_PATH, ZALYZNYAK_DICT, CMU_DICT
+
+from rupo.stress.word import Stress
 
 
 class StressDict:
@@ -23,16 +24,9 @@ class StressDict:
         GRAPHEMES = 0
         PHONEMES = 0
 
-    class StressType(Enum):
-        ANY = -1
-        PRIMARY = 0
-        SECONDARY = 1
-
-    StressType = StressType
-
     def __init__(self, language: str="ru", mode: Mode=Mode.GRAPHEMES, raw_dict_path=None, trie_path=None,
                  zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT) -> None:
-        self.data = pygtrie.Trie()
+        self.data = pygtrie.Trie()  # type: Dict[str, Set[Stress]]
         self.raw_dict_path = raw_dict_path
         self.trie_path = trie_path
         if language == "ru" and mode == self.Mode.GRAPHEMES:
@@ -46,7 +40,7 @@ class StressDict:
         else:
             assert False
         if not os.path.isfile(self.raw_dict_path):
-            raise FileNotFoundError("Не найден файл словаря.")
+            raise FileNotFoundError("Dictionary raw file not found.")
         if os.path.isfile(self.trie_path):
             self.load(self.trie_path)
         else:
@@ -68,9 +62,9 @@ class StressDict:
         with open(src_filename, 'r', encoding='utf-8') as f:
             for line in f:
                 word, primary, secondary = line.split("\t")
-                stresses = [(int(a), StressDict.StressType.PRIMARY) for a in primary.strip().split(",")]
+                stresses = [Stress(int(a), Stress.Type.PRIMARY) for a in primary.strip().split(",")]
                 if secondary.strip() != "":
-                    stresses += [(int(a), StressDict.StressType.SECONDARY) for a in secondary.strip().split(",")]
+                    stresses += [Stress(int(a), Stress.Type.SECONDARY) for a in secondary.strip().split(",")]
                 self.update(word, stresses)
         self.save(dst_filename)
 
@@ -83,11 +77,16 @@ class StressDict:
         with open(dst_filename, "wb") as f:
             pickle.dump(self.data, f, pickle.HIGHEST_PROTOCOL)
 
-    def load(self, dst_filename: str) -> None:
-        with open(dst_filename, "rb") as f:
+    def load(self, dump_filename: str) -> None:
+        """
+        Загрузка дампа словаря.
+        
+        :param dump_filename: откуда загружаем.
+        """
+        with open(dump_filename, "rb") as f:
             self.data = pickle.load(f)
 
-    def get_stresses(self, word: str, stress_type: StressType=StressType.ANY) -> List[int]:
+    def get_stresses(self, word: str, stress_type: Stress.Type=Stress.Type.ANY) -> List[int]:
         """
         Получение ударений нужного типа у слова.
 
@@ -96,26 +95,29 @@ class StressDict:
         :return forms: массив всех ударений.
         """
         if word in self.data:
-            if stress_type == StressDict.StressType.ANY:
-                return [i[0] for i in self.data[word]]
+            if stress_type == Stress.Type.ANY:
+                return [stress.position for stress in self.data[word]]
             else:
-                return [i[0] for i in self.data[word] if i[1] == stress_type]
+                return [stress.position for stress in self.data[word] if stress.type == stress_type]
         return []
 
-    def get_all(self) -> List[Tuple[str, List[Tuple[int, StressType]]]]:
+    def get_all(self) -> ItemsView[str, Set[Stress]]:
         """
         :return items: все ключи и ударения словаря.
         """
         return self.data.items()
 
-    def update(self, word: str, stress_pairs: List[Tuple[int, StressType]]) -> None:
+    def update(self, word: str, stresses: List[Stress]) -> None:
         """
         Обновление словаря.
 
         :param word: слово.
-        :param stress_pairs: набор ударений.
+        :param stresses: набор ударений.
         """
         if word not in self.data:
-            self.data[word] = set(stress_pairs)
+            self.data[word] = set(stresses)
         else:
-            self.data[word].update(stress_pairs)
+            self.data[word].update(stresses)
+
+    def update_primary_only(self, word: str, stresses: List[int]) -> None:
+        self.update(word, [Stress(stress, Stress.Type.PRIMARY) for stress in stresses])

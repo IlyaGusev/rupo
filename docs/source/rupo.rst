@@ -6,12 +6,15 @@ Subpackages
 
 .. toctree::
 
-    rupo.accents
+    rupo.dict
     rupo.files
+    rupo.g2p
     rupo.generate
     rupo.main
     rupo.metre
+    rupo.morph
     rupo.rhymes
+    rupo.stress
     rupo.util
 
 Submodules
@@ -37,14 +40,6 @@ rupo.test_api module
 --------------------
 
 .. automodule:: rupo.test_api
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-rupo.tests module
------------------
-
-.. automodule:: rupo.tests
     :members:
     :undoc-members:
     :show-inheritance:

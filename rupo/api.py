@@ -11,7 +11,7 @@ from rupo.generate.lstm import LSTMModelContainer
 from rupo.generate.generator import Generator
 from rupo.generate.word_form_vocabulary import WordFormVocabulary
 from rupo.main.markup import Markup
-from rupo.main.vocabulary import Vocabulary
+from rupo.main.vocabulary import StressVocabulary
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.rhymes.rhymes import Rhymes
 from rupo.stress.predictor import StressPredictor, CombinedStressPredictor
@@ -24,7 +24,7 @@ from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_
 class Engine:
     def __init__(self, language="ru"):
         self.language = language  # type: str
-        self.vocabulary = None  # type: Vocabulary
+        self.vocabulary = None  # type: StressVocabulary
         self.markov = None  # type: MarkovModelContainer
         self.markov_generator = None  # type: Generator
         self.lstm_generator = None  # type: Generator
@@ -41,21 +41,23 @@ class Engine:
                                   ru_wiki_dict, cmu_dict)
         self.get_g2p_model(self.language, g2p_model_path)
 
-    def get_vocabulary(self, dump_path: str, markup_path: str) -> Vocabulary:
+    def get_vocabulary(self, dump_path: str, markup_path: str) -> StressVocabulary:
         if self.vocabulary is None:
-            self.vocabulary = Vocabulary(dump_path, markup_path)
+            self.vocabulary = StressVocabulary(dump_path, markup_path)
         return self.vocabulary
 
     def get_markov(self, dump_path: str, vocab_dump_path: str, markup_path: str, n_grams: int=2,
                    n_poems: int=None) -> MarkovModelContainer:
         if self.markov is None:
             vocab = self.get_vocabulary(vocab_dump_path, markup_path)
+            print(vocab.size())
             self.markov = MarkovModelContainer(dump_path, vocab, markup_path, n_grams=n_grams, n_poems=n_poems)
         return self.markov
 
     def get_markov_generator(self, dump_path: str, vocab_dump_path: str, markup_path: str) -> Generator:
         if self.markov_generator is None:
-            self.markov_generator = Generator(self.get_markov(dump_path, vocab_dump_path, markup_path, n_grams=2, n_poems=4000),
+            self.markov_generator = Generator(self.get_markov(dump_path, vocab_dump_path, markup_path,
+                                                              n_grams=2, n_poems=4000),
                                               self.get_vocabulary(vocab_dump_path, markup_path))
         return self.markov_generator
 
@@ -64,7 +66,7 @@ class Engine:
         if self.lstm_generator is None:
             lstm = LSTMModelContainer(model_path, word_form_vocab_dump_path, gram_dump_path)
             word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
-            vocabulary = Vocabulary(stress_vocab_dump_path)
+            vocabulary = StressVocabulary(stress_vocab_dump_path)
             self.lstm_generator = Generator(lstm, vocabulary, word_form_vocabulary)
         return self.lstm_generator
 

@@ -263,7 +263,7 @@ class MetreClassifier(object):
             if len(word.syllables) <= 1:
                 number_in_pattern += len(word.syllables)
                 continue
-            stress_count = word.count_stress()
+            stress_count = word.count_stresses()
             for syllable in word.syllables:
                 if stress_count == 0 and pattern[number_in_pattern] == "s":
                     # Ударений нет, ставим такое, какое подходит по метру. Возможно несколько.

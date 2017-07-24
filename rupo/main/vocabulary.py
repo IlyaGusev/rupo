@@ -2,16 +2,16 @@
 # Автор: Гусев Илья
 # Описание: Индексы слов для языковой модели.
 
-from typing import Dict, List, Set
+from typing import Dict
 import pickle
 import os
-import copy
 
-from rupo.main.markup import Word, Markup
+from rupo.main.markup import Markup
 from rupo.files.reader import Reader, FileType
+from rupo.stress.word import StressedWord
 
 
-class Vocabulary(object):
+class StressVocabulary(object):
     """
     Индексированный словарь.
     """
@@ -21,9 +21,8 @@ class Vocabulary(object):
         :param markup_path: файл/папка с разметками.
         """
         self.dump_filename = dump_filename
-        self.word_to_index = {}  # type: Dict[str, int]
-        self.index_to_word = {}  # type: Dict[int, Word]
-        self.shorts_set = set()  # type: Set[str]
+        self.word_to_index = {}  # type: Dict[StressedWord, int]
+        self.index_to_word = {}  # type: Dict[int, StressedWord]
 
         if os.path.isfile(self.dump_filename):
             self.load()
@@ -31,7 +30,7 @@ class Vocabulary(object):
             if from_voc:
                 word_indexes = Reader.read_vocabulary(markup_path)
                 for word, index in word_indexes:
-                    self.add_word(word, index)
+                    self.add_word(word.to_stressed_word(), index)
             else:
                 markups = Reader.read_markups(markup_path, FileType.XML, is_processed=True)
                 for markup in markups:
@@ -61,9 +60,9 @@ class Vocabulary(object):
         """
         for line in markup.lines:
             for word in line.words:
-                self.add_word(word)
+                self.add_word(word.to_stressed_word())
 
-    def add_word(self, word: Word, index: int=-1) -> bool:
+    def add_word(self, word: StressedWord, index: int=-1) -> bool:
         """
         Добавление слова.
 
@@ -71,27 +70,24 @@ class Vocabulary(object):
         :param index: индекс, если задан заранее.
         :return: слово новое или нет.
         """
-        short = word.get_short()
-        self.word_to_index[short] = self.size() if index == -1 else index
+        if word in self.word_to_index:
+            return False
+        self.word_to_index[word] = self.size() if index == -1 else index
         self.index_to_word[self.size() if index == -1 else index] = word
-        if short not in self.shorts_set:
-            self.shorts_set.add(short)
-            return True
-        return False
+        return True
 
-    def get_word_index(self, word: Word) -> int:
+    def get_word_index(self, word: StressedWord) -> int:
         """
         Получить индекс слова.
 
         :param word: слово (Word).
         :return: индекс.
         """
-        short = word.get_short()
-        if short in self.word_to_index:
-            return self.word_to_index[short]
+        if word in self.word_to_index:
+            return self.word_to_index[word]
         raise IndexError("Can't find word: " + word.text)
 
-    def get_word(self, index: int) -> Word:
+    def get_word(self, index: int) -> StressedWord:
         """
         Получить слово по индексу.
 
@@ -105,15 +101,3 @@ class Vocabulary(object):
         :return: получить размер словаря.
         """
         return len(self.index_to_word)
-
-    def shrink(self, short_words: List[str]) -> None:
-        """
-        Обрезать словарь по заданным коротким формам слов.
-
-        :param short_words: короткие формы слов.
-        """
-        old_words = copy.deepcopy(self.index_to_word)
-        short_words = set(short_words)
-        for word in old_words.values():
-            if word.get_short() in short_words:
-                self.add_word(word)

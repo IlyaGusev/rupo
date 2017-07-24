@@ -10,7 +10,7 @@ from typing import List, Dict, Tuple
 
 from rupo.files.reader import Reader, FileType
 from rupo.main.markup import Markup
-from rupo.main.vocabulary import Vocabulary
+from rupo.main.vocabulary import StressVocabulary
 from rupo.generate.model_container import ModelContainer
 
 
@@ -18,7 +18,7 @@ class MarkovModelContainer(ModelContainer):
     """
     Марковские цепи.
     """
-    def __init__(self, dump_filename: str, vocabulary: Vocabulary, markup_dump_path: str=None,
+    def __init__(self, dump_filename: str, vocabulary: StressVocabulary, markup_dump_path: str=None,
                  n_poems: int=None, n_grams: int=2):
         self.n_grams = n_grams
         self.transitions = defaultdict(Counter)  # type: Dict[Tuple, Counter]
@@ -73,10 +73,9 @@ class MarkovModelContainer(ModelContainer):
         for line in markup.lines:
             for word in line.words:
                 try:
-                    self.vocabulary.get_word_index(word)
-                    words.append(self.vocabulary.get_word_index(word))
+                    words.append(self.vocabulary.get_word_index(word.to_stressed_word()))
                 except IndexError:
-                    print("Слово не из словаря.")
+                    print("Can't find word in vocabulary.")
                     pass
 
         # Генерируем переходы.

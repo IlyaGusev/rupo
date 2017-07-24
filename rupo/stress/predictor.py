@@ -51,6 +51,8 @@ class RNNStressPredictor(StressPredictor):
 
     def predict(self, word: str) -> List[int]:
         word = word.lower()
+        if sum([int(ch not in self.aligner.grapheme_set) for ch in word]) != 0:
+            return []
         phonemes = self.g2p_model.predict([word])[0].replace(" ", "")
         stresses = self.stress_model.predict([phonemes])[0]
         stresses = [i for i, stress in enumerate(stresses) if stress == 1 or stress == 2]

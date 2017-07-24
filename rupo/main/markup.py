@@ -3,7 +3,7 @@
 # Описание: Модуль для описания разметки по ударениям и слогам.
 
 import json
-from typing import List
+from typing import List, Set
 import xml.etree.ElementTree as etree
 
 from dicttoxml import dicttoxml
@@ -53,7 +53,7 @@ class Word(Annotation):
         super(Word, self).__init__(begin, end, text)
         self.syllables = syllables
 
-    def count_stress(self) -> int:
+    def count_stresses(self) -> int:
         """
         :return: количество ударений в слове.
         """
@@ -74,6 +74,16 @@ class Word(Annotation):
         :return: номера слогов, на которые падают ударения.
         """
         return [syllable.number for syllable in self.syllables if syllable.accent != -1]
+
+    def get_stresses(self) -> Set[int]:
+        """
+        :return: все ударения.
+        """
+        stresses = set()
+        for syllable in self.syllables:
+            if syllable.accent != -1:
+                stresses.add(syllable.accent)
+        return stresses
 
     def set_stresses(self, stresses: List[int]) -> None:
         """
@@ -98,6 +108,10 @@ class Word(Annotation):
         syllables = d["syllables"]  # type: List[dict]
         self.syllables = [Syllable(0, 0, 0, "").from_dict(syllable) for syllable in syllables]
         return self
+
+    def to_stressed_word(self):
+        from rupo.stress.word import StressedWord, Stress
+        return StressedWord(self.text, set([Stress(pos, Stress.Type.PRIMARY) for pos in self.get_stresses()]))
 
     def __hash__(self) -> int:
         """
