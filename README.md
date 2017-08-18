@@ -36,7 +36,7 @@ iambos
 ```
 >>> from rupo.api import Engine
 >>> engine = Engine(language="ru")
->>> engine.generate_poem(<LSTM model path>, <word form vocabulary path>, <gram_vectors_path>, <stress vocabulary path>, <width of beam search>, <number of syllables in each line>)
+>>> engine.generate_poem(<LSTM model path>, <word form vocabulary path>, <gram_vectors_path>, <stress vocabulary path>, beam_width=<width of beam search>, n_syllables=<number of syllables in each line>)
 <poem> or None if could't generate
 ```
 
