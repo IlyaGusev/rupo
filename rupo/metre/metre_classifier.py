@@ -8,7 +8,7 @@ import jsonpickle
 
 from rupo.main.markup import Line, Markup
 from rupo.util.mixins import CommonMixin
-from rupo.metre.patterns import CompiledPatterns
+from rupo.metre.pattern_analyzer import PatternAnalyzer
 from rupo.util.preprocess import get_first_vowel_position
 
 
@@ -32,46 +32,6 @@ class StressCorrection(CommonMixin):
         self.accent = stress
 
 
-class LineClassificationResult(CommonMixin):
-    """
-    Результат классификации строки.
-    """
-    def __init__(self) -> None:
-        self.error_count = {metre_name: 100 for metre_name in MetreClassifier.metres.keys()}
-        self.best_patterns = {metre_name: "" for metre_name in MetreClassifier.metres.keys()}
-
-    def store_best_result(self, metre_name: str, pattern: str, error_count: int) -> None:
-        """
-        Сохранить результат сравнения строки с шаблоном метра.
-
-        :param metre_name: имя метра.
-        :param pattern: шаблон метра.
-        :param error_count: количество ошибок.
-        """
-        if error_count < self.error_count[metre_name]:
-            self.error_count[metre_name] = error_count
-            self.best_patterns[metre_name] = pattern
-
-    def get_best_pattern(self, metre_name: str) -> str:
-        """
-        :return: лучший шаблон метра.
-        """
-        return self.best_patterns[metre_name]
-
-    def get_best_metres(self) -> List[str]:
-        """
-        :return: метры с наименьшим количеством ошибок.
-        """
-        line_metres = []
-        for key in self.error_count:
-            self.error_count[key] *= MetreClassifier.line_inner_coef[key]
-        min_errors = self.error_count[min(self.error_count, key=self.error_count.get)]
-        for metre_name, error_count in self.error_count.items():
-            if error_count == min_errors:
-                line_metres.append(metre_name)
-        return line_metres
-
-
 class ClassificationResult(CommonMixin):
     """
     Результат классификации стихотворения по метру.
@@ -82,7 +42,6 @@ class ClassificationResult(CommonMixin):
         """
         self.metre = None
         self.count_lines = count_lines
-        self.lines_result = [LineClassificationResult() for i in range(count_lines)]
         self.errors_count = {k: 0 for k in MetreClassifier.metres.keys()}  # type: Dict[str, int]
         self.corrections = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[StressCorrection]]
         self.resolutions = {k: [] for k in MetreClassifier.metres.keys()}  # type: Dict[str, List[StressCorrection]]
@@ -116,14 +75,65 @@ class ClassificationResult(CommonMixin):
         return st
 
 
-class CompilationsSingleton:
-    compilations = None
+class ErrorsTableRecord:
+    def __init__(self, strong_errors, weak_errors, pattern):
+        self.strong_errors = strong_errors
+        self.weak_errors = weak_errors
+        self.pattern = pattern
 
-    @classmethod
-    def get(cls):
-        if cls.compilations is None:
-            cls.compilations = CompiledPatterns(MetreClassifier.metres, MetreClassifier.border_syllables_count)
-        return cls.compilations
+    def __str__(self):
+        return self.pattern + " " + str(self.strong_errors) + " " + str(self.weak_errors)
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class ErrorsTable:
+    def __init__(self, num_lines):
+        self.data = {}
+        self.num_lines = num_lines
+        self.coef = OrderedDict(
+            [("iambos", 0.3),
+             ("choreios", 0.3),
+             ("daktylos", 0.6),
+             ("amphibrachys", 0.6),
+             ("anapaistos", 0.6),
+             ("dolnik3", 0.8),
+             ("dolnik2", 0.8),
+             ("taktovik3", 2.0),
+             ("taktovik2", 2.0)
+             ])
+        for metre_name in MetreClassifier.metres.keys():
+            self.data[metre_name] = [(0, 0) for _ in range(num_lines)]
+
+    def add_record(self, metre_name, line_num, strong_errors, weak_errors, pattern):
+        self.data[metre_name][line_num] = ErrorsTableRecord(strong_errors, weak_errors, pattern)
+
+    def get_best_metre(self):
+        for l in range(self.num_lines):
+            strong_sum = 0
+            weak_sum = 0
+            for metre_name in self.data.keys():
+                strong_sum += self.data[metre_name][l].strong_errors
+                weak_sum += self.data[metre_name][l].weak_errors
+            for metre_name, column in self.data.items():
+                if strong_sum != 0:
+                    column[l].strong_errors = column[l].strong_errors / float(strong_sum)
+                if weak_sum != 0:
+                    column[l].weak_errors = column[l].weak_errors / float(weak_sum)
+        sums = dict()
+        for metre_name in self.data.keys():
+            sums[metre_name] = (0, 0)
+        for metre_name, column in self.data.items():
+            strong_sum = 0
+            weak_sum = 0
+            for l in range(self.num_lines):
+                strong_sum += column[l].strong_errors
+                weak_sum += column[l].weak_errors
+            sums[metre_name] = (strong_sum, weak_sum)
+        for metre_name, pair in sums.items():
+            sums[metre_name] = (pair[0] + pair[1] / 1.5) * self.coef[metre_name]
+        return min(sums, key=sums.get)
 
 
 class MetreClassifier(object):
@@ -131,39 +141,15 @@ class MetreClassifier(object):
     Классификатор, считает отклонения от стандартных шаблонов ритма(метров).
     """
     metres = OrderedDict(
-        [("iambos", '(us)*(us)(u)?(u)?'),
-         ("choreios", '(su)*(s)(u)?(u)?'),
-         ("daktylos", '(suu)*(s)(u)?(u)?'),
-         ("amphibrachys", '(usu)*(us)(u)?(u)?'),
-         ("anapaistos",  '(uus)*(uus)(u)?(u)?'),
-         ("dolnik3", '(u)?(u)?((su)(u)?)*(s)(u)?(u)?'),
-         ("dolnik2", '(u)?(u)?((s)(u)?)*(s)(u)?(u)?'),
-         ("taktovik3", '(u)?(u)?((su)(u)?(u)?)*(s)(u)?(u)?'),
-         ("taktovik2", '(u)?(u)?((s)(u)?(u)?)*(s)(u)?(u)?')
-         ])
-
-    line_inner_coef = OrderedDict(
-        [("iambos", 1.0),
-         ("choreios", 1.0),
-         ("daktylos", 1.0),
-         ("amphibrachys", 1.0),
-         ("anapaistos",  1.0),
-         ("dolnik3", 2.0),
-         ("dolnik2", 2.0),
-         ("taktovik3", 3.0),
-         ("taktovik2", 3.0)
-         ])
-
-    line_outer_coef = OrderedDict(
-        [("iambos", 1.5),
-         ("choreios", 1.5),
-         ("daktylos", 1.5),
-         ("amphibrachys", 1.25),
-         ("anapaistos",  1.25),
-         ("dolnik3", 1.0),
-         ("dolnik2", 1.0),
-         ("taktovik3", 0.75),
-         ("taktovik2", 0.75)
+        [("iambos", '(us)*(uS)(U)?(U)?'),
+         ("choreios", '(su)*(S)(U)?(U)?'),
+         ("daktylos", '(suu)*(S)(U)?(U)?'),
+         ("amphibrachys", '(usu)*(uS)(U)?(U)?'),
+         ("anapaistos",  '(uus)*(uuS)(U)?(U)?'),
+         ("dolnik3", '(u)?(u)?((su)(u)?)*(S)(U)?(U)?'),
+         ("dolnik2", '(u)?(u)?((s)(u)?)*(S)(U)?(U)?'),
+         ("taktovik3", '(u)?(u)?((su)(u)?(u)?)*(S)(U)?(U)?'),
+         ("taktovik2", '(u)?(u)?((s)(u)?(u)?)*(S)(U)?(U)?')
          ])
 
     border_syllables_count = 18
@@ -177,7 +163,8 @@ class MetreClassifier(object):
         :return: результат классификации.
         """
         result = ClassificationResult(len(markup.lines))
-        line_clf_results = [LineClassificationResult() for i in range(len(markup.lines))]
+        num_lines = len(markup.lines)
+        errors_table = ErrorsTable(num_lines)
         for l, line in enumerate(markup.lines):
             for metre_name, metre_pattern in MetreClassifier.metres.items():
                 line_syllables_count = sum([len(word.syllables) for word in line.words])
@@ -185,32 +172,16 @@ class MetreClassifier(object):
                 # Строчки длиной больше border_syllables_count слогов не обрабатываем.
                 if line_syllables_count > MetreClassifier.border_syllables_count or line_syllables_count == 0:
                     continue
-                # Используем запомненные шаблоны.
-                patterns = CompilationsSingleton.get().get_patterns(metre_name, line_syllables_count)
-
-                # Сохраняем результаты по всем шаблонам.
-                if len(patterns) == 0:
-                    continue
-                for pattern in patterns:
-                    if pattern == "":
-                        continue
-                    error_count = MetreClassifier.__line_pattern_matching(line, pattern)
-                    line_clf_results[l].store_best_result(metre_name, pattern, error_count)
-
-        lines_metres = [line_clf_results[l].get_best_metres() for l in range(len(markup.lines))]
-
-        # Выбираем общий метр по метрам строк с учётом коэффициентов.
-        counter = {k: 0 for k in MetreClassifier.metres.keys()}
-        for l in range(len(markup.lines)):
-            for metre in lines_metres[l]:
-                counter[metre] += 1
-        for key in counter.keys():
-            counter[key] *= MetreClassifier.line_outer_coef[key]
-        result.metre = max(counter, key=counter.get)
+                pattern, strong_errors, weak_errors = \
+                    PatternAnalyzer.count_errors(MetreClassifier.metres[metre_name],
+                                                 MetreClassifier.__get_line_pattern(line))
+                # print(metre_name, pattern, error_count + weak_error_count//2)
+                errors_table.add_record(metre_name, l, strong_errors, weak_errors, pattern)
+        result.metre = errors_table.get_best_metre()
 
         # Запомним все исправления.
         for l, line in enumerate(markup.lines):
-            pattern = line_clf_results[l].get_best_pattern(result.metre)
+            pattern = errors_table.data[result.metre][l].pattern
             if pattern == "":
                 continue
             corrections, resolutions, additions =\
@@ -222,25 +193,24 @@ class MetreClassifier(object):
         return result
 
     @staticmethod
-    def __line_pattern_matching(line: Line, pattern: str) -> int:
+    def __get_line_pattern(line: Line) -> int:
         """
         Сопоставляем строку шаблону, считаем ошибки.
 
         :param line: строка.
-        :param pattern: шаблон.
         :return: количество ошибок
         """
-        error_count = 0
-        number_in_pattern = 0
+        pattern = ""
         for w, word in enumerate(line.words):
-            # Игнорируем слова длиной меньше 2 слогов.
-            if len(word.syllables) > 1:
-                numbers = word.get_stressed_syllables_numbers()
-                is_error = sum(1 for number in numbers if pattern[number_in_pattern+number] == "s") == 0
-                if is_error:
-                    error_count += 1
-            number_in_pattern += len(word.syllables)
-        return error_count
+            if len(word.syllables) == 0:
+                pattern += "U"
+            else:
+                for syllable in word.syllables:
+                    if syllable.accent != -1:
+                        pattern += "S"
+                    else:
+                        pattern += "U"
+        return pattern
 
     @staticmethod
     def __get_line_pattern_matching_corrections(line: Line, line_number: int, pattern: str) \
@@ -265,7 +235,7 @@ class MetreClassifier(object):
                 continue
             stress_count = word.count_stresses()
             for syllable in word.syllables:
-                if stress_count == 0 and pattern[number_in_pattern] == "s":
+                if stress_count == 0 and pattern[number_in_pattern].lower() == "s":
                     # Ударений нет, ставим такое, какое подходит по метру. Возможно несколько.
                     additions.append(StressCorrection(line_number, w, syllable.number, word.text, syllable.vowel()))
                 elif pattern[number_in_pattern] == "u" and syllable.accent != -1:
@@ -273,7 +243,7 @@ class MetreClassifier(object):
                     # Найдём такой слог, у которого в шаблоне ударная позиция. Это и есть наше исправление.
                     for other_syllable in word.syllables:
                         other_number_in_pattern = other_syllable.number - syllable.number + number_in_pattern
-                        if syllable.number == other_syllable.number or pattern[other_number_in_pattern] != "s":
+                        if syllable.number == other_syllable.number or pattern[other_number_in_pattern].lower() != "s":
                             continue
                         ac = StressCorrection(line_number, w, other_syllable.number, word.text, other_syllable.vowel())
                         if stress_count == 1 and other_syllable.accent == -1:
