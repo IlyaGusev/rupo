@@ -19,7 +19,16 @@ class TestPatternAnalyzer(unittest.TestCase):
         self.assertEqual(PatternAnalyzer.count_errors("(s)*", "sss"), ('sss', 0, 0))
 
         self.assertEqual(PatternAnalyzer.count_errors("(sus)*(u)?", 'suu'), ('sus', 0, 1))
+
         self.assertEqual(PatternAnalyzer.count_errors("((sus)*u)*s", 'susss'), ('susus', 0, 1))
+
+        self.assertEqual(PatternAnalyzer.count_errors("(s((s)*u)*)*", 'susss'), ('susss', 0, 0))
+        self.assertEqual(PatternAnalyzer.count_errors("(s((s)*u)*)*", 'usss'), ('ssss', 0, 1))
+        self.assertEqual(PatternAnalyzer.count_errors("(s((s)*u)*)*", 'suuu'), ('suuu', 0, 0))
+        self.assertEqual(PatternAnalyzer.count_errors("(s((s)*u)*)*", 'suuusuuus'), ('suuusuuus', 0, 0))
+
+        self.assertEqual(PatternAnalyzer.count_errors("(sss((sus)*uss)*)*", 'ssssussususs'), ('ssssussususs', 0, 0))
+        self.assertEqual(PatternAnalyzer.count_errors("(sss((sus)*uss)*)*", 'ssssuuuss'), ('ssssususs', 0, 1))
 
         self.assertEqual(PatternAnalyzer.count_errors("((s)(u)?)*", "uuuu"), ('susu', 0, 2))
         self.assertEqual(PatternAnalyzer.count_errors("((s)(u)?)*", "uuus"), ('ssus', 0, 2))
@@ -57,3 +66,8 @@ class TestPatternAnalyzer(unittest.TestCase):
         self.assertEqual(PatternAnalyzer.count_errors("(su(u)?)*", "susu"), ('susu', 0, 0))
         self.assertEqual(PatternAnalyzer.count_errors("(su(u)?)*", "suusuu"), ('suusuu', 0, 0))
         self.assertEqual(PatternAnalyzer.count_errors("(su(u)?)*", "ssussu"), ('suusuu', 0, 2))
+
+        self.assertEqual(PatternAnalyzer.count_errors("(u)?(u)?((s)(u)?(u)?)*(S)(U)?(U)?", "sssuSU"), ('sssuSU', 0, 0))
+        self.assertEqual(PatternAnalyzer.count_errors("(u)?(u)?((s)(u)?(u)?)*(S)(U)?(U)?", "ussuSU"), ('ussuSU', 0, 0))
+        self.assertEqual(PatternAnalyzer.count_errors("(u)?(u)?((s)(u)?(u)?)*(S)(U)?(U)?", "susuuSU"), ('susuuSU', 0, 0))
+        self.assertEqual(PatternAnalyzer.count_errors("(u)?(u)?((s)(u)?(u)?)*(S)(U)?(U)?", "uusuuSU"), ('uusuuSU', 0, 0))

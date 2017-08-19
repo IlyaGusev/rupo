@@ -8,13 +8,10 @@ import copy
 import numpy as np
 from numpy.random import choice
 
-from rupo.stress.predictor import StressPredictor
 from rupo.generate.filters import MetreFilter, RhymeFilter
 from rupo.main.vocabulary import StressVocabulary
-from rupo.main.markup import Markup
-from rupo.metre.metre_classifier import MetreClassifier, CompilationsSingleton
 from rupo.generate.model_container import ModelContainer
-from rupo.generate.word_form_vocabulary import WordFormVocabulary, SEQ_END_WF, SEQ_END
+from rupo.generate.word_form_vocabulary import WordFormVocabulary
 
 
 class BeamPath(object):
@@ -198,25 +195,6 @@ class Generator(object):
             new_paths.append(BeamPath(path.indices+[index], metre_filter, rhyme_filter,
                                       path.probability * word_probability, copy.copy(path.line_ends)))
         return new_paths
-
-    def generate_poem_by_line(self, line: str, rhyme_pattern: str, stress_predictor: StressPredictor) -> str:
-        """
-        Генерация стихотвторения по одной строчке.
-
-        :param stress_predictor: классификатор.
-        :param line: строчка.
-        :param rhyme_pattern: шаблон рифмы.
-        :return: стихотворение
-        """
-        markup, result = MetreClassifier.improve_markup(Markup.process_text(line, stress_predictor))
-        rhyme_word = markup.lines[0].words[-1]
-        count_syllables = sum([len(word.syllables) for word in markup.lines[0].words])
-        metre_pattern = CompilationsSingleton.get().get_patterns(result.metre, count_syllables)[0]
-        metre_pattern = metre_pattern.lower().replace("s", "+").replace("u", "-")
-        letters_to_rhymes = {rhyme_pattern[0]: {rhyme_word}}
-        generated = self.generate_poem(metre_pattern, rhyme_pattern, len(metre_pattern), letters_to_rhymes)
-        poem = line + "\n" + "\n".join(generated.split("\n")[1:])
-        return poem
 
     @staticmethod
     def __top_paths(paths, n):

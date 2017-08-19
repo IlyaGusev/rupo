@@ -118,4 +118,4 @@ class TestMetreClassifier(unittest.TestCase):
                "Кроме\n" \
                "Золота-серебра."
         markup, result = MetreClassifier.improve_markup(Markup.process_text(text, self.stress_predictor))
-        self.assertTrue(result.metre == "dolnik3" or result.metre == "dolnik2")
+        self.assertTrue(result.metre == "dolnik3" or result.metre == "dolnik2" or result.metre == "iambos")

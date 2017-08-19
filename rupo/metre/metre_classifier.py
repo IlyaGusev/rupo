@@ -98,10 +98,21 @@ class ErrorsTable:
              ("daktylos", 0.6),
              ("amphibrachys", 0.6),
              ("anapaistos", 0.6),
-             ("dolnik3", 0.8),
-             ("dolnik2", 0.8),
-             ("taktovik3", 2.0),
-             ("taktovik2", 2.0)
+             ("dolnik3", 2.4),
+             ("dolnik2", 2.4),
+             ("taktovik3", 5.0),
+             ("taktovik2", 5.0)
+             ])
+        self.sum_coef = OrderedDict(
+            [("iambos", 0.0),
+             ("choreios", 0.0),
+             ("daktylos", 0.0),
+             ("amphibrachys", 0.0),
+             ("anapaistos", 0.0),
+             ("dolnik3", 0.02),
+             ("dolnik2", 0.02),
+             ("taktovik3", 0.1),
+             ("taktovik2", 0.1)
              ])
         for metre_name in MetreClassifier.metres.keys():
             self.data[metre_name] = [(0, 0) for _ in range(num_lines)]
@@ -132,7 +143,8 @@ class ErrorsTable:
                 weak_sum += column[l].weak_errors
             sums[metre_name] = (strong_sum, weak_sum)
         for metre_name, pair in sums.items():
-            sums[metre_name] = (pair[0] + pair[1] / 1.5) * self.coef[metre_name]
+            sums[metre_name] = self.sum_coef[metre_name] + (pair[0] + pair[1] / 2.0) * self.coef[metre_name] / self.num_lines
+        print(sums)
         return min(sums, key=sums.get)
 
 
@@ -175,14 +187,19 @@ class MetreClassifier(object):
                 pattern, strong_errors, weak_errors = \
                     PatternAnalyzer.count_errors(MetreClassifier.metres[metre_name],
                                                  MetreClassifier.__get_line_pattern(line))
-                # print(metre_name, pattern, error_count + weak_error_count//2)
+                if len(pattern) == 0:
+                    errors_table.add_record(metre_name, l, strong_errors, weak_errors, pattern)
+                    continue
+                corrections = MetreClassifier.__get_line_pattern_matching_corrections(line, l, pattern)[0]
+                accentuation_errors = len(corrections)
+                strong_errors += accentuation_errors
                 errors_table.add_record(metre_name, l, strong_errors, weak_errors, pattern)
         result.metre = errors_table.get_best_metre()
 
         # Запомним все исправления.
         for l, line in enumerate(markup.lines):
             pattern = errors_table.data[result.metre][l].pattern
-            if pattern == "":
+            if len(pattern) == 0:
                 continue
             corrections, resolutions, additions =\
                 MetreClassifier.__get_line_pattern_matching_corrections(line, l, pattern)
@@ -193,7 +210,7 @@ class MetreClassifier(object):
         return result
 
     @staticmethod
-    def __get_line_pattern(line: Line) -> int:
+    def __get_line_pattern(line: Line) -> str:
         """
         Сопоставляем строку шаблону, считаем ошибки.
 
