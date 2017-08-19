@@ -104,8 +104,12 @@ class BatchGenerator:
                         sentences[-1].append(SEQ_END_WF)
                         sentences.append([])
                     else:
-                        word, lemma, pos, tags = line.split('\t')[:4]
+                        try:
+                            word, lemma, pos, tags = line.split('\t')[:4]
+                        except ValueError:
+                            pass
                         word, lemma = word.lower(), lemma.lower() + '_' + pos
+                        tags = "|".join(sorted(tags.split("|")))
                         gram_vector_index = self.grammeme_vectorizer.name_to_index[pos+"#"+tags]
                         sentences[-1].append(WordForm(lemma, gram_vector_index, word))
                     if len(sentences) >= self.batch_size:
@@ -246,8 +250,6 @@ class LSTMGenerator:
         for big_epoch in range(0, 1000):
             print('------------Big Epoch {}------------'.format(big_epoch))
             for epoch, (lemmas, grammemes, y) in enumerate(batch_generator):
-                if epoch < 360:
-                    continue
                 if epoch < validation_size:
                     continue
                 self.model.fit([lemmas, grammemes], y, batch_size=self.nn_batch_size, epochs=1, verbose=2)

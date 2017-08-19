@@ -40,8 +40,6 @@ class Filter(object):
         for i in range(len(model)):
             if not self.filter_word(vocabulary.get_word(i)):
                 model[i] = 0.0
-        # if np.sum(model) != 0:
-        #     model /= np.sum(model)
         return model
 
     def filter_words(self, words: List[StressedWord]) -> List[StressedWord]:

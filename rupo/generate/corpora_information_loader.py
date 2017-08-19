@@ -48,12 +48,15 @@ class CorporaInformationLoader(object):
         self.lemma_counter[SEQ_END] = sys.maxsize
 
     def __process_line(self, line: str) -> None:
-        text, lemma, pos_tag, grammemes = line.split("\t")[:4]
-        lemma = lemma.lower() + '_' + pos_tag
-        gram_vector_index = self.grammeme_vectorizer.add_grammemes(pos_tag, grammemes)
-        self.lemma_to_word_forms[lemma].add(WordForm(lemma, gram_vector_index, text.lower()))
-        self.lemma_counter[lemma] += 1
-        self.__update_lemma_case(lemma, text)
+        try:
+            text, lemma, pos_tag, grammemes = line.strip().split("\t")[:4]
+            lemma = lemma.lower() + '_' + pos_tag
+            gram_vector_index = self.grammeme_vectorizer.add_grammemes(pos_tag, grammemes)
+            self.lemma_to_word_forms[lemma].add(WordForm(lemma, gram_vector_index, text.lower()))
+            self.lemma_counter[lemma] += 1
+            self.__update_lemma_case(lemma, text)
+        except ValueError:
+            pass
 
     def __update_lemma_case(self, lemma: str, text: str) -> None:
         if lemma not in self.lemma_case:
