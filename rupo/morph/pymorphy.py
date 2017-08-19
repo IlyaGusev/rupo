@@ -3,7 +3,7 @@ from russian_tagsets import converters
 from rupo.main.tokenizer import Tokenizer, Token
 
 
-class RussianMorphology:
+class PyMoprhyRussianMorphology:
     @staticmethod
     def pymorphy_process(input_filename, output_filename):
         """

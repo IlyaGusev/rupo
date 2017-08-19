@@ -1,4 +1,4 @@
-забывши	забыть	VERB	Aspect=Perf|Tense=Past|VerbForm=Conv|Voice=Act
+забывши	забыть	VERB	Aspect=Perf|Tense=Past|VerbForm=Trans
 волнения	волнение	NOUN	Animacy=Inan|Case=Gen|Gender=Neut|Number=Sing
 жизни	жизнь	NOUN	Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
 мятежной	мятежный	ADJ	Case=Gen|Gender=Fem|Number=Sing
