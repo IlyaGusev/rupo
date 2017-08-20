@@ -262,7 +262,8 @@ class Markup(CommonMixin):
                 # Проставляем ударения.
                 stresses = stress_predictor.predict(token.text)
                 # Сопоставляем ударения слогам.
-                word.set_stresses(stresses)
+                if len(word.syllables) > 1:
+                    word.set_stresses(stresses)
                 words.append(word)
             end_line = begin_line + len(text_line)
             lines.append(Line(begin_line, end_line, text_line, words))

@@ -98,8 +98,8 @@ class ErrorsTable:
              ("daktylos", 0.6),
              ("amphibrachys", 0.6),
              ("anapaistos", 0.6),
-             ("dolnik3", 2.4),
-             ("dolnik2", 2.4),
+             ("dolnik3", 1.5),
+             ("dolnik2", 1.5),
              ("taktovik3", 5.0),
              ("taktovik2", 5.0)
              ])
@@ -144,7 +144,6 @@ class ErrorsTable:
             sums[metre_name] = (strong_sum, weak_sum)
         for metre_name, pair in sums.items():
             sums[metre_name] = self.sum_coef[metre_name] + (pair[0] + pair[1] / 2.0) * self.coef[metre_name] / self.num_lines
-        print(sums)
         return min(sums, key=sums.get)
 
 
