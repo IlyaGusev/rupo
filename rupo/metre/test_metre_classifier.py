@@ -5,6 +5,8 @@
 import unittest
 import jsonpickle
 import copy
+import logging
+import sys
 
 from rupo.main.markup import Markup
 from rupo.stress.predictor import CombinedStressPredictor
@@ -27,6 +29,7 @@ class TestMetreClassifier(unittest.TestCase):
             aligner_dump_path=RU_ALIGNER_DEFAULT_PATH,
             g2p_dict_path=RU_G2P_DICT_PATH
         )
+        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
     @classmethod
     def tearDownClass(cls):

@@ -5,6 +5,7 @@
 from collections import OrderedDict
 from typing import List, Dict, Tuple
 import jsonpickle
+import logging
 
 from rupo.main.markup import Line, Markup
 from rupo.util.mixins import CommonMixin
@@ -99,8 +100,8 @@ class ErrorsTable:
              ("daktylos", 0.4),
              ("amphibrachys", 0.4),
              ("anapaistos", 0.4),
-             ("dolnik3", 0.6),
-             ("dolnik2", 0.6),
+             ("dolnik3", 0.5),
+             ("dolnik2", 0.5),
              ("taktovik3", 6.0),
              ("taktovik2", 6.0)
              ])
@@ -110,8 +111,8 @@ class ErrorsTable:
              ("daktylos", 0.0),
              ("amphibrachys", 0.0),
              ("anapaistos", 0.0),
-             ("dolnik3", 0.05),
-             ("dolnik2", 0.05),
+             ("dolnik3", 0.035),
+             ("dolnik2", 0.035),
              ("taktovik3", 0.10),
              ("taktovik2", 0.10)
              ])
@@ -145,7 +146,7 @@ class ErrorsTable:
             sums[metre_name] = (strong_sum, weak_sum)
         for metre_name, pair in sums.items():
             sums[metre_name] = self.sum_coef[metre_name] + (pair[0] + pair[1] / 2.0) * self.coef[metre_name] / self.num_lines
-        print(sums)
+        logging.debug(sums)
         return min(sums, key=sums.get)
 
 
@@ -188,7 +189,7 @@ class MetreClassifier(object):
                 pattern, strong_errors, weak_errors, analysis_errored = \
                     PatternAnalyzer.count_errors(MetreClassifier.metres[metre_name],
                                                  MetreClassifier.__get_line_pattern(line))
-                if analysis_errored:
+                if analysis_errored or len(pattern) == 0:
                     errors_table.add_record(metre_name, l, strong_errors, weak_errors, pattern, True)
                     continue
                 corrections = MetreClassifier.__get_line_pattern_matching_corrections(line, l, pattern)[0]
@@ -258,7 +259,8 @@ class MetreClassifier(object):
                 continue
             stress_count = word.count_stresses()
             for syllable in word.syllables:
-                print(number_in_pattern, pattern, line)
+                if number_in_pattern >= len(pattern):
+                    print(number_in_pattern, pattern, line)
                 if stress_count == 0 and pattern[number_in_pattern].lower() == "s":
                     # Ударений нет, ставим такое, какое подходит по метру. Возможно несколько.
                     additions.append(StressCorrection(line_number, w, syllable.number, word.text, syllable.vowel()))
