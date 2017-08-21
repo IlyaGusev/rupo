@@ -62,9 +62,9 @@ class StressedWord:
     def __accent_syllables(self):
         for syllable in self.syllables:
             if Stress(syllable.vowel()) in self.stresses:
-                syllable.accent = syllable.vowel()
+                syllable.stress = syllable.vowel()
             else:
-                syllable.accent = -1
+                syllable.stress = -1
 
     def __str__(self):
         return self.text + "\t" + ",".join([str(i) for i in self.get_primary_stresses()])+ \

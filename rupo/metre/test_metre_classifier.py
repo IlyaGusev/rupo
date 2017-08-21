@@ -4,6 +4,7 @@
 
 import unittest
 import jsonpickle
+import copy
 
 from rupo.main.markup import Markup
 from rupo.stress.predictor import CombinedStressPredictor
@@ -118,4 +119,27 @@ class TestMetreClassifier(unittest.TestCase):
                "Кроме\n" \
                "Золота-серебра."
         markup, result = MetreClassifier.improve_markup(Markup.process_text(text, self.stress_predictor))
-        self.assertTrue(result.metre == "dolnik3" or result.metre == "dolnik2" or result.metre == "iambos")
+        self.assertTrue(result.metre == "dolnik3" or result.metre == "dolnik2")
+
+    def test_metre_classifier6(self):
+        text = "Лючинь печальная читала вечером ручьисто-вкрадчиво,\n" \
+               "Так чутко чувствуя журчащий вычурно чужой ей плач,\n" \
+               "И, в человечестве чтя нечто вечное, чем чушь Бокаччио,\n" \
+               "От чар отчаянья кручинно-скучная, чла час удач."
+        markup, result = MetreClassifier.improve_markup(Markup.process_text(text, self.stress_predictor))
+        self.assertTrue(result.metre == "iambos")
+
+    def test_improve(self):
+        text = "Буря мглою небо кроет,\n" \
+               "Вихри снежные крутя;\n" \
+               "То, как зверь, она завоет,\n" \
+               "То заплачет, как дитя..."
+        initial_markup = Markup.process_text(text, self.stress_predictor)
+        self.assertEqual(initial_markup.lines[0].words[0].syllables[0].stress, -1)
+        markup, result = MetreClassifier.improve_markup(copy.deepcopy(initial_markup))
+        self.assertNotEqual(markup.lines[0].words[0].syllables[0].stress, -1)
+        self.assertEqual(markup.lines[0].words[0].syllables[1].stress, -1)
+
+
+
+

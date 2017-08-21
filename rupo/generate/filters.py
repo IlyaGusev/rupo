@@ -76,11 +76,11 @@ class MetreFilter(Filter):
         for i in range(syllables_count):
             syllable = syllables[i]
             syllable_number = self.position - syllables_count + i + 1
-            if syllables_count >= 2 and syllable.accent == -1 and self.metre_pattern[syllable_number] == "+":
+            if syllables_count >= 2 and syllable.stress == -1 and self.metre_pattern[syllable_number] == "+":
                 for j in range(syllables_count):
                     other_syllable = syllables[j]
                     other_syllable_number = other_syllable.number - syllable.number + syllable_number
-                    if i != j and other_syllable.accent != -1 and self.metre_pattern[other_syllable_number] == "-":
+                    if i != j and other_syllable.stress != -1 and self.metre_pattern[other_syllable_number] == "-":
                         return False
         return True
 

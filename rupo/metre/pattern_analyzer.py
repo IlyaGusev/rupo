@@ -133,7 +133,7 @@ class PatternAnalyzer:
     """
     Сопоставлятель шаблона и строки.
     """
-    error_border = 10
+    error_border = 7
 
     def __init__(self, pattern):
         """
@@ -143,7 +143,7 @@ class PatternAnalyzer:
         self.tree = self.__build_tree(pattern)  # type: TreeNode
 
     @staticmethod
-    def count_errors(pattern: str, string: str) -> Tuple[str, int, int]:
+    def count_errors(pattern: str, string: str) -> Tuple[str, int, int, bool]:
         """
         :param pattern: шаблон.
         :param string: строка.
@@ -183,10 +183,10 @@ class PatternAnalyzer:
                 current_node.children[-1].pattern_pos = i
         return root_node
 
-    def __accept(self, string: str) -> Tuple[str, int, int]:
+    def __accept(self, string: str) -> Tuple[str, int, int, bool]:
         """
         :param string: строка.
-        :return: лучший шаблон, количество сильных ошибок, количество слабых ошибок.
+        :return: лучший шаблон, количество сильных ошибок, количество слабых ошибок, были ли ошибки.
         """
         current_states = [State(None, -1, 0, 0, "")]
         current_node = self.tree.get_most_left_leaf()
@@ -212,11 +212,11 @@ class PatternAnalyzer:
                 current_states = PatternAnalyzer.__filter_states(current_states, self.tree)
                 pattern, strong_errors, weak_errors = self.__get_min_errors_from_states(current_states)
                 diff = (len(string) - i)
-                return pattern, strong_errors + diff, weak_errors + diff
+                return pattern, strong_errors + diff, weak_errors + diff, True
 
             current_states = new_states
         current_states = PatternAnalyzer.__filter_states(current_states, self.tree)
-        return self.__get_min_errors_from_states(current_states)
+        return self.__get_min_errors_from_states(current_states) + (False,)
 
     @staticmethod
     def __get_variants(current_node: TreeNode) -> Set[TreeNode]:

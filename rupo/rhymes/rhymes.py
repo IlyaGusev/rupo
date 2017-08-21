@@ -65,13 +65,13 @@ class Rhymes(object):
         next_char = ''
         syllables = list(reversed(word.syllables))
         for i, syllable in enumerate(syllables):
-            if syllable.accent == -1:
+            if syllable.stress == -1:
                 continue
             if i != 0:
                 next_syllable = syllables[i - 1].text
             stressed_syllable = syllables[i].text
-            if syllable.accent + 1 < len(word.text):
-                next_char = word.text[syllable.accent + 1]
+            if syllable.stress + 1 < len(word.text):
+                next_char = word.text[syllable.stress + 1]
             syllable_number = i
             break
         return syllable_number, stressed_syllable, next_syllable, next_char
