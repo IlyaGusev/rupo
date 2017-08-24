@@ -8,8 +8,7 @@ import random
 
 from rupo.settings import MARKUP_XML_EXAMPLE, EXAMPLES_DIR, GENERATOR_LSTM_MODEL_PATH, \
     GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH, GENERATOR_GRAM_VECTORS, RU_STRESS_DEFAULT_MODEL, \
-    RU_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT, RU_WIKI_DICT, RU_GRAPHEME_STRESS_PATH, \
-    RU_GRAPHEME_STRESS_TRIE_PATH, RU_ALIGNER_DEFAULT_PATH, RU_G2P_DICT_PATH
+    RU_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH
 from rupo.main.markup import Markup
 from rupo.api import Engine
 
@@ -22,12 +21,8 @@ class TestApi(unittest.TestCase):
             stress_model_path=RU_STRESS_DEFAULT_MODEL,
             g2p_model_path=RU_G2P_DEFAULT_MODEL,
             zalyzniak_dict=ZALYZNYAK_DICT,
-            ru_wiki_dict=RU_WIKI_DICT,
-            cmu_dict=CMU_DICT,
             raw_stress_dict_path=RU_GRAPHEME_STRESS_PATH,
-            stress_trie_path=RU_GRAPHEME_STRESS_TRIE_PATH,
-            aligner_dump_path=RU_ALIGNER_DEFAULT_PATH,
-            g2p_dict_path=RU_G2P_DICT_PATH
+            stress_trie_path=RU_GRAPHEME_STRESS_TRIE_PATH
         )
 
     @classmethod
@@ -38,7 +33,6 @@ class TestApi(unittest.TestCase):
         self.assertEqual(self.engine.get_stresses("корова"), [3])
         self.assertCountEqual(self.engine.get_stresses("авиамоделирование"), [0, 9])
         self.assertEqual(self.engine.get_stresses("триплекс"), [2])
-        self.assertEqual(self.engine.get_stresses("квазар"), [4])
         self.assertEqual(self.engine.get_stresses("горит"), [3])
         self.assertEqual(self.engine.get_stresses("восток"), [4])
         self.assertEqual(self.engine.get_stresses("зарёю"), [3])
@@ -50,6 +44,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(self.engine.get_stresses("багровый"), [4])
         self.assertEqual(self.engine.get_stresses("кругами"), [4])
         self.assertEqual(self.engine.get_stresses("уж"), [0])
+        self.assertEqual(self.engine.get_stresses('колесом'), [5])
 
     def test_get_word_syllables(self):
         self.assertEqual(self.engine.get_word_syllables("корова"), ["ко", "ро", "ва"])

@@ -11,6 +11,7 @@ from rupo.main.markup import Line, Markup
 from rupo.util.mixins import CommonMixin
 from rupo.metre.pattern_analyzer import PatternAnalyzer
 from rupo.util.preprocess import get_first_vowel_position
+from rupo.util.timeit import timeit
 
 
 class StressCorrection(CommonMixin):
@@ -169,6 +170,7 @@ class MetreClassifier(object):
     border_syllables_count = 20
 
     @staticmethod
+    @timeit
     def classify_metre(markup):
         """
         Классифицируем стихотворный метр.
@@ -186,9 +188,15 @@ class MetreClassifier(object):
                 # Строчки длиной больше border_syllables_count слогов не обрабатываем.
                 if line_syllables_count > MetreClassifier.border_syllables_count or line_syllables_count == 0:
                     continue
+                error_border = 7
+                if metre_name == "dolnik2" or metre_name == "dolnik3":
+                    error_border = 3
+                if metre_name == "taktovik2" or metre_name == "taktovik3":
+                    error_border = 2
                 pattern, strong_errors, weak_errors, analysis_errored = \
                     PatternAnalyzer.count_errors(MetreClassifier.metres[metre_name],
-                                                 MetreClassifier.__get_line_pattern(line))
+                                                 MetreClassifier.__get_line_pattern(line),
+                                                 error_border)
                 if analysis_errored or len(pattern) == 0:
                     errors_table.add_record(metre_name, l, strong_errors, weak_errors, pattern, True)
                     continue
@@ -259,8 +267,6 @@ class MetreClassifier(object):
                 continue
             stress_count = word.count_stresses()
             for syllable in word.syllables:
-                if number_in_pattern >= len(pattern):
-                    print(number_in_pattern, pattern, line)
                 if stress_count == 0 and pattern[number_in_pattern].lower() == "s":
                     # Ударений нет, ставим такое, какое подходит по метру. Возможно несколько.
                     additions.append(StressCorrection(line_number, w, syllable.number, word.text, syllable.vowel()))

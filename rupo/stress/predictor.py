@@ -4,7 +4,8 @@
 
 import os
 from typing import List
-from rupo.stress.rnn import RNNStressModel
+from rupo.stress.phoneme_rnn import RNNPhonemeStressModel
+from rupo.stress.grapheme_rnn import RNNGraphemeStressModel
 from rupo.stress.dict import StressDict
 from rupo.g2p.rnn import RNNG2PModel
 from rupo.settings import RU_STRESS_DEFAULT_MODEL, EN_STRESS_DEFAULT_MODEL, RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL
@@ -18,7 +19,36 @@ class StressPredictor:
         raise NotImplementedError()
 
 
-class RNNStressPredictor(StressPredictor):
+class RNNGraphemeStressPredictor(StressPredictor):
+    def __init__(self, language: str="ru", stress_model_path: str=None):
+        self.language = language
+        self.stress_model_path = stress_model_path
+
+        if language == "ru":
+            self.__init_language_defaults(RU_STRESS_DEFAULT_MODEL)
+        elif language == "en":
+            self.__init_language_defaults(EN_STRESS_DEFAULT_MODEL)
+        else:
+            raise RuntimeError("Wrong language")
+
+        if not os.path.exists(self.stress_model_path):
+            raise RuntimeError("No stress or g2p models available (or wrong paths)")
+
+        self.stress_model = RNNGraphemeStressModel(language=language)
+        self.stress_model.load(self.stress_model_path)
+
+    def __init_language_defaults(self, stress_model_path):
+        if self.stress_model_path is None:
+            self.stress_model_path = stress_model_path
+
+    def predict(self, word: str) -> List[int]:
+        word = word.lower()
+        stresses = self.stress_model.predict([word])[0]
+        stresses = [i for i, stress in enumerate(stresses) if stress == 1 or stress == 2]
+        return stresses
+
+
+class RNNPhonemeStressPredictor(StressPredictor):
     def __init__(self, language: str="ru", stress_model_path: str=None, g2p_model_path: str=None,
                  grapheme_set=RU_GRAPHEME_SET, g2p_dict_path=None, aligner_dump_path=None,
                  ru_wiki_dict=RU_WIKI_DICT, cmu_dict=CMU_DICT):
@@ -36,7 +66,7 @@ class RNNStressPredictor(StressPredictor):
         if not os.path.exists(self.stress_model_path) or not os.path.exists(self.g2p_model_path):
             raise RuntimeError("No stress or g2p models available (or wrong paths)")
 
-        self.stress_model = RNNStressModel(language=language)
+        self.stress_model = RNNPhonemeStressModel(language=language)
         self.stress_model.load(self.stress_model_path)
         self.g2p_model = RNNG2PModel(language=language)
         self.g2p_model.load(self.g2p_model_path)
@@ -112,11 +142,9 @@ class DictStressPredictor(StressPredictor):
 
 
 class CombinedStressPredictor(StressPredictor):
-    def __init__(self, language="ru", stress_model_path: str=None, g2p_model_path: str=None,
-                 grapheme_set=RU_GRAPHEME_SET, g2p_dict_path=None, aligner_dump_path=None, raw_stress_dict_path=None,
-                 stress_trie_path=None, zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT, ru_wiki_dict=RU_WIKI_DICT):
-        self.rnn = RNNStressPredictor(language, stress_model_path, g2p_model_path, grapheme_set,
-                                      g2p_dict_path, aligner_dump_path, ru_wiki_dict, cmu_dict)
+    def __init__(self, language="ru", stress_model_path: str=None, raw_stress_dict_path=None,
+                 stress_trie_path=None, zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT):
+        self.rnn = RNNGraphemeStressPredictor(language, stress_model_path)
         self.dict = DictStressPredictor(language, raw_stress_dict_path, stress_trie_path, zalyzniak_dict, cmu_dict)
 
     def predict(self, word: str) -> List[int]:

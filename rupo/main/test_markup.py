@@ -16,14 +16,10 @@ class TestMarkup(unittest.TestCase):
     def setUpClass(cls):
         cls.stress_predictor = CombinedStressPredictor(
             stress_model_path=RU_STRESS_DEFAULT_MODEL,
-            g2p_model_path=RU_G2P_DEFAULT_MODEL,
             zalyzniak_dict=ZALYZNYAK_DICT,
-            ru_wiki_dict=RU_WIKI_DICT,
             cmu_dict=CMU_DICT,
             raw_stress_dict_path=RU_GRAPHEME_STRESS_PATH,
-            stress_trie_path=RU_GRAPHEME_STRESS_TRIE_PATH,
-            aligner_dump_path=RU_ALIGNER_DEFAULT_PATH,
-            g2p_dict_path=RU_G2P_DICT_PATH
+            stress_trie_path=RU_GRAPHEME_STRESS_TRIE_PATH
         )
 
     @classmethod

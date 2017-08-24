@@ -133,23 +133,24 @@ class PatternAnalyzer:
     """
     Сопоставлятель шаблона и строки.
     """
-    error_border = 7
-
-    def __init__(self, pattern):
+    def __init__(self, pattern: str, error_border: int=8):
         """
+        :param error_border: граница по ошибкам.
         :param pattern: шаблон.
         """
         self.pattern = pattern  # type: str
         self.tree = self.__build_tree(pattern)  # type: TreeNode
+        self.error_border = error_border
 
     @staticmethod
-    def count_errors(pattern: str, string: str) -> Tuple[str, int, int, bool]:
+    def count_errors(pattern: str, string: str, error_border: int=8) -> Tuple[str, int, int, bool]:
         """
         :param pattern: шаблон.
         :param string: строка.
+        :param error_border: граница по ошибкам.
         :return: лучший шаблон, количество сильных ошибок, количество слабых ошибок.
         """
-        analyzer = PatternAnalyzer(pattern)
+        analyzer = PatternAnalyzer(pattern, error_border)
         return analyzer.__accept(string)
 
     @staticmethod
@@ -203,7 +204,7 @@ class PatternAnalyzer:
                     strong_errors = state.strong_errors + int(variant.text.isupper() and variant.text != ch)
                     weak_errors = state.weak_errors + int(variant.text.islower() and variant.text != ch.lower())
                     new_state = State(variant, i, strong_errors, weak_errors, state.pattern+variant.text)
-                    if new_state.strong_errors + new_state.weak_errors > PatternAnalyzer.error_border:
+                    if new_state.strong_errors + new_state.weak_errors > self.error_border:
                         continue
                     new_states.append(new_state)
 

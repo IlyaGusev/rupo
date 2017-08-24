@@ -11,6 +11,7 @@ from dicttoxml import dicttoxml
 from rupo.util.preprocess import get_first_vowel_position
 from rupo.util.mixins import CommonMixin
 from rupo.main.tokenizer import Tokenizer, Token
+from rupo.util.timeit import timeit
 
 
 class Annotation(CommonMixin):
@@ -254,6 +255,7 @@ class Markup(CommonMixin):
         return self
 
     @staticmethod
+    @timeit
     def process_text(text: str, stress_predictor) -> 'Markup':
         """
         Получение начального варианта разметки по слогам и ударениям.
