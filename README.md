@@ -40,6 +40,12 @@ iambos
 <poem> or None if could't generate
 ```
 
+### Models ###
+* Generator: https://www.dropbox.com/s/7miw59j7mxmbyga/generator_models_v2.zip
+* Stress predictor: https://www.dropbox.com/s/31pyubqskp4krsd/stress_models_light.zip
+* G2P: https://www.dropbox.com/s/7rk135fzd3i8kfw/g2p_models.zip
+* Dictionaries: https://www.dropbox.com/s/znqlrb1xblh3amo/dict.zip
+
 ### Литература ###
 * Брейдо, 1996, [Автоматический анализ метрики русского стиха](http://search.rsl.ru/ru/record/01000000124)
 * Каганов, 1996, [Лингвистическое конструирование в системах искусственного интеллекта](http://lleo.me/soft/text_dip.htm)
