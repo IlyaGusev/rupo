@@ -3,9 +3,9 @@ mkdir -p ./rupo/data/generator_models
 unzip generator_models.zip -d ./rupo/data/generator_models
 rm generator_models.zip
 
-wget https://www.dropbox.com/s/3dscqj6gcnfgwj5/stress_models.zip
+wget https://www.dropbox.com/s/31pyubqskp4krsd/stress_models_light.zip
 mkdir -p ./rupo/data/stress_models
-unzip stress_models.zip -d ./rupo/data/stress_models
+unzip stress_models_light.zip -d ./rupo/data/stress_models
 rm stress_models.zip
 
 wget https://www.dropbox.com/s/7rk135fzd3i8kfw/g2p_models.zip

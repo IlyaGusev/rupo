@@ -45,5 +45,3 @@ class TestStressPredictor(unittest.TestCase):
         }
         for word, pos in checks.items():
             self.assertEqual(sorted(self.stress_predictor.predict(word)), sorted(pos))
-
-

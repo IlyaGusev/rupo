@@ -12,6 +12,7 @@ from rupo.settings import RU_STRESS_DEFAULT_MODEL, EN_STRESS_DEFAULT_MODEL, RU_G
 from rupo.g2p.aligner import Aligner
 from rupo.util.preprocess import count_vowels, get_first_vowel_position
 from rupo.settings import CMU_DICT, ZALYZNYAK_DICT, RU_GRAPHEME_SET, RU_WIKI_DICT
+from rupo.stress.word import Stress
 
 
 class StressPredictor:
@@ -44,7 +45,8 @@ class RNNGraphemeStressPredictor(StressPredictor):
     def predict(self, word: str) -> List[int]:
         word = word.lower()
         stresses = self.stress_model.predict([word])[0]
-        stresses = [i for i, stress in enumerate(stresses) if stress == 1 or stress == 2]
+        stresses = [i for i, stress in enumerate(stresses) if stress == 1] + \
+                   [i for i, stress in enumerate(stresses) if stress == 2]
         return stresses
 
 
@@ -119,7 +121,8 @@ class DictStressPredictor(StressPredictor):
             stresses.append(word.find("ё"))
         else:
             # Проверяем словарь на наличие форм с ударениями.
-            stresses = self.stress_dict.get_stresses(word)
+            stresses = self.stress_dict.get_stresses(word, Stress.Type.PRIMARY) +\
+                       self.stress_dict.get_stresses(word, Stress.Type.SECONDARY)
             if 'е' not in word:
                 return stresses
             # Находим все возможные варинаты преобразований 'е' в 'ё'.

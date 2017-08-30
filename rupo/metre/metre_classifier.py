@@ -270,7 +270,7 @@ class MetreClassifier(object):
                 if stress_count == 0 and pattern[number_in_pattern].lower() == "s":
                     # Ударений нет, ставим такое, какое подходит по метру. Возможно несколько.
                     additions.append(StressCorrection(line_number, w, syllable.number, word.text, syllable.vowel()))
-                elif pattern[number_in_pattern] == "u" and syllable.stress != -1:
+                elif pattern[number_in_pattern].lower() == "u" and syllable.stress != -1:
                     # Ударение есть и оно падает на этот слог, при этом в шаблоне безударная позиция.
                     # Найдём такой слог, у которого в шаблоне ударная позиция. Это и есть наше исправление.
                     for other_syllable in word.syllables:
