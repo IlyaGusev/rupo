@@ -32,7 +32,6 @@ iambos
 ```
 
 #### Generation ####
-[Model and vocabulary archive](https://www.dropbox.com/s/eefgbo53e000by5/generator_models.zip)
 ```
 >>> from rupo.api import Engine
 >>> engine = Engine(language="ru")
