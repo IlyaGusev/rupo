@@ -71,6 +71,8 @@ class StressVocabulary(object):
         :return: слово новое или нет.
         """
         if word in self.word_to_index:
+            if index != -1:
+                self.index_to_word[index] = word
             return False
         self.word_to_index[word] = self.size() if index == -1 else index
         self.index_to_word[self.size() if index == -1 else index] = word
