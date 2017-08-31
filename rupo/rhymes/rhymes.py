@@ -3,9 +3,10 @@
 # Описание: Класс рифм.
 
 from typing import Tuple
-from rupo.main.markup import Word
+from rupo.g2p.graphemes import Graphemes
 from rupo.util.preprocess import VOWELS
 from rupo.generate.word_form_vocabulary import WordFormVocabulary
+from rupo.stress.word import StressedWord
 
 
 class Rhymes(object):
@@ -14,7 +15,7 @@ class Rhymes(object):
     """
 
     @staticmethod
-    def is_rhyme(word1: Word, word2: Word, score_border: int=4, syllable_number_border: int=4,
+    def is_rhyme(word1: StressedWord, word2: StressedWord, score_border: int=4, syllable_number_border: int=4,
                  word_form_vocabulary: WordFormVocabulary=None) -> bool:
         """
         Проверка рифмованности 2 слов.
@@ -50,7 +51,7 @@ class Rhymes(object):
                features1[0] <= syllable_number_border
 
     @staticmethod
-    def __get_rhyme_profile(word: Word) -> Tuple[int, str, str, str]:
+    def __get_rhyme_profile(word: StressedWord) -> Tuple[int, str, str, str]:
         """
         Получение профиля рифмовки (набора признаков для сопоставления).
 
@@ -64,13 +65,13 @@ class Rhymes(object):
         next_char = ''
         syllables = list(reversed(word.syllables))
         for i, syllable in enumerate(syllables):
-            if syllable.accent == -1:
+            if syllable.stress == -1:
                 continue
             if i != 0:
                 next_syllable = syllables[i - 1].text
             stressed_syllable = syllables[i].text
-            if syllable.accent + 1 < len(word.text):
-                next_char = word.text[syllable.accent + 1]
+            if syllable.stress + 1 < len(word.text):
+                next_char = word.text[syllable.stress + 1]
             syllable_number = i
             break
         return syllable_number, stressed_syllable, next_syllable, next_char

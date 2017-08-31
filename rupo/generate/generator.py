@@ -8,13 +8,10 @@ import copy
 import numpy as np
 from numpy.random import choice
 
-from rupo.stress.predictor import StressPredictor
 from rupo.generate.filters import MetreFilter, RhymeFilter
-from rupo.main.vocabulary import Vocabulary
-from rupo.main.markup import Markup
-from rupo.metre.metre_classifier import MetreClassifier, CompilationsSingleton
+from rupo.main.vocabulary import StressVocabulary
 from rupo.generate.model_container import ModelContainer
-from rupo.generate.word_form_vocabulary import WordFormVocabulary, SEQ_END_WF, SEQ_END
+from rupo.generate.word_form_vocabulary import WordFormVocabulary
 
 
 class BeamPath(object):
@@ -42,7 +39,7 @@ class BeamPath(object):
         """
         self.line_ends.append(len(self.indices))
 
-    def get_words(self, vocabulary: Vocabulary) -> List[str]:
+    def get_words(self, vocabulary: StressVocabulary) -> List[str]:
         """
         Получить слова текущего пути.
         
@@ -51,7 +48,7 @@ class BeamPath(object):
         """
         return [vocabulary.get_word(word_index).text.lower() for word_index in self.indices]
 
-    def get_poem(self, vocabulary: Vocabulary) -> str:
+    def get_poem(self, vocabulary: StressVocabulary) -> str:
         """
         Получить стихотворение этого пути.
         
@@ -68,7 +65,7 @@ class BeamPath(object):
         return "\n".join(list(reversed(lines))) + "\n"
 
     def get_current_model(self, model_container: ModelContainer,
-                          vocabulary: Vocabulary, use_rhyme: bool=False) -> np.array:
+                          vocabulary: StressVocabulary, use_rhyme: bool=False) -> np.array:
         """
         Получить фильтрованные вероятности следующего слова.
         
@@ -98,14 +95,14 @@ class Generator(object):
     """
     Генератор стихов
     """
-    def __init__(self, model_container: ModelContainer, vocabulary: Vocabulary,
+    def __init__(self, model_container: ModelContainer, vocabulary: StressVocabulary,
                  word_form_vocabulary: WordFormVocabulary=None):
         """
         :param model_container: модель с методом get_model.
         :param vocabulary: словарь с индексами.
         """
         self.model_container = model_container  # type: ModelContainer
-        self.vocabulary = vocabulary  # type: Vocabulary
+        self.vocabulary = vocabulary  # type: StressVocabulary
         self.word_form_vocabulary = word_form_vocabulary  # type: WordFormVocabulary
 
     def generate_poem(self, metre_schema: str="+-", rhyme_pattern: str="aabb", n_syllables: int=8,
@@ -181,8 +178,10 @@ class Generator(object):
         model = path.get_current_model(self.model_container, self.vocabulary, use_rhyme)
         if np.sum(model) == 0.0:
             return []
-        assert len(path.indices) != 0
-        new_indices = Generator.__choose(model, beam_width)
+        if len(path.indices) != 0:
+            new_indices = Generator.__choose(model, beam_width)
+        else:
+            new_indices = Generator.__choose_uniform(self.vocabulary.size(), beam_width)
         new_paths = []
         for index in new_indices:
             word = self.vocabulary.get_word(index)
@@ -196,25 +195,6 @@ class Generator(object):
             new_paths.append(BeamPath(path.indices+[index], metre_filter, rhyme_filter,
                                       path.probability * word_probability, copy.copy(path.line_ends)))
         return new_paths
-
-    def generate_poem_by_line(self, line: str, rhyme_pattern: str, stress_predictor: StressPredictor) -> str:
-        """
-        Генерация стихотвторения по одной строчке.
-
-        :param stress_predictor: классификатор.
-        :param line: строчка.
-        :param rhyme_pattern: шаблон рифмы.
-        :return: стихотворение
-        """
-        markup, result = MetreClassifier.improve_markup(Markup.process_text(line, stress_predictor))
-        rhyme_word = markup.lines[0].words[-1]
-        count_syllables = sum([len(word.syllables) for word in markup.lines[0].words])
-        metre_pattern = CompilationsSingleton.get().get_patterns(result.metre, count_syllables)[0]
-        metre_pattern = metre_pattern.lower().replace("s", "+").replace("u", "-")
-        letters_to_rhymes = {rhyme_pattern[0]: {rhyme_word}}
-        generated = self.generate_poem(metre_pattern, rhyme_pattern, len(metre_pattern), letters_to_rhymes)
-        poem = line + "\n" + "\n".join(generated.split("\n")[1:])
-        return poem
 
     @staticmethod
     def __top_paths(paths, n):
@@ -235,6 +215,10 @@ class Generator(object):
         result_paths = [path for path in paths if path.rhyme_filter.position == -1]
         ok_paths = [path for path in paths if path.rhyme_filter.position > -1]
         return ok_paths, result_paths
+
+    @staticmethod
+    def __choose_uniform(size: int, n: int = 1):
+        return [np.random.randint(1, size) for _ in range(n)]
 
     @staticmethod
     def __choose(model: np.array, n: int=1):

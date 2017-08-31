@@ -19,7 +19,7 @@ RU_PHONEME_STRESS_PATH = resource_filename(__name__, "data/dict/ru_phoneme_stres
 RU_PHONEME_STRESS_BIG_PATH = resource_filename(__name__, "data/dict/ru_phoneme_stress_big.txt")
 RU_PHONEME_STRESS_TRIE_PATH = resource_filename(__name__, "data/dict/ru_phoneme_stress.trie")
 RU_G2P_DEFAULT_MODEL = resource_filename(__name__, "data/g2p_models/g2p_ru_maxlen40_BLSTM256_BLSTM256_dropout0.2_acc992_wer140.h5")
-RU_STRESS_DEFAULT_MODEL = resource_filename(__name__, "data/stress_models/stress_ru_word30_LSTM256_dropout0.4_acc99_wer3.h5")
+RU_STRESS_DEFAULT_MODEL = resource_filename(__name__, "data/stress_models/stress_ru_LSTM64_dropout0.2_acc99_wer8.h5")
 
 EN_G2P_DICT_PATH = resource_filename(__name__, "data/dict/en_g2p.txt")
 EN_PHONEME_STRESS_PATH = resource_filename(__name__, "data/dict/en_phoneme_stress.txt")

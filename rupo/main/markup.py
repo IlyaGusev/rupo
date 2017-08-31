@@ -3,7 +3,7 @@
 # Описание: Модуль для описания разметки по ударениям и слогам.
 
 import json
-from typing import List
+from typing import List, Set
 import xml.etree.ElementTree as etree
 
 from dicttoxml import dicttoxml
@@ -11,6 +11,7 @@ from dicttoxml import dicttoxml
 from rupo.util.preprocess import get_first_vowel_position
 from rupo.util.mixins import CommonMixin
 from rupo.main.tokenizer import Tokenizer, Token
+from rupo.util.timeit import timeit
 
 
 class Annotation(CommonMixin):
@@ -29,10 +30,10 @@ class Syllable(Annotation):
     Разметка слога. Включает в себя аннотацию и номер слога, а также ударение.
     Если ударение падает не на этот слог, -1.
     """
-    def __init__(self, begin: int, end: int, number: int, text: str, accent: int=-1) -> None:
+    def __init__(self, begin: int, end: int, number: int, text: str, stress: int=-1) -> None:
         super(Syllable, self).__init__(begin, end, text)
         self.number = number
-        self.accent = accent
+        self.stress = stress
 
     def vowel(self) -> int:
         """
@@ -42,6 +43,8 @@ class Syllable(Annotation):
 
     def from_dict(self, d: dict) -> 'Syllable':
         self.__dict__.update(d)
+        if "accent" in self.__dict__:
+            self.stress = self.__dict__["accent"]
         return self
 
 
@@ -53,11 +56,11 @@ class Word(Annotation):
         super(Word, self).__init__(begin, end, text)
         self.syllables = syllables
 
-    def count_stress(self) -> int:
+    def count_stresses(self) -> int:
         """
         :return: количество ударений в слове.
         """
-        return sum(syllable.accent != -1 for syllable in self.syllables)
+        return sum(syllable.stress != -1 for syllable in self.syllables)
 
     def stress(self) -> int:
         """
@@ -65,15 +68,25 @@ class Word(Annotation):
         """
         stress = -1
         for syllable in self.syllables:
-            if syllable.accent != -1:
-                stress = syllable.accent
+            if syllable.stress != -1:
+                stress = syllable.stress
         return stress
 
     def get_stressed_syllables_numbers(self) -> List[int]:
         """
         :return: номера слогов, на которые падают ударения.
         """
-        return [syllable.number for syllable in self.syllables if syllable.accent != -1]
+        return [syllable.number for syllable in self.syllables if syllable.stress != -1]
+
+    def get_stresses(self) -> Set[int]:
+        """
+        :return: все ударения.
+        """
+        stresses = set()
+        for syllable in self.syllables:
+            if syllable.stress != -1:
+                stresses.add(syllable.stress)
+        return stresses
 
     def set_stresses(self, stresses: List[int]) -> None:
         """
@@ -83,9 +96,9 @@ class Word(Annotation):
         """
         for syllable in self.syllables:
             if syllable.vowel() in stresses:
-                syllable.accent = syllable.vowel()
+                syllable.stress = syllable.vowel()
             else:
-                syllable.accent = -1
+                syllable.stress = -1
 
     def get_short(self) -> str:
         """
@@ -98,6 +111,10 @@ class Word(Annotation):
         syllables = d["syllables"]  # type: List[dict]
         self.syllables = [Syllable(0, 0, 0, "").from_dict(syllable) for syllable in syllables]
         return self
+
+    def to_stressed_word(self):
+        from rupo.stress.word import StressedWord, Stress
+        return StressedWord(self.text, set([Stress(pos, Stress.Type.PRIMARY) for pos in self.get_stresses()]))
 
     def __hash__(self) -> int:
         """
@@ -120,13 +137,20 @@ class Line(Annotation):
         self.words = [Word(0, 0, "", []).from_dict(word) for word in words]
         return self
 
+    def count_vowels(self):
+        num_vowels = 0
+        for word in self.words:
+            for syllable in word.syllables:
+                if get_first_vowel_position(syllable.text) != -1:
+                    num_vowels += 1
+        return num_vowels
+
 
 class Markup(CommonMixin):
     """
     Класс данных для разметки в целом с экспортом/импортом в XML и JSON.
     """
     def __init__(self, text: str=None, lines: List[Line]=None) -> None:
-        # TODO: При изменении структуры разметки менять десериализацию.
         self.text = text
         self.lines = lines
         self.version = 2
@@ -171,11 +195,15 @@ class Markup(CommonMixin):
                 syllables_node = word_node.find("syllables")
                 syllables = []
                 for syllable_node in syllables_node.findall("item"):
+                    stress_node = syllable_node.find("accent") \
+                        if syllable_node.find("accent") is not None \
+                        else syllable_node.find("stress")
+                    stress = int(stress_node.text)
                     syllables.append(Syllable(int(syllable_node.find("begin").text),
                                               int(syllable_node.find("end").text),
                                               int(syllable_node.find("number").text),
                                               syllable_node.find("text").text,
-                                              int(syllable_node.find("accent").text)))
+                                              stress))
                 words.append(Word(int(word_node.find("begin").text), int(word_node.find("end").text),
                                   word_node.find("text").text, syllables))
             lines.append(Line(int(line_node.find("begin").text), int(line_node.find("end").text),
@@ -227,6 +255,7 @@ class Markup(CommonMixin):
         return self
 
     @staticmethod
+    @timeit
     def process_text(text: str, stress_predictor) -> 'Markup':
         """
         Получение начального варианта разметки по слогам и ударениям.
@@ -248,7 +277,8 @@ class Markup(CommonMixin):
                 # Проставляем ударения.
                 stresses = stress_predictor.predict(token.text)
                 # Сопоставляем ударения слогам.
-                word.set_stresses(stresses)
+                if len(word.syllables) > 1:
+                    word.set_stresses(stresses)
                 words.append(word)
             end_line = begin_line + len(text_line)
             lines.append(Line(begin_line, end_line, text_line, words))

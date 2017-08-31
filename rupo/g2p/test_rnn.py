@@ -7,7 +7,7 @@ from keras.layers import LSTM
 from rupo.g2p.rnn import RNNG2PModel
 from rupo.settings import EN_PHONEME_STRESS_PATH, ACCENT_CURRENT_MODEL_DIR, EN_G2P_DICT_PATH, \
     G2P_CURRENT_MODEL_DIR, RU_PHONEME_STRESS_PATH, RU_G2P_DICT_PATH
-from rupo.stress.rnn import RNNStressModel
+from rupo.stress.phoneme_rnn import RNNPhonemeStressModel
 
 
 def g2p_ru():
@@ -18,7 +18,7 @@ def g2p_ru():
 
 
 def stress_ru():
-    clf = RNNStressModel(RU_PHONEME_STRESS_PATH, 19, language="ru", rnn=LSTM)
+    clf = RNNPhonemeStressModel(RU_PHONEME_STRESS_PATH, 19, language="ru", rnn=LSTM)
     clf.build()
     clf.train(ACCENT_CURRENT_MODEL_DIR, enable_checkpoints=True)
 
@@ -30,7 +30,7 @@ def g2p_en():
 
 
 def stress_en():
-    clf = RNNStressModel(EN_PHONEME_STRESS_PATH, 25, language="en", rnn=LSTM)
+    clf = RNNPhonemeStressModel(EN_PHONEME_STRESS_PATH, 25, language="en", rnn=LSTM)
     clf.build()
     clf.train(ACCENT_CURRENT_MODEL_DIR, enable_checkpoints=True)
 

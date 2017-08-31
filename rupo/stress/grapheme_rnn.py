@@ -4,6 +4,7 @@
 
 import numpy as np
 import os
+import logging
 
 from typing import List, Tuple
 
@@ -11,14 +12,14 @@ from sklearn.model_selection import train_test_split
 from keras.models import Model, load_model
 from keras.preprocessing import sequence
 from keras.callbacks import EarlyStopping, ModelCheckpoint, Callback
-from keras.layers import LSTM, Bidirectional, Dropout, Activation, Dense, TimeDistributed, Input, Embedding
+from keras.layers import LSTM, Bidirectional, Dropout, Dense, TimeDistributed, Input, Embedding
+
+from rupo.settings import RU_GRAPHEME_SET, RU_GRAPHEME_STRESS_PATH, DATA_DIR
 
 
-class RNNStressModel:
-    phonetic_alphabet = " n̪ʃʆäʲ。ˌʰʷːːɐaɑəæbfv̪gɡxtdɛ̝̈ɬŋeɔɘɪjʝɵʂɕʐʑijkјɫlmɱnoprɾszᵻuʉɪ̯ʊɣʦʂʧʨɨɪ̯̯ɲʒûʕχѝíʌɒ‿͡ðwhɝθ"
-
-    def __init__(self, dict_path: str=None, word_max_length: int = 30, language: str = "ru", rnn=LSTM,
-                 units: int = 128, dropout: float = 0.2, batch_size=2048, emb_dimension=30):
+class RNNGraphemeStressModel:
+    def __init__(self, dict_path: str=None, word_max_length: int=30, language: str="ru", rnn=LSTM,
+                 units: int=64, dropout: float=0.2, batch_size=2048, emb_dimension=30):
         self.rnn = rnn
         self.dropout = dropout  # type: float
         self.units = units  # type: int
@@ -28,6 +29,8 @@ class RNNStressModel:
         self.batch_size = batch_size
         self.emb_dimension = emb_dimension
         self.model = None
+        if language == "ru":
+            self.grapheme_set = RU_GRAPHEME_SET
 
     def build(self) -> None:
         """
@@ -35,11 +38,10 @@ class RNNStressModel:
         """
         inp = Input(shape=(None,))
 
-        emb = Embedding(len(self.phonetic_alphabet), self.emb_dimension)(inp)
+        emb = Embedding(len(self.grapheme_set), self.emb_dimension)(inp)
         encoded = Bidirectional(self.rnn(self.units, return_sequences=True, recurrent_dropout=self.dropout))(emb)
         encoded = Dropout(self.dropout)(encoded)
-        decoded = Bidirectional(self.rnn(self.units, return_sequences=True, recurrent_dropout=self.dropout))(encoded)
-        decoded = Dropout(self.dropout)(decoded)
+        decoded = TimeDistributed(Dense(self.units, activation="relu"))(encoded)
         predictions = TimeDistributed(Dense(3, activation="softmax"))(decoded)
 
         model = Model(inputs=inp, outputs=predictions)
@@ -58,18 +60,19 @@ class RNNStressModel:
         x, y = self.__load_dict()
         x, y = self.__prepare_data(x, y)
         # Деление на выборки.
-        x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.1, random_state=42)
+        x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, random_state=42)
+        x_test, x_val, y_test, y_val = train_test_split(x_val, y_val, test_size=0.5, random_state=42)
         # Основные раунды обучения.
         callbacks = [EarlyStopping(monitor='val_acc', patience=3)]  # type: List[Callback]
         if enable_checkpoints:
-            checkpoint_name = os.path.join(dir_name, "{epoch:02d}-{val_loss:.2f}.hdf5")
+            checkpoint_name = os.path.join(dir_name, "checkpoint.hdf5")
             callbacks.append(ModelCheckpoint(checkpoint_name, monitor='val_loss'))
         self.model.fit(x_train, y_train, verbose=1, epochs=200, validation_data=(x_val, y_val),
                        callbacks=callbacks, batch_size=self.batch_size)
-        # Рассчёт точности на val выборке.
-        accuracy = self.model.evaluate(x_val, y_val)[1]
-        # Расчёт WER на всей выборке.
-        wer = self.__evaluate_wer(x, y)[0]
+        # Рассчёт точности на test выборке.
+        accuracy = self.model.evaluate(x_test, y_test)[1]
+        # Расчёт WER на test выборке.
+        wer = self.__evaluate_wer(x_test, y_test)[0]
         # Один раунд обучения на всём датасете.
         self.model.fit(x, y, verbose=1, epochs=1, batch_size=self.batch_size)
         # Сохранение модели.
@@ -79,7 +82,7 @@ class RNNStressModel:
                                    wer=int(wer * 100))
         self.model.save(os.path.join(dir_name, filename))
 
-    def predict(self, words: List[str]) -> List[int]:
+    def predict(self, words: List[str]) -> List[List[int]]:
         """
         Предсказание ударений.
 
@@ -104,22 +107,23 @@ class RNNStressModel:
         """
         Парсинг словаря.
 
-        :return: фонетические слова и ударения.
+        :return: графические слова и ударения.
         """
         x = []
         y = []
         skipped = 0
         with open(self.dict_path, "r", encoding='utf-8') as f:
             for line in f:
-                phonemes, primary, secondary = line.split("\t")
+                graphemes, primary, secondary = line.split("\t")
+                graphemes = graphemes.lower()
                 primary = [int(i) for i in primary.split(",") if i != '']
                 secondary = [int(i) for i in secondary.strip().split(",") if i != '']
-                if len(phonemes) > self.word_max_length:
+                if len(graphemes) > self.word_max_length:
                     skipped += 1
                     continue
                 flag = False
-                for p in phonemes:
-                    if p not in self.phonetic_alphabet:
+                for g in graphemes:
+                    if g not in self.grapheme_set:
                         flag = True
                 if flag:
                     continue
@@ -128,10 +132,10 @@ class RNNStressModel:
                     stress_mask[stress] = 2
                 for stress in primary:
                     stress_mask[stress] = 1
-                x.append(phonemes)
+                x.append(graphemes)
                 y.append(stress_mask)
         y = np.array(y)
-        print("Skipped: " + str(skipped))
+        logging.debug("Skipped: " + str(skipped))
         return x, y
 
     def __prepare_data(self, x: List[str], y: np.array = None) -> Tuple[np.array, List[int]]:
@@ -142,7 +146,7 @@ class RNNStressModel:
         :param y: ответы.
         :return: очищенные семплы и овтеты.
         """
-        x = [[self.phonetic_alphabet.find(ch) for ch in p] for p in x]
+        x = [[self.grapheme_set.find(ch) for ch in p] for p in x]
         x = sequence.pad_sequences(x, maxlen=self.word_max_length, padding='post', truncating='post')
         if y is not None:
             y = y.reshape((y.shape[0], y.shape[1], 1))

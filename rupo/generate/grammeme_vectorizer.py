@@ -59,6 +59,7 @@ class GrammemeVectorizer:
         """
         Добавить новое грамматическое значение в список известных
         """
+        grammemes = "|".join(sorted(grammemes.strip().split("|")))
         vector_name = pos_tag + '#' + grammemes
         if vector_name not in self.name_to_index:
             self.name_to_index[vector_name] = len(self.name_to_index)
@@ -116,6 +117,9 @@ class GrammemeVectorizer:
                 flat.append(category+"="+value)
         return flat
 
+    def size(self) -> int:
+        return len(self.vectors)
+
     def grammemes_count(self) -> int:
         return len(self.get_ordered_grammemes())
 
@@ -125,6 +129,12 @@ class GrammemeVectorizer:
     def get_name_by_index(self, index):
         d = {index: name for name, index in self.name_to_index.items()}
         return d[index]
+
+    def get_index_by_name(self, name):
+        pos = name.split("#")[0]
+        grammemes = name.split("#")[1]
+        grammemes = "|".join(sorted(grammemes.strip().split("|")))
+        return self.name_to_index[pos + "#" + grammemes]
 
     def __build_vector(self, pos_tag: str, grammemes: List[str]) -> List[int]:
         """
