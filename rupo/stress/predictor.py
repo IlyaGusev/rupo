@@ -33,7 +33,7 @@ class RNNGraphemeStressPredictor(StressPredictor):
             raise RuntimeError("Wrong language")
 
         if not os.path.exists(self.stress_model_path):
-            raise RuntimeError("No stress or g2p models available (or wrong paths)")
+            raise RuntimeError("No stress model available (or wrong path)")
 
         self.stress_model = RNNGraphemeStressModel(language=language)
         self.stress_model.load(self.stress_model_path)

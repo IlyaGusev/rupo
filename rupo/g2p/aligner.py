@@ -67,7 +67,7 @@ class Aligner:
         return g, p
 
     def train_from_dict(self):
-        with open(self.dict_path, 'r', encoding='utf-8') as r:
+        with open(self.g2p_dict_path, 'r', encoding='utf-8') as r:
             lines = r.readlines()
             pairs = [tuple(line.strip().split("\t")) for line in lines]
             self.train(pairs)

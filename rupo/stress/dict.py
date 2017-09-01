@@ -8,7 +8,6 @@ import pickle
 from typing import List, Dict, ItemsView, Set
 
 from rupo.dict.cmu import CMUDict
-from rupo.dict.zaliznyak import ZalyzniakDict
 from rupo.settings import RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH, \
     EN_PHONEME_STRESS_PATH, EN_PHONEME_STRESS_TRIE_PATH, ZALYZNYAK_DICT, CMU_DICT
 
@@ -32,6 +31,7 @@ class StressDict:
         if language == "ru" and mode == self.Mode.GRAPHEMES:
             self.__init_defaults(RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH)
             if not os.path.exists(self.raw_dict_path):
+                from rupo.dict.zaliznyak import ZalyzniakDict
                 ZalyzniakDict.convert_to_accent_only(zalyzniak_dict, self.raw_dict_path)
         elif mode == self.Mode.PHONEMES and language == "en":
             self.__init_defaults(EN_PHONEME_STRESS_PATH, EN_PHONEME_STRESS_TRIE_PATH)

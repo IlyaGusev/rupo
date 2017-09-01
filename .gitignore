@@ -5,6 +5,7 @@
 .idea
 *.trie
 *.pickle
+*.h5
 dist/
 rupo-*
 rupo.*
