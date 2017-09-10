@@ -17,9 +17,10 @@ class RhymeProfile:
         self.next_char = next_char
 
     def __str__(self):
-        return f"Syllable count: {self.syllable_count}; Stressed syllable: {self.stressed_syllable_number}; " \
-               f"Stressed syllable text: {self.stressed_syllable_text}; Next syllable: {self.next_syllable_text}; " \
-               f"Next char: {self.next_char}"
+        return "Syllable count: {}; Stressed syllable: {}; " \
+               "Stressed syllable text: {}; Next syllable: {}; " \
+               "Next char: {}".format(self.syllable_count, self.stressed_syllable_number,
+                                      self.stressed_syllable_text, self.next_syllable_text, self.next_char)
 
     def __repr__(self):
         return self.__str__()
@@ -56,15 +57,15 @@ class Rhymes(object):
                 if ch1 != ch2:
                     continue
                 if ch1 in VOWELS:
-                    score += 2
+                    score += 3
                 else:
                     score += 1
         if profile1.next_syllable_text == profile2.next_syllable_text and profile1.next_syllable_text != '':
-            score += 2
+            score += 3
         elif profile1.next_char == profile2.next_char and profile1.next_char != '':
             score += 1
-        return (profile1.syllable_count == profile2.syllable_count and
-                profile1.stressed_syllable_number == profile2.stressed_syllable_number and
+        return (profile1.stressed_syllable_number == profile2.stressed_syllable_number and
+                profile1.syllable_count == profile2.syllable_count and
                 profile1.stressed_syllable_number <= syllable_number_border and
                 score >= score_border)
 

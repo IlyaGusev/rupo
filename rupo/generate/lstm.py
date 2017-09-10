@@ -55,9 +55,6 @@ class BatchGenerator:
             for i in range(1, len(sentence)):
                 word_form = sentence[i]
                 current_part = sentence[max(0, i-self.sentence_maxlen): i]
-                if sum([self.word_form_vocabulary.get_lemma_index(x) >= self.embedding_size
-                        for x in current_part]) != 0:
-                    continue
                 # Если следующая словооформа не из предсказываемых, пропускаем её.
                 if self.word_form_vocabulary.get_word_form_index(word_form) >= self.softmax_size:
                     continue
@@ -229,7 +226,8 @@ class LSTMGenerator:
         return np.vstack(lemmas_list), np.vstack(grammemes_list), np.hstack(y_list)
 
     def train(self, filenames: List[str], validation_size: int=5,
-              validation_verbosity: int=5, dump_model_freq: int=10) -> None:
+              validation_verbosity: int=5, dump_model_freq: int=10,
+              save_path: str=GENERATOR_LSTM_MODEL_PATH) -> None:
         """
         Обучение модели.
         
@@ -269,7 +267,7 @@ class LSTMGenerator:
                 print()
 
                 if epoch != 0 and epoch % dump_model_freq == 0:
-                    self.model.save(GENERATOR_LSTM_MODEL_PATH)
+                    self.model.save(save_path)
 
     def predict(self, word_indices: List[int]) -> np.array:
         """

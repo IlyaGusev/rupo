@@ -106,7 +106,7 @@ class Generator(object):
         self.word_form_vocabulary = word_form_vocabulary  # type: WordFormVocabulary
 
     def generate_poem(self, metre_schema: str="+-", rhyme_pattern: str="aabb", n_syllables: int=8,
-                      letters_to_rhymes: dict=None, beam_width: int=4) -> str:
+                      letters_to_rhymes: dict=None, beam_width: int=4, rhyme_score_border: int=4) -> str:
         """
         Генерация стихотворения с выбранными параметрами.
 
@@ -115,6 +115,7 @@ class Generator(object):
         :param n_syllables: количество слогов в строке.
         :param letters_to_rhymes: заданные рифмы.
         :param beam_width: ширина лучевого поиска.
+        :param rhyme_score_border: качество рифм.
         :return: стихотворение.
         """
         metre_pattern = ""
@@ -122,7 +123,8 @@ class Generator(object):
             metre_pattern += metre_schema
         metre_pattern = metre_pattern[:n_syllables]
         metre_filter = MetreFilter(metre_pattern)
-        rhyme_filter = RhymeFilter(rhyme_pattern, letters_to_rhymes, self.word_form_vocabulary, score_border=5)
+        rhyme_filter = RhymeFilter(rhyme_pattern, letters_to_rhymes,
+                                   self.word_form_vocabulary, score_border=rhyme_score_border)
 
         result_paths = []
         indices = []

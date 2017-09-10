@@ -57,6 +57,15 @@ class WordVocabulary:
             self.__dict__.update(vocab.__dict__)
 
 
+def process_tag(to_ud, tag, text):
+    ud_tag = to_ud(str(tag), text)
+    pos = ud_tag.split()[0]
+    gram = ud_tag.split()[1].split("|")
+    dropped = ["Animacy", "Aspect", "NumType"]
+    gram = [grammem for grammem in gram if sum([drop in grammem for drop in dropped]) == 0]
+    return pos, "|".join(sorted(gram))
+
+
 class Loader(object):
     """
     Класс для построения GrammemeVectorizer и WordFormVocabulary по корпусу
@@ -84,14 +93,9 @@ class Loader(object):
 
     def __process_line(self, line: str) -> None:
         text, lemma, pos_tag, grammemes = line.strip().split("\t")[:4]
-        self.word_vocabulary.add_word(text)
+        self.word_vocabulary.add_word(text.lower())
         self.grammeme_vectorizer.add_grammemes(pos_tag, grammemes)
         to_ud = converters.converter('opencorpora-int', 'ud14')
         for parse in self.morph.parse(text):
-            ud_tag = to_ud(str(parse.tag), text)
-            pos = ud_tag.split()[0]
-            gram = ud_tag.split()[1].split("|")
-            dropped = ["Animacy", "Aspect", "NumType"]
-            gram = [grammem for grammem in gram if sum([drop in grammem for drop in dropped]) == 0]
-            gram = "|".join(gram)
+            pos, gram = process_tag(to_ud, parse.tag, text)
             self.grammeme_vectorizer.add_grammemes(pos, gram)
