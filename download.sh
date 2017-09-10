@@ -19,6 +19,6 @@ unzip dict.zip -d ./rupo/data/dict
 rm dict.zip
 
 wget https://www.dropbox.com/s/890c7lape3wdbie/morph.zip
-mkdir -p ./rupo/data/morph
-unzip morph.zip -d ./rupo/data/morph
+mkdir -p ./rupo/data/morpho_models
+unzip morph.zip -d ./rupo/data/morpho_models
 rm morph.zip
