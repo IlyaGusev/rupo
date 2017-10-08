@@ -47,9 +47,5 @@ GENERATOR_GRAM_VECTORS = resource_filename(__name__, "data/generator_models/gram
 
 TEMP_PATH = resource_filename(__name__, "data/temp.txt")
 
-RU_MORPH_DEFAULT_MODEL = resource_filename(__name__, "data/morpho_models/morph_model.h5")
-RU_MORPH_GRAMMEMES_DICT = resource_filename(__name__, "data/morpho_models/gram.pickle")
-RU_MORPH_WORD_VOCAB_DUMP = resource_filename(__name__, "data/morpho_models/word_vocab.pickle")
-
 RU_GRAPHEME_SET = " абвгдеёжзийклмнопрстуфхцчшщьыъэюя-"
 EN_GRAPHEME_SET = " abcdefghijklmnopqrstuvwxyz.'-"
