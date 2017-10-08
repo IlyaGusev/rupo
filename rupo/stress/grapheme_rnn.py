@@ -146,7 +146,7 @@ class RNNGraphemeStressModel:
         :param y: ответы.
         :return: очищенные семплы и овтеты.
         """
-        x = [[self.grapheme_set.find(ch) for ch in p] for p in x]
+        x = [[self.grapheme_set.find(ch) if ch in self.grapheme_set else 0 for ch in p] for p in x]
         x = sequence.pad_sequences(x, maxlen=self.word_max_length, padding='post', truncating='post')
         if y is not None:
             y = y.reshape((y.shape[0], y.shape[1], 1))
