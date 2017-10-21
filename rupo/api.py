@@ -6,19 +6,18 @@ from typing import List, Tuple, Dict
 
 from rupo.files.reader import FileType, Reader
 from rupo.files.writer import Writer
-from rupo.generate.markov import MarkovModelContainer
-from rupo.generate.lstm import LSTMModelContainer
+from rupo.g2p.graphemes import Graphemes
+from rupo.g2p.rnn import RNNG2PModel
 from rupo.generate.generator import Generator
-from rupo.generate.word_form_vocabulary import WordFormVocabulary
+from rupo.generate.language_model.lstm import LSTMModelContainer
+from rupo.generate.language_model.markov import MarkovModelContainer
+from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
 from rupo.main.markup import Markup
 from rupo.main.vocabulary import StressVocabulary
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.rhymes.rhymes import Rhymes
+from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT
 from rupo.stress.predictor import StressPredictor, CombinedStressPredictor
-from rupo.g2p.rnn import RNNG2PModel
-from rupo.g2p.graphemes import Graphemes
-from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, RU_WIKI_DICT, \
-    CMU_DICT, RU_GRAPHEME_SET
 
 
 class Engine:

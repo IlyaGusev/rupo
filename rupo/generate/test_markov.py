@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from rupo.generate.markov import MarkovModelContainer
+from rupo.generate.language_model.markov import MarkovModelContainer
 from rupo.main.vocabulary import StressVocabulary
 from rupo.settings import EXAMPLES_DIR, MARKUP_XML_EXAMPLE
 

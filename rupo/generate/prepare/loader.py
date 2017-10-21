@@ -2,14 +2,14 @@
 # Автор: Даниил Анастасьев
 # Описание: Загрузка словарей из корпуса.
 
+import sys
 from collections import defaultdict, Counter
 from typing import List, Tuple, Dict, Set
-import sys
 
-from rupo.generate.grammeme_vectorizer import GrammemeVectorizer
-from rupo.generate.word_form_vocabulary import WordFormVocabulary, SEQ_END, SEQ_END_WF
-from rupo.generate.word_form import WordForm, LemmaCase
-from rupo.generate.tqdm_open import tqdm_open
+from rupo.generate.prepare.grammeme_vectorizer import GrammemeVectorizer
+from rupo.generate.prepare.word_form import WordForm, LemmaCase
+from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary, SEQ_END, SEQ_END_WF
+from rupo.util.tqdm_open import tqdm_open
 
 
 class CorporaInformationLoader(object):

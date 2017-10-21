@@ -2,16 +2,15 @@
 # Авторы: Гусев Илья, Анастасьев Даниил
 # Описание: Словарь словоформ.
 
-import pickle
 import os
+import pickle
 from collections import Counter
 from typing import List, Dict, Set
+
 from tqdm import tqdm
 
-from rupo.generate.word_form import WordForm, LemmaCase
-from rupo.settings import GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH
-from rupo.main.markup import Word
-from rupo.g2p.graphemes import Graphemes
+from rupo.generate.prepare.word_form import WordForm, LemmaCase
+from rupo.settings import GENERATOR_WORD_FORM_VOCAB_PATH
 
 # Индикатор конца последовательности
 SEQ_END = '</s>'

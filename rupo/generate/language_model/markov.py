@@ -4,14 +4,15 @@
 
 import os
 import pickle
-import numpy as np
 from collections import Counter, defaultdict
 from typing import List, Dict, Tuple
 
+import numpy as np
+
 from rupo.files.reader import Reader, FileType
+from rupo.generate.language_model.model_container import ModelContainer
 from rupo.main.markup import Markup
 from rupo.main.vocabulary import StressVocabulary
-from rupo.generate.model_container import ModelContainer
 
 
 class MarkovModelContainer(ModelContainer):

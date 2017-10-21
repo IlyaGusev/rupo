@@ -7,9 +7,9 @@ from typing import List
 
 import numpy as np
 
+from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
 from rupo.main.vocabulary import StressVocabulary
 from rupo.rhymes.rhymes import Rhymes
-from rupo.generate.word_form_vocabulary import WordFormVocabulary
 from rupo.stress.word import StressedWord
 
 

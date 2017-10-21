@@ -2,16 +2,16 @@
 # Автор: Гусев Илья
 # Описание: Модуль создания стихотворений.
 
-from typing import List
 import copy
+from typing import List
 
 import numpy as np
 from numpy.random import choice
 
 from rupo.generate.filters import MetreFilter, RhymeFilter
+from rupo.generate.language_model.model_container import ModelContainer
+from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
 from rupo.main.vocabulary import StressVocabulary
-from rupo.generate.model_container import ModelContainer
-from rupo.generate.word_form_vocabulary import WordFormVocabulary
 
 
 class BeamPath(object):

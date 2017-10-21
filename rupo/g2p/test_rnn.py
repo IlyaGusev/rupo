@@ -11,8 +11,8 @@ from rupo.stress.phoneme_rnn import RNNPhonemeStressModel
 
 
 def g2p_ru():
-    clf = RNNG2PModel(RU_G2P_DICT_PATH, 30, language="ru", rnn=LSTM, units1=512, units2=512, dropout=0.4,
-                      batch_size=128, emb_dimension=50)
+    clf = RNNG2PModel(RU_G2P_DICT_PATH, 30, language="ru", rnn=LSTM, units1=128, units2=128, dropout=0.4,
+                      batch_size=512, emb_dimension=20)
     clf.build()
     clf.train(G2P_CURRENT_MODEL_DIR, enable_checkpoints=True)
 
@@ -34,8 +34,8 @@ def stress_en():
     clf.build()
     clf.train(ACCENT_CURRENT_MODEL_DIR, enable_checkpoints=True)
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
     # stress_ru()
     # stress_en()
     # g2p_en()
-    # g2p_ru()
+    g2p_ru()

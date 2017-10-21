@@ -20,7 +20,7 @@ class RNNG2PModel:
     phonetic_alphabet = "".join(Phonemes.get_all())
 
     def __init__(self, dict_path: str=None, word_max_length: int=30, language: str = "ru", rnn=LSTM,
-                 units1: int=256, units2: int=256, dropout: float = 0.2, batch_size=2048, emb_dimension=30):
+                 units1: int=256, units2: int=256, dropout: float=0.2, batch_size=2048, emb_dimension=30):
         self.rnn = rnn
         self.dropout = dropout  # type: float
         self.units1 = units1  # type: int
@@ -45,11 +45,9 @@ class RNNG2PModel:
         inp = Input(shape=(None,))
 
         emb = Embedding(len(self.grapheme_alphabet), self.emb_dimension)(inp)
-        encoded = Bidirectional(self.rnn(self.units1//2, return_sequences=True, recurrent_dropout=self.dropout))(emb)
+        encoded = Bidirectional(self.rnn(self.units1, return_sequences=True, recurrent_dropout=self.dropout))(emb)
         encoded = Dropout(self.dropout)(encoded)
-        encoded = TimeDistributed(Dense(self.units2, activation="relu"))(encoded)
-        decoded = Bidirectional(self.rnn(self.units2//2, return_sequences=True, recurrent_dropout=self.dropout))(encoded)
-        decoded = Dropout(self.dropout)(decoded)
+        decoded = TimeDistributed(Dense(self.units2, activation="relu"))(encoded)
         predictions = TimeDistributed(Dense(len(self.phonetic_alphabet), activation="softmax"))(decoded)
 
         model = Model(inputs=inp, outputs=predictions)

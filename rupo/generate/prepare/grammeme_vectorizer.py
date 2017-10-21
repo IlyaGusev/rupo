@@ -2,13 +2,13 @@
 # Авторы: Гусев Илья, Анастасьев Даниил
 # Описание: Модуль векторизатора граммем.
 
-import pickle
 import os
+import jsonpickle
 from collections import defaultdict
 from typing import Dict, List, Set
 
 from rupo.settings import GENERATOR_GRAM_VECTORS
-from rupo.generate.tqdm_open import tqdm_open
+from rupo.util.tqdm_open import tqdm_open
 
 
 def get_empty_category():
@@ -33,12 +33,12 @@ class GrammemeVectorizer:
             self.load()
 
     def save(self) -> None:
-        with open(self.dump_filename, "wb") as f:
-            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+        with open(self.dump_filename, "w") as f:
+            f.write(jsonpickle.encode(self, f))
 
     def load(self):
-        with open(self.dump_filename, "rb") as f:
-            vectorizer = pickle.load(f)
+        with open(self.dump_filename, "r") as f:
+            vectorizer = jsonpickle.decode(f.read())
             self.__dict__.update(vectorizer.__dict__)
 
     def collect_grammemes(self, filename: str) -> None:
@@ -59,7 +59,7 @@ class GrammemeVectorizer:
         """
         Добавить новое грамматическое значение в список известных
         """
-        grammemes = "|".join(sorted(grammemes.strip().split("|")))
+        grammemes = self.__process_tag(grammemes)
         vector_name = pos_tag + '#' + grammemes
         if vector_name not in self.name_to_index:
             self.name_to_index[vector_name] = len(self.name_to_index)
@@ -69,7 +69,6 @@ class GrammemeVectorizer:
                 category = grammeme.split("=")[0]
                 value = grammeme.split("=")[1]
                 self.all_grammemes[category].add(value)
-            self.is_initialized = False
         return self.name_to_index[vector_name]
 
     def init_possible_vectors(self) -> None:
@@ -82,7 +81,6 @@ class GrammemeVectorizer:
             grammemes = grammemes.split("|") if grammemes != "_" else []
             vector = self.__build_vector(pos_tag, grammemes)
             self.vectors.append(vector)
-        self.is_initialized = True
 
     def get_vector(self, vector_name: str) -> List[int]:
         """
@@ -99,7 +97,7 @@ class GrammemeVectorizer:
         """
         Получить вектор по индексу
         
-        :param vector_index
+        :param index: индекс вектора.
         :return: вектор.
         """
         return self.vectors[index] if 0 <= index < len(self.vectors) else [0] * len(self.vectors[0])
@@ -132,8 +130,7 @@ class GrammemeVectorizer:
 
     def get_index_by_name(self, name):
         pos = name.split("#")[0]
-        grammemes = name.split("#")[1]
-        grammemes = "|".join(sorted(grammemes.strip().split("|")))
+        grammemes = self.__process_tag(name.split("#")[1])
         return self.name_to_index[pos + "#" + grammemes]
 
     def __build_vector(self, pos_tag: str, grammemes: List[str]) -> List[int]:
@@ -154,3 +151,7 @@ class GrammemeVectorizer:
             else:
                 vector += [1 if value == gram_tags[category] else 0 for value in sorted(list(values))]
         return vector
+
+    @staticmethod
+    def __process_tag(grammemes):
+        return "|".join(sorted(grammemes.strip().split("|")))

@@ -2,9 +2,9 @@
 # Автор: Гусев Илья
 # Описание: Класс рифм.
 
-from rupo.util.preprocess import VOWELS
-from rupo.generate.word_form_vocabulary import WordFormVocabulary
+from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
 from rupo.stress.word import StressedWord
+from rupo.util.preprocess import VOWELS
 
 
 class RhymeProfile:
