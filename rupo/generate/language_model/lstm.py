@@ -6,19 +6,16 @@ from itertools import islice
 from typing import List, Tuple
 
 import numpy as np
-from keras.layers import Input, Embedding, Dense, LSTM, SpatialDropout1D, TimeDistributed, Bidirectional, \
-    BatchNormalization, Activation, concatenate
-from keras.models import model_from_json, Model, load_model
+from keras.layers import Input, Embedding, Dense, LSTM, SpatialDropout1D, BatchNormalization, \
+    Activation, concatenate, TimeDistributed, Bidirectional
+from keras.models import Model, load_model
 
 from rupo.generate.language_model.model_container import ModelContainer
-from rupo.generate.language_model.batch_generator import BatchGenerator
+from rupo.generate.language_model.batch_generator import BatchGenerator, CHAR_SET
 from rupo.generate.prepare.grammeme_vectorizer import GrammemeVectorizer
 from rupo.generate.prepare.loader import CorporaInformationLoader
 from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
 from rupo.settings import GENERATOR_LSTM_MODEL_PATH, GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_GRAM_VECTORS
-
-CHAR_SET = " абвгдеёжзийклмнопрстуфхцчшщьыъэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯ" \
-           "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,-'\""
 
 
 class LSTMGenerator:
@@ -31,7 +28,7 @@ class LSTMGenerator:
                  dropout: float=0.2, recalculate_softmax=False, max_word_len: int=30, char_embeddings_dimension: int=20,
                  char_lstm_output_dim: int=64):
         """
-        :param embeddings_size: размер входного слоя (=размер словаря)
+        :param embedding_size: размер входного слоя (=размер словаря)
         :param softmax_size: размер выхода softmax-слоя (=размер итогового набора вероятностей)
         :param external_batch_size: размер набора семплов для BatchGenerator'а.
         :param nn_batch_size: размер набора семплов для обучения.
@@ -53,7 +50,7 @@ class LSTMGenerator:
         self.char_embeddings_dimension = char_embeddings_dimension  # type: int
         self.char_lstm_output_dim = char_lstm_output_dim  # type: int
         self.model = None  # type: Model
-        self.recalculate_softmax = recalculate_softmax
+        self.recalculate_softmax = recalculate_softmax  # type: bool
 
     def prepare(self, filenames: List[str]=list(),
                 word_form_vocab_dump_path: str=GENERATOR_WORD_FORM_VOCAB_PATH,
@@ -76,24 +73,11 @@ class LSTMGenerator:
             self.softmax_size = self.word_form_vocabulary.get_softmax_size_by_lemma_size(self.embedding_size)
             print("Recalculated softmax: ", self.softmax_size)
 
-    def load(self, model_filename: str) -> None:
-        """
-        Загрузка модели.
-        
-        :param model_filename: файл с моделью.
-        """
-        self.model = load_model(model_filename)
+    def save(self, model_filename: str):
+        self.model.save(model_filename)
 
-    def load_with_weights(self, json_filename: str, weights_filename: str) -> None:
-        """
-        Загрузка модели из json описания и файла с весами.
-        
-        :param json_filename: json описание.
-        :param weights_filename: файл с весам.
-        """
-        json_string = open(json_filename, 'r', encoding='utf8').readline()
-        self.model = model_from_json(json_string)
-        self.model.load_weights(weights_filename)
+    def load(self, model_filename: str) -> None:
+        self.model = load_model(model_filename)
 
     def build(self):
         """
@@ -156,6 +140,7 @@ class LSTMGenerator:
         :param validation_size: размер val выборки.
         :param validation_verbosity: каждый validation_verbosity-шаг делается валидация.
         :param dump_model_freq: каждый dump_model_freq-шаг сохраняется модель.
+        :param save_path: путь, куда сохранять модель.
         :param start_epoch: эпоха, с которой надо начать.
         """
         batch_generator = BatchGenerator(filenames,
@@ -167,7 +152,8 @@ class LSTMGenerator:
                                          grammeme_vectorizer=self.grammeme_vectorizer,
                                          max_word_len=self.max_word_len)
 
-        lemmas_val, grammemes_val, chars_val, y_val = LSTMGenerator.__get_validation_data(batch_generator, validation_size)
+        lemmas_val, grammemes_val, chars_val, y_val = \
+            LSTMGenerator.__get_validation_data(batch_generator, validation_size)
         for big_epoch in range(0, 1000):
             print('------------Big Epoch {}------------'.format(big_epoch))
             for epoch, (lemmas, grammemes, chars, y) in enumerate(batch_generator):
@@ -191,7 +177,7 @@ class LSTMGenerator:
                 print()
 
                 if epoch != 0 and epoch % dump_model_freq == 0:
-                    self.model.save(save_path)
+                    self.save(save_path)
 
     def predict(self, word_indices: List[int]) -> np.array:
         """

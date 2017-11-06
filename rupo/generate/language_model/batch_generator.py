@@ -2,11 +2,13 @@ from typing import List, Tuple
 
 import numpy as np
 
-from rupo.generate.language_model.lstm import CHAR_SET
 from rupo.generate.prepare.grammeme_vectorizer import GrammemeVectorizer
 from rupo.generate.prepare.word_form import WordForm
 from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary, SEQ_END_WF
 from rupo.util.tqdm_open import tqdm_open
+
+CHAR_SET = " абвгдеёжзийклмнопрстуфхцчшщьыъэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯ" \
+           "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,-'\""
 
 
 class BatchGenerator:
@@ -106,27 +108,30 @@ class BatchGenerator:
         :return: индексы словоформ, грамматические векторы, ответы-индексы.
         """
         for filename in self.filenames:
-            yield self.__parse_file(filename)
-
-    def __parse_file(self, filename: str):
-        sentences = [[]]
-        with tqdm_open(filename, encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                word_form = self.__parse_line(line)
-                sentences[-1].append(word_form)
-                if word_form == SEQ_END_WF:
-                    sentences.append([])
-                if len(sentences) >= self.batch_size:
-                    sentences, next_words = self.__generate_seqs(sentences)
-                    yield self.__to_tensor(sentences, next_words)
-                    sentences = [[]]
+            sentences = [[]]
+            next_words = []
+            with tqdm_open(filename, encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    word_form = self.__parse_line(line)
+                    sentences[-1].append(word_form)
+                    if word_form == SEQ_END_WF:
+                        sentences.append([])
+                    if len(sentences) >= self.batch_size:
+                        sentences, next_words = self.__generate_seqs(sentences)
+                        yield self.__to_tensor(sentences, next_words)
+                        sentences = [[]]
+            if len(sentences) != 0:
+                yield self.__to_tensor(sentences, next_words)
 
     def __parse_line(self, line: str) -> WordForm:
         line = line.strip()
-        if len(line) != 0:
-            word, lemma, pos, tags = line.split('\t')[:4]
-            word, lemma = word.lower(), lemma.lower() + '_' + pos
-            gram_vector_index = self.grammeme_vectorizer.get_index_by_name(pos + "#" + tags)
-            return WordForm(lemma, gram_vector_index, word)
+        try:
+            if len(line) != 0:
+                word, lemma, pos, tags = line.split('\t')[:4]
+                word, lemma = word.lower(), lemma.lower() + '_' + pos
+                gram_vector_index = self.grammeme_vectorizer.get_index_by_name(pos + "#" + tags)
+                return WordForm(lemma, gram_vector_index, word)
+        except ValueError:
+            pass
         return SEQ_END_WF
