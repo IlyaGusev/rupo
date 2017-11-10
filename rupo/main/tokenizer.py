@@ -2,6 +2,7 @@
 # Автор: Гусев Илья
 # Описание: Модуль токенизации.
 
+import re
 from typing import List
 from enum import Enum, unique
 
@@ -19,6 +20,7 @@ class Token:
         PUNCTUATION = 1
         SPACE = 2
         ENDLINE = 3
+        NUMBER = 4
 
         def __str__(self):
             return str(self.name)
@@ -53,13 +55,14 @@ class Tokenizer(object):
     Класс токенизации.
     """
     @staticmethod
-    def tokenize(text: str) -> List[Token]:
+    def tokenize(text: str, remove_punct=False, remove_unknown=False, replace_numbers=False) -> List[Token]:
         """
         Токенизация текстов на русском языке с учётом знаков препинания и слов с дефисами.
 
         :param text: исходный текст.
         :return: список токенов.
         """
+        text = text.strip()
         tokens = []
         punctuation = ".,?:;!—"
         begin = -1
@@ -69,11 +72,7 @@ class Tokenizer(object):
                     begin = i
             else:
                 if begin != -1:
-                    word = text[begin:i]
-                    if word != "-":
-                        tokens.append(Token(word, Token.TokenType.WORD, begin, i))
-                    else:
-                        tokens.append(Token("-", Token.TokenType.PUNCTUATION, begin, begin+1))
+                    tokens.append(Tokenizer.__form_token(text, begin, i))
                     begin = -1
                 token_type = Token.TokenType.UNKNOWN
                 if ch in punctuation:
@@ -82,15 +81,35 @@ class Tokenizer(object):
                     token_type = Token.TokenType.ENDLINE
                 elif ch == " ":
                     token_type = Token.TokenType.SPACE
-                tokens.append(Token(ch, token_type, i, i + 1))
+                elif ch.isdigit():
+                    token_type = Token.TokenType.NUMBER
+                if len(tokens) != 0 and tokens[-1].token_type == token_type:
+                    tokens[-1].text += ch
+                    tokens[-1].end += 1
+                else:
+                    tokens.append(Token(ch, token_type, i, i + 1))
         if begin != -1:
-            word = text[begin:len(text)]
-            if word != "-":
-                tokens.append(Token(word, Token.TokenType.WORD, begin, len(text)))
-            else:
-                tokens.append(Token("-", Token.TokenType.PUNCTUATION, begin, begin+1))
+            tokens.append(Tokenizer.__form_token(text, begin, len(text)))
         tokens = Tokenizer.__hyphen_map(tokens)
+        if remove_punct:
+            tokens = [token for token in tokens if token.token_type != Token.TokenType.PUNCTUATION]
+        if remove_unknown:
+            tokens = [token for token in tokens if token.token_type != Token.TokenType.UNKNOWN]
+        if replace_numbers:
+            for token in tokens:
+                if token.token_type != Token.TokenType.NUMBER:
+                    continue
+                token.text = "ЧИСЛО"
+                token.token_type = Token.TokenType.WORD
         return tokens
+
+    @staticmethod
+    def __form_token(text, begin, end):
+        word = text[begin:end]
+        if word != "-":
+            return Token(word, Token.TokenType.WORD, begin, end)
+        else:
+            return Token("-", Token.TokenType.PUNCTUATION, begin, begin + 1)
 
     @staticmethod
     def __hyphen_map(tokens: List[Token]) -> List[Token]:
@@ -130,3 +149,10 @@ class Tokenizer(object):
         with open(HYPHEN_TOKENS, "r", encoding="utf-8") as file:
             hyphen_tokens = [token.strip() for token in file.readlines()]
             return hyphen_tokens
+
+
+class SentenceTokenizer(object):
+    @staticmethod
+    def tokenize(text: str) -> List[str]:
+        m = re.split(r'(?<=[^А-ЯЁ].[^А-ЯЁ][.?!;]) +(?=[А-ЯЁ])', text)
+        return m
