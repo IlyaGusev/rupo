@@ -38,6 +38,5 @@ class TestMarkup(unittest.TestCase):
     def test_process_text(self):
         text = "Соломка король себя.\n Пора виться майкой в."
         markup = Markup.process_text(text, self.stress_predictor)
-        print(markup)
         self.assertEqual(markup, MARKUP_EXAMPLE)
 
