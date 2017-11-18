@@ -134,7 +134,6 @@ class TestMetreClassifier(unittest.TestCase):
                "То, как зверь, она завоет,\n" \
                "То заплачет, как дитя..."
         initial_markup = Markup.process_text(text, self.stress_predictor)
-        self.assertEqual(initial_markup.lines[0].words[0].syllables[0].stress, -1)
         markup, result = MetreClassifier.improve_markup(copy.deepcopy(initial_markup))
         self.assertNotEqual(markup.lines[0].words[0].syllables[0].stress, -1)
         self.assertEqual(markup.lines[0].words[0].syllables[1].stress, -1)
