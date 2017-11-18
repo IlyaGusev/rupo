@@ -62,7 +62,6 @@ class Tokenizer(object):
         :param text: исходный текст.
         :return: список токенов.
         """
-        text = text.strip()
         tokens = []
         punctuation = ".,?:;!—"
         begin = -1

@@ -7,8 +7,8 @@ import unittest
 from rupo.util.data import MARKUP_EXAMPLE
 from rupo.main.markup import Markup
 from rupo.stress.predictor import CombinedStressPredictor
-from rupo.settings import RU_STRESS_DEFAULT_MODEL, RU_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT, RU_WIKI_DICT, \
-    RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH, RU_ALIGNER_DEFAULT_PATH, RU_G2P_DICT_PATH
+from rupo.settings import RU_STRESS_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT, \
+    RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH
 
 
 class TestMarkup(unittest.TestCase):
@@ -21,6 +21,9 @@ class TestMarkup(unittest.TestCase):
             raw_stress_dict_path=RU_GRAPHEME_STRESS_PATH,
             stress_trie_path=RU_GRAPHEME_STRESS_TRIE_PATH
         )
+        # cls.stress_predictor = DictStressPredictor(raw_dict_path=RU_GRAPHEME_STRESS_PATH,
+        #                                            trie_path=RU_GRAPHEME_STRESS_TRIE_PATH,
+        #                                            zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT)
 
     @classmethod
     def tearDownClass(cls):
@@ -35,5 +38,6 @@ class TestMarkup(unittest.TestCase):
     def test_process_text(self):
         text = "Соломка король себя.\n Пора виться майкой в."
         markup = Markup.process_text(text, self.stress_predictor)
+        print(markup)
         self.assertEqual(markup, MARKUP_EXAMPLE)
 

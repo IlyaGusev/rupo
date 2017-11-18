@@ -20,6 +20,11 @@ class TestTokenizer(unittest.TestCase):
             Token('когда', Token.TokenType.WORD, 17, 22),
             Token('?', Token.TokenType.PUNCTUATION, 22, 23)])
 
+        text = " Пора"
+        self.assertEqual(Tokenizer.tokenize(text), [
+            Token(' ', Token.TokenType.SPACE, 0, 1),
+            Token('Пора', Token.TokenType.WORD, 1, 5)])
+
     def test_numbers(self):
         text = "Очевидно, 1 января 1970 года..."
         self.assertEqual(Tokenizer.tokenize(text), [

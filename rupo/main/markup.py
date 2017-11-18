@@ -270,17 +270,20 @@ class Markup(CommonMixin):
         words = []
         text_lines = text.split("\n")
         for text_line in text_lines:
+            print(text_line)
             tokens = [token for token in Tokenizer.tokenize(text_line) if token.token_type == Token.TokenType.WORD]
+            print(tokens)
             for token in tokens:
                 word = Word(begin_line + token.begin, begin_line + token.end, token.text,
                             Graphemes.get_syllables(token.text))
                 # Проставляем ударения.
-                stresses = stress_predictor.predict(token.text)
+                stresses = stress_predictor.predict(token.text.lower())
                 # Сопоставляем ударения слогам.
                 if len(word.syllables) > 1:
                     word.set_stresses(stresses)
                 words.append(word)
             end_line = begin_line + len(text_line)
+            print(end_line)
             lines.append(Line(begin_line, end_line, text_line, words))
             words = []
             begin_line = end_line + 1
