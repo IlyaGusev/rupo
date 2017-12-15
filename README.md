@@ -26,8 +26,8 @@ sh download.sh
 >>> from rupo.api import Engine
 >>> engine = Engine(language="ru")
 >>> engine.load(<stress model path>, <zalyzniak dict path>)
->>> engine.get_stress("корова")
-3
+>>> engine.get_stresses("корова")
+[3]
 
 >>> engine.get_word_syllables("корова")
 ["ко", "ро", "ва"]
