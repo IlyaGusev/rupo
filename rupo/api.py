@@ -30,13 +30,12 @@ class Engine:
         self.g2p_models = dict()  # type: Dict[str, RNNG2PModel]
         self.stress_predictors = dict()  # type: Dict[str, StressPredictor]
 
-    def load(self, stress_model_path: str=None, g2p_model_path: str=None, raw_stress_dict_path=None,
-             stress_trie_path=None, zalyzniak_dict=ZALYZNYAK_DICT):
+    def load(self, stress_model_path: str, zalyzniak_dict: str, raw_stress_dict_path=None,
+             stress_trie_path=None):
         self.g2p_models = dict()
         self.stress_predictors = dict()
         self.get_stress_predictor(self.language, stress_model_path, raw_stress_dict_path,
                                   stress_trie_path, zalyzniak_dict)
-        self.get_g2p_model(self.language, g2p_model_path)
 
     def get_vocabulary(self, dump_path: str, markup_path: str) -> StressVocabulary:
         if self.vocabulary is None:

@@ -16,7 +16,7 @@ sudo pip3 install rupo
 ```
 >>> from rupo.api import Engine
 >>> engine = Engine(language="ru")
->>> engine.load()
+>>> engine.load(<stress model path>, <zalyzniak dict path>)
 >>> engine.get_stress("корова")
 3
 

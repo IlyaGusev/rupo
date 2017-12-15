@@ -33,11 +33,11 @@ class GrammemeVectorizer:
             self.load()
 
     def save(self) -> None:
-        with open(self.dump_filename, "w") as f:
+        with open(self.dump_filename, "w", encoding='utf-8') as f:
             f.write(jsonpickle.encode(self, f))
 
     def load(self):
-        with open(self.dump_filename, "r") as f:
+        with open(self.dump_filename, "r", encoding='utf-8') as f:
             vectorizer = jsonpickle.decode(f.read())
             self.__dict__.update(vectorizer.__dict__)
 

@@ -7,8 +7,8 @@ import os
 import random
 
 from rupo.settings import MARKUP_XML_EXAMPLE, EXAMPLES_DIR, GENERATOR_LSTM_MODEL_PATH, \
-    GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH, GENERATOR_GRAM_VECTORS, RU_STRESS_DEFAULT_MODEL, \
-    RU_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, RU_GRAPHEME_STRESS_PATH, RU_GRAPHEME_STRESS_TRIE_PATH
+    GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH, GENERATOR_GRAM_VECTORS, RU_STRESS_DEFAULT_MODEL,\
+    ZALYZNYAK_DICT
 from rupo.main.markup import Markup
 from rupo.api import Engine
 
@@ -19,10 +19,7 @@ class TestApi(unittest.TestCase):
         cls.engine = Engine(language="ru")
         cls.engine.load(
             stress_model_path=RU_STRESS_DEFAULT_MODEL,
-            g2p_model_path=RU_G2P_DEFAULT_MODEL,
-            zalyzniak_dict=ZALYZNYAK_DICT,
-            raw_stress_dict_path=RU_GRAPHEME_STRESS_PATH,
-            stress_trie_path=RU_GRAPHEME_STRESS_TRIE_PATH
+            zalyzniak_dict=ZALYZNYAK_DICT
         )
 
     @classmethod
@@ -91,6 +88,6 @@ class TestApi(unittest.TestCase):
             self.assertIsNotNone(poem)
 
     def test_get_word_rhymes(self):
-        vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
+        vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab_rhymes.pickle")
         self.assertEqual(self.engine.get_word_rhymes("глядел", vocab_dump_file, MARKUP_XML_EXAMPLE), ["сидел", "летел"])
         os.remove(vocab_dump_file)

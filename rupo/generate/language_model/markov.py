@@ -27,7 +27,7 @@ class MarkovModelContainer(ModelContainer):
         self.dump_filename = dump_filename
 
         # Делаем дамп модели для ускорения загрузки.
-        if os.path.isfile(dump_filename):
+        if os.path.exists(self.dump_filename) and os.path.isfile(self.dump_filename):
             self.load()
         else:
             i = 0
