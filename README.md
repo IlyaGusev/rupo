@@ -11,6 +11,15 @@
 sudo pip3 install rupo
 ```
 
+or
+
+```
+git clone https://github.com/IlyaGusev/rupo
+cd rupo
+pip3 install -r requirements.txt
+sh download.sh
+```
+
 ### Usage manual ###
 #### Analysis ####
 ```

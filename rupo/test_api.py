@@ -71,8 +71,10 @@ class TestApi(unittest.TestCase):
         self.assertIsNotNone(
             self.engine.generate_markov_poem(MARKUP_XML_EXAMPLE, markov_dump_file, vocab_dump_file,
                                              rhyme_pattern="a", n_syllables=4, beam_width=20, metre_schema="-+"))
-        os.remove(vocab_dump_file)
-        os.remove(markov_dump_file)
+        if os.path.exists(vocab_dump_file):
+            os.remove(vocab_dump_file)
+        if os.path.exists(markov_dump_file):
+            os.remove(markov_dump_file)
         self.engine.vocabulary = None
         self.engine.markov = None
         self.engine.markov_generator = None
