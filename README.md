@@ -49,7 +49,7 @@ iambos
 ```
 
 ### Models ###
-* Generator: https://www.dropbox.com/s/7miw59j7mxmbyga/generator_models_v2.zip
+* Generator: https://www.dropbox.com/s/36tbsww1ncj9uh9/generator_models_18_11.zip
 * Stress predictor: https://www.dropbox.com/s/31pyubqskp4krsd/stress_models_light.zip
 * G2P: https://www.dropbox.com/s/7rk135fzd3i8kfw/g2p_models.zip
 * Dictionaries: https://www.dropbox.com/s/znqlrb1xblh3amo/dict.zip
