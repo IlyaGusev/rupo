@@ -12,6 +12,7 @@ from rupo.generate.filters import MetreFilter, RhymeFilter
 from rupo.generate.language_model.model_container import ModelContainer
 from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
 from rupo.main.vocabulary import StressVocabulary
+from rupo.stress.word import Stress, StressedWord
 
 
 class BeamPath(object):
@@ -130,6 +131,8 @@ class Generator(object):
         indices = []
         if self.word_form_vocabulary is not None:
             indices = [self.word_form_vocabulary.get_sequence_end_index()]
+        else:
+            indices = [self.vocabulary.get_word_index(StressedWord("хорошо", {Stress(5)}))]
         empty_path = BeamPath(indices, metre_filter, rhyme_filter, 1.0, [])
         paths = [empty_path]
         while len(paths) != 0:
@@ -223,7 +226,7 @@ class Generator(object):
         return [np.random.randint(1, size) for _ in range(n)]
 
     @staticmethod
-    def __choose(model: np.array, n: int=1):
+    def __choose(model: np.array, n: int=1) -> np.array:
         """
         Выбор слова из языковой модели.
 
