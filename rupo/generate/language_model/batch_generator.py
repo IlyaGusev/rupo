@@ -55,6 +55,7 @@ class BatchGenerator:
                     continue
                 seqs.append(current_part)
                 next_words.append(word_form)
+        assert len(seqs) == len(next_words)
         return seqs, next_words
 
     def __to_tensor(self, sentences: List[List[WordForm]], next_words: List[WordForm]) -> \
@@ -109,7 +110,6 @@ class BatchGenerator:
         """
         for filename in self.filenames:
             sentences = [[]]
-            next_words = []
             with tqdm_open(filename, encoding='utf-8') as f:
                 for line in f:
                     line = line.strip()
@@ -122,6 +122,7 @@ class BatchGenerator:
                         yield self.__to_tensor(sentences, next_words)
                         sentences = [[]]
             if len(sentences) != 0:
+                sentences, next_words = self.__generate_seqs(sentences)
                 yield self.__to_tensor(sentences, next_words)
 
     def __parse_line(self, line: str) -> WordForm:

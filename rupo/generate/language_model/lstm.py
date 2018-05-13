@@ -65,7 +65,7 @@ class LSTMGenerator:
         self.grammeme_vectorizer = GrammemeVectorizer(gram_dump_path)
         self.word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
         if self.grammeme_vectorizer.is_empty() or self.word_form_vocabulary.is_empty():
-            loader = CorporaInformationLoader()
+            loader = CorporaInformationLoader(gram_dump_path, word_form_vocab_dump_path)
             self.word_form_vocabulary, self.grammeme_vectorizer = loader.parse_corpora(filenames)
             self.grammeme_vectorizer.save()
             self.word_form_vocabulary.save()
@@ -132,7 +132,8 @@ class LSTMGenerator:
 
     def train(self, filenames: List[str], validation_size: int=5,
               validation_verbosity: int=5, dump_model_freq: int=10,
-              save_path: str=GENERATOR_LSTM_MODEL_PATH, start_epoch: int=0) -> None:
+              save_path: str=GENERATOR_LSTM_MODEL_PATH, start_epoch: int=0,
+              big_epochs: int=10) -> None:
         """
         Обучение модели.
         
@@ -142,6 +143,7 @@ class LSTMGenerator:
         :param dump_model_freq: каждый dump_model_freq-шаг сохраняется модель.
         :param save_path: путь, куда сохранять модель.
         :param start_epoch: эпоха, с которой надо начать.
+        :param big_epochs: количество полных проходов по корпусу
         """
         batch_generator = BatchGenerator(filenames,
                                          batch_size=self.external_batch_size,
@@ -154,7 +156,7 @@ class LSTMGenerator:
 
         lemmas_val, grammemes_val, chars_val, y_val = \
             LSTMGenerator.__get_validation_data(batch_generator, validation_size)
-        for big_epoch in range(0, 1000):
+        for big_epoch in range(big_epochs):
             print('------------Big Epoch {}------------'.format(big_epoch))
             for epoch, (lemmas, grammemes, chars, y) in enumerate(batch_generator):
                 if epoch < start_epoch:

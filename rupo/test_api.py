@@ -66,6 +66,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(self.engine.classify_metre(text), "iambos")
 
     def test_markov_generate_poem(self):
+        random.seed(42)
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
         markov_dump_file = os.path.join(EXAMPLES_DIR, "markov.pickle")
         self.assertIsNotNone(

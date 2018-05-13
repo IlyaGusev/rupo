@@ -109,18 +109,20 @@ class WordFormVocabulary(object):
                 return i
         assert False
 
-    def inflate_vocab(self, dump_path, top_n=None) -> None:
+    def inflate_vocab(self, dump_path, stress_predictor=None, top_n=None) -> None:
         """
         Получение словаря с ударениями по этому словарю.
         
         :param top_n: сколько первых записей взять?
         :param dump_path: путь, куда сохранить словарь.
+        :param stress_predictor: предсказатель ударений
         """
         from rupo.main.vocabulary import StressVocabulary
         from rupo.stress.word import StressedWord, Stress
         from rupo.stress.predictor import CombinedStressPredictor
         vocab = StressVocabulary(dump_path)
-        stress_predictor = CombinedStressPredictor()
+        if stress_predictor is None:
+            stress_predictor = CombinedStressPredictor()
         forms = self.word_forms
         if top_n is not None:
             forms = forms[:top_n]

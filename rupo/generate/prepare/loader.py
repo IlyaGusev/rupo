@@ -16,9 +16,9 @@ class CorporaInformationLoader(object):
     """
     Класс для построения GrammemeVectorizer и WordFormVocabulary по корпусу
     """
-    def __init__(self):
-        self.grammeme_vectorizer = GrammemeVectorizer()
-        self.word_form_vocabulary = WordFormVocabulary()
+    def __init__(self, gram_dump_path, word_form_vocab_dump_path):
+        self.grammeme_vectorizer = GrammemeVectorizer(gram_dump_path)
+        self.word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
         self.lemma_to_word_forms = defaultdict(set)  # type: Dict[str, Set[WordForm]]
         self.lemma_case = {}
         self.lemma_counter = Counter()  # type: Counter

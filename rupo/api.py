@@ -12,8 +12,10 @@ from rupo.generate.generator import Generator
 from rupo.generate.language_model.lstm import LSTMModelContainer
 from rupo.generate.language_model.markov import MarkovModelContainer
 from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
+from rupo.generate.language_model.lstm import LSTMGenerator
 from rupo.main.markup import Markup
 from rupo.main.vocabulary import StressVocabulary
+from rupo.main.morph import Morph
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.rhymes.rhymes import Rhymes
 from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT
@@ -180,9 +182,43 @@ class Engine:
         generator = self.get_markov_generator(dump_path, vocab_dump_path, markup_path)
         return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables, beam_width=beam_width)
 
-    def generate_poem(self, model_path: str, word_form_vocab_dump_path: str, gram_dump_path: str,
-                      stress_vocab_dump_path: str, metre_schema: str="-+",
-                      rhyme_pattern: str="abab", n_syllables: int=8, beam_width: int=5) -> str:
+    def train_rnn_model(self, filenames: List[str],
+                        morph_filename: str,
+                        gram_vectorizer_path: str,
+                        word_form_vocabulary_path: str,
+                        stress_vocabulary_path: str,
+                        model_path: str,
+                        nn_batch_size: int=128,
+                        lstm_units: int=128,
+                        dense_units: int=128,
+                        embedding_size: int=5000,
+                        softmax_size: int=10000,
+                        external_batch_size: int=100,
+                        validation_size: int=1,
+                        validation_verbosity: int=1,
+                        dump_model_freq: int=1,
+                        big_epochs: int=10):
+        Morph.get_morph_markup(filenames, morph_filename)
+        lstm = LSTMGenerator(nn_batch_size=nn_batch_size, lstm_units=lstm_units,
+                             dense_units=dense_units, embedding_size=embedding_size,
+                             softmax_size=softmax_size, external_batch_size=external_batch_size)
+        lstm.prepare([morph_filename, ], word_form_vocabulary_path, gram_vectorizer_path)
+        vocabulary = WordFormVocabulary(word_form_vocabulary_path)
+        vocabulary.inflate_vocab(stress_vocabulary_path, self.get_stress_predictor())
+        lstm.build()
+        lstm.train([morph_filename, ], validation_size=validation_size,
+                   validation_verbosity=validation_verbosity, dump_model_freq=dump_model_freq,
+                   save_path=model_path, big_epochs=big_epochs)
+
+    def generate_poem(self,
+                      model_path: str,
+                      word_form_vocab_dump_path: str,
+                      gram_dump_path: str,
+                      stress_vocab_dump_path: str,
+                      metre_schema: str="-+",
+                      rhyme_pattern: str="abab",
+                      n_syllables: int=8,
+                      beam_width: int=5) -> str:
         """
         Сгенерировать стих.
 
