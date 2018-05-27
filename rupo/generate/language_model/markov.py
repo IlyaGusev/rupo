@@ -44,12 +44,10 @@ class MarkovModelContainer(ModelContainer):
     def save(self):
         with open(self.dump_filename, "wb") as f:
             pickle.dump(self.transitions, f, pickle.HIGHEST_PROTOCOL)
-        self.vocabulary.save()
 
     def load(self):
         with open(self.dump_filename, "rb") as f:
             self.transitions = pickle.load(f)
-        self.vocabulary.load()
 
     def generate_chain(self, words: List[int]) -> Dict[Tuple, Counter]:
         """

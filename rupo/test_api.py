@@ -93,4 +93,4 @@ class TestApi(unittest.TestCase):
     def test_get_word_rhymes(self):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab_rhymes.pickle")
         self.assertEqual(self.engine.get_word_rhymes("глядел", vocab_dump_file, MARKUP_XML_EXAMPLE), ["сидел", "летел"])
-        os.remove(vocab_dump_file)
+

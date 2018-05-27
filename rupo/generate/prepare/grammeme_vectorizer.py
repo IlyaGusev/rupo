@@ -17,34 +17,29 @@ def get_empty_category():
 
 class GrammemeVectorizer:
     """
-    Класс, который собирает возможные грамматические значения по корпусу и на их основе строит грамматические вектора.
+    Класс, который собирает возможные грамматические значения по корпусу
+    и на их основе строит грамматические вектора.
     """
     UNKNOWN_VALUE = "Unknown"
 
-    def __init__(self, dump_filename: str=GENERATOR_GRAM_VECTORS):
-        """
-        :param dump_filename: путь к дампу.
-        """
+    def __init__(self):
         self.all_grammemes = defaultdict(get_empty_category)  # type: Dict[str, Set]
         self.vectors = []  # type: List[List[int]]
         self.name_to_index = {}  # type: Dict[str, int]
-        self.dump_filename = dump_filename  # type: str
-        if os.path.exists(self.dump_filename):
-            self.load()
 
-    def save(self) -> None:
-        with open(self.dump_filename, "w", encoding='utf-8') as f:
+    def save(self, dump_filename: str=GENERATOR_GRAM_VECTORS) -> None:
+        with open(dump_filename, "w", encoding='utf-8') as f:
             f.write(jsonpickle.encode(self, f))
 
-    def load(self):
-        with open(self.dump_filename, "r", encoding='utf-8') as f:
+    def load(self, dump_filename: str=GENERATOR_GRAM_VECTORS):
+        with open(dump_filename, "r", encoding='utf-8') as f:
             vectorizer = jsonpickle.decode(f.read())
             self.__dict__.update(vectorizer.__dict__)
 
     def collect_grammemes(self, filename: str) -> None:
         """
         Собрать возможные грамматические значения по файлу с морфоразметкой.
-        
+
         :param filename: файл с морфоразметкой.
         """
         with tqdm_open(filename, encoding="utf-8") as f:
@@ -85,7 +80,7 @@ class GrammemeVectorizer:
     def get_vector(self, vector_name: str) -> List[int]:
         """
         Получить вектор по грамматическим значениям.
-        
+
         :param vector_name: часть речи + грамматическое значение.
         :return: вектор.
         """
@@ -96,7 +91,7 @@ class GrammemeVectorizer:
     def get_vector_by_index(self, index: int) -> List[int]:
         """
         Получить вектор по индексу
-        
+
         :param index: индекс вектора.
         :return: вектор.
         """
@@ -105,7 +100,7 @@ class GrammemeVectorizer:
     def get_ordered_grammemes(self) -> List[str]:
         """
         Получить упорядоченный список возможных грамматических значений.
-        
+
         :return: список грамматических значений.
         """
         flat = []
@@ -136,7 +131,7 @@ class GrammemeVectorizer:
     def __build_vector(self, pos_tag: str, grammemes: List[str]) -> List[int]:
         """
         Построение вектора по части речи и грамматическим значениям.
-        
+
         :param pos_tag: часть речи.
         :param grammemes: грамматические значения.
         :return: вектор.

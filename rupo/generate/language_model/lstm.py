@@ -2,6 +2,7 @@
 # Авторы: Анастасьев Даниил, Гусев Илья
 # Описание: Модуль рекуррентой сети для генерации языковой модели.
 
+import os
 from itertools import islice
 from typing import List, Tuple
 
@@ -57,13 +58,17 @@ class LSTMGenerator:
                 gram_dump_path: str=GENERATOR_GRAM_VECTORS) -> None:
         """
         Подготовка векторизатора грамматических значений и словаря словоформ по корпусу.
-        
+
         :param filenames: имена файлов с морфоразметкой.
         :param word_form_vocab_dump_path: путь к дампу словаря словоформ.
         :param gram_dump_path: путь к векторам грамматических значений.
         """
-        self.grammeme_vectorizer = GrammemeVectorizer(gram_dump_path)
-        self.word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
+        self.grammeme_vectorizer = GrammemeVectorizer()
+        if os.path.isfile(gram_dump_path):
+            self.grammeme_vectorizer.load(gram_dump_path)
+        self.word_form_vocabulary = WordFormVocabulary()
+        if os.path.isfile(word_form_vocab_dump_path):
+            self.word_form_vocabulary.load(word_form_vocab_dump_path)
         if self.grammeme_vectorizer.is_empty() or self.word_form_vocabulary.is_empty():
             loader = CorporaInformationLoader(gram_dump_path, word_form_vocab_dump_path)
             self.word_form_vocabulary, self.grammeme_vectorizer = loader.parse_corpora(filenames)

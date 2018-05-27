@@ -2,6 +2,7 @@
 # Автор: Даниил Анастасьев
 # Описание: Загрузка словарей из корпуса.
 
+import os
 import sys
 from collections import defaultdict, Counter
 from typing import List, Tuple, Dict, Set
@@ -17,8 +18,12 @@ class CorporaInformationLoader(object):
     Класс для построения GrammemeVectorizer и WordFormVocabulary по корпусу
     """
     def __init__(self, gram_dump_path, word_form_vocab_dump_path):
-        self.grammeme_vectorizer = GrammemeVectorizer(gram_dump_path)
-        self.word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
+        self.grammeme_vectorizer = GrammemeVectorizer()
+        if os.path.isfile(gram_dump_path):
+            self.grammeme_vectorizer.load(gram_dump_path)
+        self.word_form_vocabulary = WordFormVocabulary()
+        if os.path.isfile(word_form_vocab_dump_path):
+            self.word_form_vocabulary.load(word_form_vocab_dump_path)
         self.lemma_to_word_forms = defaultdict(set)  # type: Dict[str, Set[WordForm]]
         self.lemma_case = {}
         self.lemma_counter = Counter()  # type: Counter

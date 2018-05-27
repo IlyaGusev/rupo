@@ -15,42 +15,34 @@ class StressVocabulary(object):
     """
     Индексированный словарь.
     """
-    def __init__(self, dump_filename: str, markup_path: str=None, from_voc: bool=False) -> None:
-        """
-        :param dump_filename: файл, в который сохранется словарь.
-        :param markup_path: файл/папка с разметками.
-        """
-        self.dump_filename = dump_filename
+    def __init__(self) -> None:
         self.word_to_index = {}  # type: Dict[StressedWord, int]
         self.index_to_word = {}  # type: Dict[int, StressedWord]
 
-        if os.path.isfile(self.dump_filename):
-            self.load()
-        elif markup_path is not None:
-            if from_voc:
-                word_indexes = Reader.read_vocabulary(markup_path)
-                for word, index in word_indexes:
-                    self.add_word(word.to_stressed_word(), index)
-            else:
-                markups = Reader.read_markups(markup_path, FileType.XML, is_processed=True)
-                for markup in markups:
-                    self.add_markup(markup)
-            self.save()
-
-    def save(self) -> None:
+    def save(self, dump_filename: str) -> None:
         """
         Сохранение словаря.
         """
-        with open(self.dump_filename, "wb") as f:
+        with open(dump_filename, "wb") as f:
             pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
 
-    def load(self):
+    def load(self, dump_filename: str):
         """
         Загрузка словаря.
         """
-        with open(self.dump_filename, "rb") as f:
+        with open(dump_filename, "rb") as f:
             vocab = pickle.load(f)
             self.__dict__.update(vocab.__dict__)
+
+    def parse(self, markup_path: str, from_voc: bool=False):
+         if from_voc:
+            word_indexes = Reader.read_vocabulary(markup_path)
+            for word, index in word_indexes:
+                self.add_word(word.to_stressed_word(), index)
+         else:
+            markups = Reader.read_markups(markup_path, FileType.XML, is_processed=True)
+            for markup in markups:
+                self.add_markup(markup)
 
     def add_markup(self, markup: Markup) -> None:
         """

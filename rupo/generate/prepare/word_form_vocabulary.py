@@ -21,32 +21,26 @@ class WordFormVocabulary(object):
     """
     Класс словаря словоформ.
     """
-    def __init__(self, dump_filename: str=GENERATOR_WORD_FORM_VOCAB_PATH):
-        """
-        :param dump_filename: путь к дампу словаря.
-        """
-        self.dump_filename = dump_filename  # type: str
+    def __init__(self):
         self.word_forms = []  # type: List[WordForm]
         # WordForm -> index в self.word_forms
         self.word_form_indices = {}  # type: Dict[WordForm, int]
         # WordForm -> lemma index
         self.lemma_indices = {}  # type: Dict[WordForm, int]
         self.text_to_word_form = None
-        if os.path.exists(self.dump_filename):
-            self.load()
 
-    def save(self) -> None:
+    def save(self, dump_filename: str=GENERATOR_WORD_FORM_VOCAB_PATH) -> None:
         """
         Сохранение словаря.
         """
-        with open(self.dump_filename, "wb") as f:
+        with open(dump_filename, "wb") as f:
             pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
 
-    def load(self) -> None:
+    def load(self, dump_filename: str=GENERATOR_WORD_FORM_VOCAB_PATH) -> None:
         """
         Загрузка словаря.
         """
-        with open(self.dump_filename, "rb") as f:
+        with open(dump_filename, "rb") as f:
             vocab = pickle.load(f)
             self.__dict__.update(vocab.__dict__)
 
@@ -54,7 +48,7 @@ class WordFormVocabulary(object):
                            lemma_case: Dict[str, LemmaCase]):
         """
         Строит словарь по предподсчитанным данным
-        
+
         :param lemma_counter: Counter по леммам.
         :param lemma_to_word_forms: Отображение из леммы в список известных словоформ для неё (её парадигму)
         :param lemma_case: Отображение из леммы в тип капитализации, известный для этой леммы
@@ -70,7 +64,7 @@ class WordFormVocabulary(object):
 
     def get_word_form_index(self, word_form: WordForm) -> int:
         return self.word_form_indices[word_form]
-            
+
     def get_word_form_by_index(self, index: int) -> WordForm:
         return self.word_forms[index]
 
@@ -112,7 +106,7 @@ class WordFormVocabulary(object):
     def inflate_vocab(self, dump_path, stress_predictor=None, top_n=None) -> None:
         """
         Получение словаря с ударениями по этому словарю.
-        
+
         :param top_n: сколько первых записей взять?
         :param dump_path: путь, куда сохранить словарь.
         :param stress_predictor: предсказатель ударений
@@ -120,7 +114,7 @@ class WordFormVocabulary(object):
         from rupo.main.vocabulary import StressVocabulary
         from rupo.stress.word import StressedWord, Stress
         from rupo.stress.predictor import CombinedStressPredictor
-        vocab = StressVocabulary(dump_path)
+        vocab = StressVocabulary()
         if stress_predictor is None:
             stress_predictor = CombinedStressPredictor()
         forms = self.word_forms
@@ -131,7 +125,7 @@ class WordFormVocabulary(object):
             stresses = [Stress(pos, Stress.Type.PRIMARY) for pos in stress_predictor.predict(text)]
             word = StressedWord(text, set(stresses))
             vocab.add_word(word, index)
-        vocab.save()
+        vocab.save(dump_path)
 
     def inflate_text_mappings(self):
         self.text_to_word_form = {}
