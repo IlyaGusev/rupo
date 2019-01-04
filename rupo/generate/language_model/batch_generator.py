@@ -15,19 +15,19 @@ class BatchGenerator:
     """
     Генератор наборов примеров для обучения.
     """
-    def __init__(self, filenames: List[str], batch_size: int,
+    def __init__(self, file_names: List[str], batch_size: int,
                  embedding_size: int, softmax_size: int, sentence_maxlen: int,
                  word_form_vocabulary: WordFormVocabulary, grammeme_vectorizer: GrammemeVectorizer,
                  max_word_len: int):
         """
-        :param filenames: имена файлов с морфоразметкой.
+        :param file_names: имена файлов с морфоразметкой.
         :param batch_size: размер набора семплов.
         :param softmax_size: размер выхода softmax-слоя (=размер итогового набора вероятностей)
         :param sentence_maxlen: маскимальная длина куска предложения.
         :param word_form_vocabulary: словарь словофрм.
         :param grammeme_vectorizer: векторизатор граммем.
         """
-        self.filenames = filenames  # type: List[str]
+        self.file_names = file_names  # type: List[str]
         self.batch_size = batch_size  # type: int
         self.embedding_size = embedding_size # type: int
         self.softmax_size = softmax_size  # type: int
@@ -108,7 +108,7 @@ class BatchGenerator:
         
         :return: индексы словоформ, грамматические векторы, ответы-индексы.
         """
-        for filename in self.filenames:
+        for filename in self.file_names:
             sentences = [[]]
             with tqdm_open(filename, encoding='utf-8') as f:
                 for line in f:

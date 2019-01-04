@@ -7,7 +7,7 @@ from typing import List, Tuple
 
 import numpy as np
 from keras.layers import Input, Embedding, Dense, LSTM, SpatialDropout1D, BatchNormalization, \
-    Activation, concatenate, TimeDistributed, Bidirectional
+    Activation, concatenate, TimeDistributed, Bidirectional, Dropout
 from keras.models import Model, load_model
 
 from rupo.generate.language_model.model_container import ModelContainer
@@ -26,7 +26,7 @@ class LSTMGenerator:
                  sentence_maxlen: int=10, lstm_units=368, embeddings_dimension: int=150, 
                  grammeme_dense_units: Tuple[int]=(35, 15), dense_units: int=256, softmax_size: int=60000,
                  dropout: float=0.2, recalculate_softmax=False, max_word_len: int=30, char_embeddings_dimension: int=20,
-                 char_lstm_output_dim: int=64):
+                 char_lstm_output_dim: int=64, input_dense_size: int=128):
         """
         :param embedding_size: размер входного слоя (=размер словаря)
         :param softmax_size: размер выхода softmax-слоя (=размер итогового набора вероятностей)
@@ -46,6 +46,7 @@ class LSTMGenerator:
         self.grammeme_dense_units = grammeme_dense_units  # type: List[int]
         self.dense_units = dense_units  # type: int
         self.dropout = dropout  # type: float
+        self.input_dense_size = input_dense_size  # type: int
         self.max_word_len = max_word_len  # type: int
         self.char_embeddings_dimension = char_embeddings_dimension  # type: int
         self.char_lstm_output_dim = char_lstm_output_dim  # type: int
@@ -79,29 +80,41 @@ class LSTMGenerator:
     def load(self, model_filename: str) -> None:
         self.model = load_model(model_filename)
 
-    def build(self):
+    def build(self, use_chars=False):
         """
         Описание модели.
         """
+        inputs = []
+        embedding_parts = []
+
         # Вход лемм
         lemmas = Input(shape=(None,), name='lemmas')
-        lemmas_embedding = Embedding(self.embedding_size + 1, self.embeddings_dimension, name='embeddings')(lemmas)
-        lemmas_embedding = SpatialDropout1D(.3)(lemmas_embedding)
-
-        # Вход символов
-        chars = Input(shape=(None, self.max_word_len), name='chars')
-        chars_embedding = Embedding(len(CHAR_SET) + 1, self.char_embeddings_dimension, name='char_embeddings')(chars)
-        chars_lstm = TimeDistributed(Bidirectional(
-            LSTM(self.char_lstm_output_dim // 2, dropout=self.dropout, recurrent_dropout=self.dropout,
-                 return_sequences=False, name='CharLSTM')))(chars_embedding)
+        inputs.append(lemmas)
+        lemmas_embedding = Embedding(self.embedding_size + 1,
+                                     self.embeddings_dimension, name='embeddings')(lemmas)
+        lemmas_embedding = SpatialDropout1D(self.dropout)(lemmas_embedding)
+        embedding_parts.append(lemmas_embedding)
 
         # Вход граммем
         grammemes_input = Input(shape=(None, self.grammeme_vectorizer.grammemes_count()), name='grammemes')
+        inputs.append(grammemes_input)
         grammemes_layer = grammemes_input
         for grammeme_dense_layer_units in self.grammeme_dense_units:
             grammemes_layer = Dense(grammeme_dense_layer_units, activation='relu')(grammemes_layer)
+            embedding_parts.append(grammemes_layer)
 
-        layer = concatenate([lemmas_embedding, grammemes_layer, chars_lstm], name="LSTM_input")
+        # Вход символов
+        if use_chars:
+            chars = Input(shape=(None, self.max_word_len), name='chars')
+            inputs.append(chars)
+            chars_embedding = Embedding(len(CHAR_SET) + 1, self.char_embeddings_dimension, name='char_embeddings')(chars)
+            chars_lstm = TimeDistributed(Bidirectional(
+                LSTM(self.char_lstm_output_dim // 2, dropout=self.dropout, recurrent_dropout=self.dropout,
+                     return_sequences=False, name='CharLSTM')))(chars_embedding)
+            embedding_parts.append(chars_lstm)
+
+        layer = concatenate(embedding_parts, name="LSTM_input")
+        layer = Dense(self.input_dense_size)(layer)
         layer = LSTM(self.lstm_units, dropout=self.dropout, recurrent_dropout=self.dropout,
                      return_sequences=True, name='LSTM_1')(layer)
         layer = LSTM(self.lstm_units, dropout=self.dropout, recurrent_dropout=self.dropout,
@@ -110,10 +123,11 @@ class LSTMGenerator:
         layer = Dense(self.dense_units)(layer)
         layer = BatchNormalization()(layer)
         layer = Activation('relu')(layer)
+        layer = Dropout(self.dropout)(layer)
 
         output = Dense(self.softmax_size + 1, activation='softmax')(layer)
 
-        self.model = Model(inputs=[lemmas, grammemes_input, chars], outputs=[output])
+        self.model = Model(inputs=inputs, outputs=[output])
         self.model.compile(loss='sparse_categorical_crossentropy', optimizer='adam')
         print(self.model.summary())
 
