@@ -12,7 +12,9 @@ from rupo.settings import EXAMPLES_DIR, MARKUP_XML_EXAMPLE
 class TestVocabulary(unittest.TestCase):
     def test_vocabulary(self):
         dump_file = os.path.join(EXAMPLES_DIR, "temp.pickle")
-        vocabulary = StressVocabulary(dump_file, MARKUP_XML_EXAMPLE)
+        vocabulary = StressVocabulary()
+        vocabulary.parse(MARKUP_XML_EXAMPLE)
+        vocabulary.save(dump_file)
         self.assertTrue(os.path.exists(dump_file))
         os.remove(dump_file)
         try:

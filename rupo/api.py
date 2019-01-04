@@ -2,6 +2,7 @@
 # Автор: Гусев Илья
 # Описание: Набор внешних методов для работы с библиотекой.
 
+import os
 from typing import List, Tuple, Dict
 
 from rupo.files.reader import FileType, Reader
@@ -41,7 +42,11 @@ class Engine:
 
     def get_vocabulary(self, dump_path: str, markup_path: str) -> StressVocabulary:
         if self.vocabulary is None:
-            self.vocabulary = StressVocabulary(dump_path, markup_path)
+            self.vocabulary = StressVocabulary()
+            if os.path.isfile(dump_path):
+                self.vocabulary.load(dump_path)
+            elif markup_path is not None:
+                self.vocabulary.parse(markup_path)
         return self.vocabulary
 
     def get_markov(self, dump_path: str, vocab_dump_path: str, markup_path: str, n_grams: int=2,
@@ -63,8 +68,11 @@ class Engine:
                            stress_vocab_dump_path: str, gram_dump_path: str) -> Generator:
         if self.lstm_generator is None:
             lstm = LSTMModelContainer(model_path, word_form_vocab_dump_path, gram_dump_path)
-            word_form_vocabulary = WordFormVocabulary(word_form_vocab_dump_path)
-            vocabulary = StressVocabulary(stress_vocab_dump_path)
+            word_form_vocabulary = WordFormVocabulary()
+            vocabulary = StressVocabulary()
+            assert os.path.isfile(word_form_vocab_dump_path) and os.path.isfile(stress_vocab_dump_path)
+            word_form_vocabulary.load(word_form_vocab_dump_path)
+            vocabulary.load(stress_vocab_dump_path)
             self.lstm_generator = Generator(lstm, vocabulary, word_form_vocabulary)
         return self.lstm_generator
 
@@ -203,7 +211,9 @@ class Engine:
                              dense_units=dense_units, embedding_size=embedding_size,
                              softmax_size=softmax_size, external_batch_size=external_batch_size)
         lstm.prepare([morph_filename, ], word_form_vocabulary_path, gram_vectorizer_path)
-        vocabulary = WordFormVocabulary(word_form_vocabulary_path)
+        vocabulary = WordFormVocabulary()
+        assert os.path.isfile(word_form_vocabulary_path)
+        vocabulary.load(word_form_vocabulary_path)
         vocabulary.inflate_vocab(stress_vocabulary_path, self.get_stress_predictor())
         lstm.build()
         lstm.train([morph_filename, ], validation_size=validation_size,
