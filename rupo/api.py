@@ -5,22 +5,27 @@
 import os
 from typing import List, Tuple, Dict
 
+from rulm import NeuralNetLanguageModel
+
 from rupo.files.reader import FileType, Reader
 from rupo.files.writer import Writer
 from rupo.g2p.graphemes import Graphemes
 from rupo.g2p.rnn import RNNG2PModel
-from rupo.generate.generator import Generator
-from rupo.generate.language_model.lstm import LSTMModelContainer
+from rupo.generate.generator import Generator, inflate_stress_vocabulary
 from rupo.generate.language_model.markov import MarkovModelContainer
 from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
 from rupo.generate.language_model.lstm import LSTMGenerator
 from rupo.main.markup import Markup
-from rupo.main.vocabulary import StressVocabulary
 from rupo.main.morph import Morph
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.rhymes.rhymes import Rhymes
 from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT
 from rupo.stress.predictor import StressPredictor, CombinedStressPredictor
+from rupo.main.vocabulary import StressVocabulary
+from rupo.generate.transforms import PoemTransform
+
+from allennlp.data.vocabulary import Vocabulary
+from allennlp.common.util import END_SYMBOL
 
 
 class Engine:
@@ -64,16 +69,27 @@ class Engine:
                                               self.get_vocabulary(vocab_dump_path, markup_path))
         return self.markov_generator
 
-    def get_lstm_generator(self, model_path: str, word_form_vocab_dump_path: str,
-                           stress_vocab_dump_path: str, gram_dump_path: str) -> Generator:
+    def get_lstm_generator(self,
+                           model_path: str,
+                           token_vocab_path: str,
+                           stress_vocab_dump_path: str,
+                           metre_schema: str,
+                           rhyme_pattern: str,
+                           n_syllables: int) -> Generator:
         if self.lstm_generator is None:
-            lstm = LSTMModelContainer(model_path, word_form_vocab_dump_path, gram_dump_path)
-            word_form_vocabulary = WordFormVocabulary()
-            vocabulary = StressVocabulary()
-            assert os.path.isfile(word_form_vocab_dump_path) and os.path.isfile(stress_vocab_dump_path)
-            word_form_vocabulary.load(word_form_vocab_dump_path)
-            vocabulary.load(stress_vocab_dump_path)
-            self.lstm_generator = Generator(lstm, vocabulary, word_form_vocabulary)
+            assert os.path.isdir(model_path) and os.path.isdir(token_vocab_path)
+            vocabulary = Vocabulary.from_files(token_vocab_path)
+            stress_vocabulary = StressVocabulary()
+            if not os.path.isfile(stress_vocab_dump_path):
+                stress_vocabulary = inflate_stress_vocabulary(vocabulary)
+                stress_vocabulary.save(stress_vocab_dump_path)
+            else:
+                stress_vocabulary.load(stress_vocab_dump_path)
+            eos_index = vocabulary.get_token_index(END_SYMBOL)
+            poem_transform = PoemTransform(stress_vocabulary, metre_schema, rhyme_pattern, n_syllables, eos_index)
+            lstm = NeuralNetLanguageModel.load(model_path, vocabulary_dir=token_vocab_path,
+                                               transforms=[poem_transform])
+            self.lstm_generator = Generator(lstm, lstm.vocab, stress_vocabulary)
         return self.lstm_generator
 
     def get_stress_predictor(self, language="ru", stress_model_path: str=None, raw_stress_dict_path=None,
@@ -222,8 +238,7 @@ class Engine:
 
     def generate_poem(self,
                       model_path: str,
-                      word_form_vocab_dump_path: str,
-                      gram_dump_path: str,
+                      token_vocab_path: str,
                       stress_vocab_dump_path: str,
                       metre_schema: str="-+",
                       rhyme_pattern: str="abab",
@@ -233,8 +248,7 @@ class Engine:
         Сгенерировать стих.
 
         :param model_path: путь к модели.
-        :param word_form_vocab_dump_path: путь к дампу словаря словоформ.
-        :param gram_dump_path: путь к векторам грамматических значений.
+        :param token_vocab_path: путь к словарю.
         :param stress_vocab_dump_path: путь к словарю ударений.
         :param metre_schema: схема метра.
         :param rhyme_pattern: схема рифм.
@@ -242,8 +256,8 @@ class Engine:
         :param beam_width: ширина лучевого поиска.
         :return: стих. None, если генерация не была успешной.
         """
-        generator = self.get_lstm_generator(model_path, word_form_vocab_dump_path,
-                                            stress_vocab_dump_path, gram_dump_path)
+        generator = self.get_lstm_generator(model_path, token_vocab_path, stress_vocab_dump_path,
+                                            metre_schema, rhyme_pattern, n_syllables)
         return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables, beam_width=beam_width)
 
     def get_word_rhymes(self, word: str, vocab_dump_path: str, markup_path: str=None) -> List[str]:

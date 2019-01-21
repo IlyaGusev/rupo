@@ -2,7 +2,6 @@
 # Автор: Гусев Илья
 # Описание: Класс рифм.
 
-from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
 from rupo.stress.word import StressedWord
 from rupo.util.preprocess import VOWELS
 
@@ -32,8 +31,10 @@ class Rhymes(object):
     """
 
     @staticmethod
-    def is_rhyme(word1: StressedWord, word2: StressedWord, score_border: int=4, syllable_number_border: int=4,
-                 word_form_vocabulary: WordFormVocabulary=None) -> bool:
+    def is_rhyme(word1: StressedWord,
+                 word2: StressedWord,
+                 score_border: int=4,
+                 syllable_number_border: int=4) -> bool:
         """
         Проверка рифмованности 2 слов.
 
@@ -41,14 +42,8 @@ class Rhymes(object):
         :param word2: второе слово для проверки рифмы, уже акцентуированное (Word).
         :param score_border: граница определния рифмы, чем выше, тем строже совпадение.
         :param syllable_number_border: ограничение на номер слога с конца, на который падает ударение.
-        :param word_form_vocabulary: словарь словоформ.
         :return result: является рифмой или нет.
         """
-        if word_form_vocabulary is not None:
-            lemma1 = word_form_vocabulary.get_word_form_by_text(word1.text.lower()).lemma.lower()
-            lemma2 = word_form_vocabulary.get_word_form_by_text(word2.text.lower()).lemma.lower()
-            if lemma1 == lemma2:
-                return False
         profile1 = Rhymes.__get_rhyme_profile(word1)
         profile2 = Rhymes.__get_rhyme_profile(word2)
         score = 0

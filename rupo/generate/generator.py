@@ -3,23 +3,40 @@
 # Описание: Модуль создания стихотворений.
 
 import copy
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 from numpy.random import choice
 
+from allennlp.data.vocabulary import Vocabulary
+from rulm.language_model import LanguageModel
+
 from rupo.generate.filters import MetreFilter, RhymeFilter
-from rupo.generate.language_model.model_container import ModelContainer
-from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
 from rupo.main.vocabulary import StressVocabulary
+from rupo.stress.word import StressedWord, Stress
+from rupo.stress.predictor import CombinedStressPredictor
+
+
+def inflate_stress_vocabulary(vocabulary: Vocabulary):
+    vocab = StressVocabulary()
+    stress_predictor = CombinedStressPredictor()
+    for index, word in vocabulary.get_index_to_token_vocabulary("tokens"):
+        stresses = [Stress(pos, Stress.Type.PRIMARY) for pos in stress_predictor.predict(word)]
+        word = StressedWord(word, set(stresses))
+        vocab.add_word(word, index)
+    return vocab
 
 
 class BeamPath(object):
     """
     Путь в лучевом поиске.
     """
-    def __init__(self, indices: List[int], metre_filter: MetreFilter, rhyme_filter: RhymeFilter,
-                 probability: float, line_ends: List[int]):
+    def __init__(self,
+                 indices: List[int],
+                 metre_filter: MetreFilter,
+                 rhyme_filter: RhymeFilter,
+                 probability: float,
+                 line_ends: List[int]):
         """
         :param indices: индексы слов на пути.
         :param metre_filter: фильтр по метру в текущем состоянии.
@@ -64,17 +81,19 @@ class BeamPath(object):
             lines.append(line)
         return "\n".join(list(reversed(lines))) + "\n"
 
-    def get_current_model(self, model_container: ModelContainer,
-                          vocabulary: StressVocabulary, use_rhyme: bool=False) -> np.array:
+    def get_current_model(self,
+                          model: LanguageModel,
+                          vocabulary: StressVocabulary,
+                          use_rhyme: bool=False) -> np.array:
         """
         Получить фильтрованные вероятности следующего слова.
         
-        :param model_container: контейнер модели.
+        :param model: контейнер модели.
         :param vocabulary: словарь.
         :param use_rhyme: использовать ли фильтр по рифме?
         :return: модель (вероятности следующего слова).
         """
-        model = model_container.get_model(self.indices)
+        model = model.predict_text(self.indices)
         model = self.metre_filter.filter_model(model, vocabulary)
         if use_rhyme:
             model = self.rhyme_filter.filter_model(model, vocabulary)
@@ -95,54 +114,23 @@ class Generator(object):
     """
     Генератор стихов
     """
-    def __init__(self, model_container: ModelContainer, vocabulary: StressVocabulary,
-                 word_form_vocabulary: WordFormVocabulary=None):
-        """
-        :param model_container: модель с методом get_model.
-        :param vocabulary: словарь с индексами.
-        """
-        self.model_container = model_container  # type: ModelContainer
-        self.vocabulary = vocabulary  # type: StressVocabulary
-        self.word_form_vocabulary = word_form_vocabulary  # type: WordFormVocabulary
+    def __init__(self,
+                 model: LanguageModel,
+                 token_vocabulary: Vocabulary,
+                 stress_vocabulary: StressVocabulary):
+        self.model = model  # type: LanguageModel
+        self.token_vocabulary = token_vocabulary  # type: Vocabulary
+        self.stress_vocabulary = stress_vocabulary  # type: StressVocabulary
 
-    def generate_poem(self, metre_schema: str="+-", rhyme_pattern: str="aabb", n_syllables: int=8,
-                      letters_to_rhymes: dict=None, beam_width: int=4, rhyme_score_border: int=4) -> str:
-        """
-        Генерация стихотворения с выбранными параметрами.
-
-        :param metre_schema: схема метра.
-        :param rhyme_pattern: схема рифмы.
-        :param n_syllables: количество слогов в строке.
-        :param letters_to_rhymes: заданные рифмы.
-        :param beam_width: ширина лучевого поиска.
-        :param rhyme_score_border: качество рифм.
-        :return: стихотворение.
-        """
-        metre_pattern = ""
-        while len(metre_pattern) <= n_syllables:
-            metre_pattern += metre_schema
-        metre_pattern = metre_pattern[:n_syllables]
-        metre_filter = MetreFilter(metre_pattern)
-        rhyme_filter = RhymeFilter(rhyme_pattern, letters_to_rhymes,
-                                   self.word_form_vocabulary, score_border=rhyme_score_border)
-
-        result_paths = []
-        indices = []
-        if self.word_form_vocabulary is not None:
-            indices = [self.word_form_vocabulary.get_sequence_end_index()]
-        empty_path = BeamPath(indices, metre_filter, rhyme_filter, 1.0, [])
-        paths = [empty_path]
-        while len(paths) != 0:
-            paths = self.__top_paths(paths, beam_width)
-            for path in copy.deepcopy(paths):
-                paths.pop(0)
-                paths += self.generate_line_beam(path, beam_width)
-            paths, to_result = self.__filter_path_by_rhyme(paths)
-            result_paths += to_result
-        if len(result_paths) == 0:
-            return None
-        best_path = self.__top_paths(result_paths, 1)[0]
-        return best_path.get_poem(self.vocabulary)
+    def generate_poem(self,
+                      metre_schema: str="+-",
+                      rhyme_pattern: str="aabb",
+                      n_syllables: int=8,
+                      letters_to_rhymes: dict=None,
+                      beam_width: int=4,
+                      rhyme_score_border: int=4) -> Optional[str]:
+        self.model.beam_decoding("", beam_width=beam_width)
+        return ""
 
     def generate_line_beam(self, path, beam_width=5):
         """
@@ -177,16 +165,13 @@ class Generator(object):
         :param use_rhyme: использовать ли фильтр по рифме.
         :return: новые пути.
         """
-        model = path.get_current_model(self.model_container, self.vocabulary, use_rhyme)
+        model = path.get_current_model(self.model, self.stress_vocabulary, use_rhyme)
         if np.sum(model) == 0.0:
             return []
-        if len(path.indices) != 0:
-            new_indices = Generator.__choose(model, beam_width)
-        else:
-            new_indices = Generator.__choose_uniform(self.vocabulary.size(), beam_width)
+        new_indices = Generator.__choose(model, beam_width)
         new_paths = []
         for index in new_indices:
-            word = self.vocabulary.get_word(index)
+            word = self.token_vocabulary.get_token_from_index(index)
             word_probability = model[index]
             metre_filter = copy.copy(path.metre_filter)
             metre_filter.pass_word(word)
