@@ -20,7 +20,7 @@ from rupo.stress.predictor import CombinedStressPredictor
 def inflate_stress_vocabulary(vocabulary: Vocabulary):
     vocab = StressVocabulary()
     stress_predictor = CombinedStressPredictor()
-    for index, word in vocabulary.get_index_to_token_vocabulary("tokens"):
+    for index, word in vocabulary.get_index_to_token_vocabulary("tokens").items():
         stresses = [Stress(pos, Stress.Type.PRIMARY) for pos in stress_predictor.predict(word)]
         word = StressedWord(word, set(stresses))
         vocab.add_word(word, index)
@@ -129,8 +129,9 @@ class Generator(object):
                       letters_to_rhymes: dict=None,
                       beam_width: int=4,
                       rhyme_score_border: int=4) -> Optional[str]:
-        self.model.beam_decoding("", beam_width=beam_width)
-        return ""
+        poem = self.model.beam_decoding("", beam_width=beam_width)
+        poem = " ".join(poem.split(" ")[::-1])
+        return poem
 
     def generate_line_beam(self, path, beam_width=5):
         """

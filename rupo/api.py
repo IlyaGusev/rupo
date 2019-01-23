@@ -5,7 +5,7 @@
 import os
 from typing import List, Tuple, Dict
 
-from rulm import NeuralNetLanguageModel
+from rulm.language_model import LanguageModel
 
 from rupo.files.reader import FileType, Reader
 from rupo.files.writer import Writer
@@ -24,8 +24,9 @@ from rupo.stress.predictor import StressPredictor, CombinedStressPredictor
 from rupo.main.vocabulary import StressVocabulary
 from rupo.generate.transforms import PoemTransform
 
-from allennlp.data.vocabulary import Vocabulary
+from allennlp.data.vocabulary import Vocabulary, DEFAULT_OOV_TOKEN
 from allennlp.common.util import END_SYMBOL
+from rulm.transform import ExcludeTransform
 
 
 class Engine:
@@ -87,8 +88,10 @@ class Engine:
                 stress_vocabulary.load(stress_vocab_dump_path)
             eos_index = vocabulary.get_token_index(END_SYMBOL)
             poem_transform = PoemTransform(stress_vocabulary, metre_schema, rhyme_pattern, n_syllables, eos_index)
-            lstm = NeuralNetLanguageModel.load(model_path, vocabulary_dir=token_vocab_path,
-                                               transforms=[poem_transform])
+            unk_index = vocabulary.get_token_index(DEFAULT_OOV_TOKEN)
+            exclude_transform = ExcludeTransform((unk_index, eos_index))
+            lstm = LanguageModel.load(model_path, vocabulary_dir=token_vocab_path,
+                                      transforms=[exclude_transform, poem_transform])
             self.lstm_generator = Generator(lstm, lstm.vocab, stress_vocabulary)
         return self.lstm_generator
 

@@ -81,14 +81,14 @@ class TestApi(unittest.TestCase):
         self.engine.markov_generator = None
 
     def test_lstm_generate_poem(self):
-        if os.path.exists(GENERATOR_LSTM_MODEL_PATH) and \
-                os.path.exists(GENERATOR_WORD_FORM_VOCAB_PATH) and \
-                os.path.exists(GENERATOR_VOCAB_PATH):
-            random.seed(42)
-            poem = self.engine.generate_poem(GENERATOR_LSTM_MODEL_PATH, GENERATOR_WORD_FORM_VOCAB_PATH,
-                                             GENERATOR_GRAM_VECTORS, GENERATOR_VOCAB_PATH, beam_width=30, n_syllables=4,
-                                             rhyme_pattern="aa", metre_schema="-+")
-            self.assertIsNotNone(poem)
+        random.seed(42)
+        model_path = "/media/yallen/My Passport/Projects/rulm/models/char-lstm-reversed"
+        vocab_path = "/media/yallen/My Passport/Projects/rulm/models/char-lstm-reversed/vocabulary"
+        stress_path = "/media/yallen/My Passport/Projects/RuPo/stress.pickle"
+        poem = self.engine.generate_poem(model_path, vocab_path, stress_path, beam_width=20, n_syllables=8,
+                                         rhyme_pattern="abab", metre_schema="-+")
+        self.assertIsNotNone(poem)
+        print(poem)
 
     def test_get_word_rhymes(self):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab_rhymes.pickle")

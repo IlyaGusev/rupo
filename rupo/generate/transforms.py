@@ -1,3 +1,4 @@
+from copy import copy, deepcopy
 import numpy as np
 from collections import defaultdict
 
@@ -29,7 +30,7 @@ class PoemTransform(Transform):
             mul += 1
 
         self.metre_pattern = metre_pattern * mul
-        self.stress_position = len(metre_pattern) - 1
+        self.stress_position = len(self.metre_pattern) - 1
         self.eos_index = eos_index
 
         self.rhyme_pattern = rhyme_pattern
@@ -43,35 +44,42 @@ class PoemTransform(Transform):
                     self.letters_to_rhymes[letter].add(word)
 
     def __call__(self, probabilities: np.array) -> np.array:
-        if self.rhyme_position < 0:
+        # print(self.stress_position, self.rhyme_position, np.sum(probabilities > 0))
+        if self.rhyme_position < 0 and self.stress_position == len(self.metre_pattern) - 1:
             probabilities = np.zeros(probabilities.shape, dtype="float")
             probabilities[self.eos_index] = 1.
             return probabilities
         for index in range(probabilities.shape[0]):
             word = self.stress_vocabulary.get_word(index)
             is_good_by_stress = self._filter_word_by_stress(word)
-            syllables_count = len(word.syllables)
             is_good_by_rhyme = True
-            if self.stress_position - syllables_count < 0:
+            if self.stress_position == len(self.metre_pattern) - 1:
                 is_good_by_rhyme = self._filter_word_by_rhyme(word)
             if not is_good_by_stress or not is_good_by_rhyme:
                 probabilities[index] = 0.
+        # print(np.sum(probabilities > 0))
         return probabilities
 
     def advance(self, index: int):
         word = self.stress_vocabulary.get_word(index)
-        self.stress_position -= len(word.syllables)
+        syllables_count = len(word.syllables)
+
+        if self.stress_position == len(self.metre_pattern) - 1:
+            letter = self.rhyme_pattern[self.rhyme_position]
+            self.letters_to_rhymes[letter].add(word)
+            self.rhyme_position -= 1
+
+        self.stress_position -= syllables_count
+
         if self.stress_position < 0:
             self.stress_position = len(self.metre_pattern) - 1
-            self.letters_to_rhymes[self.rhyme_pattern[self.rhyme_position]].add(word)
-            self.rhyme_position -= 1
 
     def _filter_word_by_stress(self, word: StressedWord) -> bool:
         syllables = word.syllables
         syllables_count = len(syllables)
         if syllables_count == 0:
             return False
-        if syllables_count > self.stress_position + 1:
+        if syllables_count > self.stress_position + 1 or self.stress_position - syllables_count == 0:
             return False
         for i in range(syllables_count):
             syllable = syllables[i]
@@ -96,3 +104,11 @@ class PoemTransform(Transform):
                                    score_border=self.score_border,
                                    syllable_number_border=2) and first_word.text != word.text
         return is_rhyme
+
+    def __copy__(self):
+        obj = type(self)(self.stress_vocabulary, self.metre_pattern, self.rhyme_pattern, self.n_syllables,
+                         self.eos_index, self.letters_to_rhymes, self.score_border)
+        obj.stress_position = self.stress_position
+        obj.rhyme_position = self.rhyme_position
+        obj.letters_to_rhymes = deepcopy(self.letters_to_rhymes)
+        return obj
