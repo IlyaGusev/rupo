@@ -49,6 +49,7 @@ class PoemTransform(Transform):
             probabilities = np.zeros(probabilities.shape, dtype="float")
             probabilities[self.eos_index] = 1.
             return probabilities
+
         for index in range(probabilities.shape[0]):
             word = self.stress_vocabulary.get_word(index)
             is_good_by_stress = self._filter_word_by_stress(word)
@@ -57,7 +58,8 @@ class PoemTransform(Transform):
                 is_good_by_rhyme = self._filter_word_by_rhyme(word)
             if not is_good_by_stress or not is_good_by_rhyme:
                 probabilities[index] = 0.
-        # print(np.sum(probabilities > 0))
+
+        assert np.sum(probabilities > 0) != 0, "Poem transform filtered out all words"
         return probabilities
 
     def advance(self, index: int):
@@ -79,7 +81,7 @@ class PoemTransform(Transform):
         syllables_count = len(syllables)
         if syllables_count == 0:
             return False
-        if syllables_count > self.stress_position + 1 or self.stress_position - syllables_count == 0:
+        if self.stress_position - syllables_count < -1:
             return False
         for i in range(syllables_count):
             syllable = syllables[i]

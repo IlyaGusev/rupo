@@ -76,7 +76,8 @@ class Engine:
                            stress_vocab_dump_path: str,
                            metre_schema: str,
                            rhyme_pattern: str,
-                           n_syllables: int) -> Generator:
+                           n_syllables: int,
+                           seed: int=1337) -> Generator:
         if self.lstm_generator is None:
             assert os.path.isdir(model_path) and os.path.isdir(token_vocab_path)
             vocabulary = Vocabulary.from_files(token_vocab_path)
@@ -90,6 +91,7 @@ class Engine:
             poem_transform = PoemTransform(stress_vocabulary, metre_schema, rhyme_pattern, n_syllables, eos_index)
             unk_index = vocabulary.get_token_index(DEFAULT_OOV_TOKEN)
             exclude_transform = ExcludeTransform((unk_index, eos_index))
+            LanguageModel.set_seed(seed)
             lstm = LanguageModel.load(model_path, vocabulary_dir=token_vocab_path,
                                       transforms=[exclude_transform, poem_transform])
             self.lstm_generator = Generator(lstm, lstm.vocab, stress_vocabulary)
@@ -246,7 +248,9 @@ class Engine:
                       metre_schema: str="-+",
                       rhyme_pattern: str="abab",
                       n_syllables: int=8,
-                      beam_width: int=5) -> str:
+                      beam_width: int=10,
+                      seed: int=1337,
+                      temperature: float=1.0) -> str:
         """
         Сгенерировать стих.
 
@@ -260,8 +264,9 @@ class Engine:
         :return: стих. None, если генерация не была успешной.
         """
         generator = self.get_lstm_generator(model_path, token_vocab_path, stress_vocab_dump_path,
-                                            metre_schema, rhyme_pattern, n_syllables)
-        return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables, beam_width=beam_width)
+                                            metre_schema, rhyme_pattern, n_syllables, seed)
+        return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables,
+                                       beam_width=beam_width, temperature=temperature)
 
     def get_word_rhymes(self, word: str, vocab_dump_path: str, markup_path: str=None) -> List[str]:
         """
