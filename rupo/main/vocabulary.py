@@ -4,11 +4,13 @@
 
 from typing import Dict
 import pickle
-import os
+
+from allennlp.data.vocabulary import Vocabulary
 
 from rupo.main.markup import Markup
 from rupo.files.reader import Reader, FileType
-from rupo.stress.word import StressedWord
+from rupo.stress.word import StressedWord, Stress
+from rupo.stress.predictor import StressPredictor
 
 
 class StressVocabulary(object):
@@ -95,3 +97,12 @@ class StressVocabulary(object):
         :return: получить размер словаря.
         """
         return len(self.index_to_word)
+
+
+def inflate_stress_vocabulary(vocabulary: Vocabulary, stress_predictor: StressPredictor):
+    vocab = StressVocabulary()
+    for index, word in vocabulary.get_index_to_token_vocabulary("tokens").items():
+        stresses = [Stress(pos, Stress.Type.PRIMARY) for pos in stress_predictor.predict(word)]
+        word = StressedWord(word, set(stresses))
+        vocab.add_word(word, index)
+    return vocab

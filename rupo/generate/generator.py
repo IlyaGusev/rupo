@@ -2,9 +2,7 @@
 # Автор: Гусев Илья
 # Описание: Модуль создания стихотворений.
 
-import copy
-import numpy as np
-from typing import List, Optional
+from typing import Optional
 
 from allennlp.data.vocabulary import Vocabulary
 from rulm.language_model import LanguageModel
@@ -33,20 +31,23 @@ class Generator(object):
                       n_syllables: int=8,
                       letters_to_rhymes: dict=None,
                       beam_width: int=None,
-                      samling_k: int=None,
+                      sampling_k: int=None,
                       rhyme_score_border: int=4,
                       temperature: float=1.0,
                       seed: int=1337,
                       last_text: str="") -> Optional[str]:
-        assert beam_width or samling_k, "Set sampling_k or beam_width"
+        assert beam_width or sampling_k, "Set sampling_k or beam_width"
         self.model.set_seed(seed)
 
         poem_transform = PoemTransform(
-            self.stress_vocabulary,
-            metre_schema,
-            rhyme_pattern,
-            n_syllables,
-            self.eos_index)
+            stress_vocabulary=self.stress_vocabulary,
+            metre_pattern=metre_schema,
+            rhyme_pattern=rhyme_pattern,
+            n_syllables=n_syllables,
+            eos_index=self.eos_index,
+            letters_to_rhymes=letters_to_rhymes,
+            score_border=rhyme_score_border
+        )
 
         if last_text:
             words = last_text.split(" ")
@@ -68,13 +69,15 @@ class Generator(object):
         try:
             if beam_width:
                 poem = self.model.beam_decoding(last_text, beam_width=beam_width, temperature=temperature)
-            elif samling_k:
-                poem = self.model.sample_decoding(last_text, k=samling_k, temperature=temperature)
+            elif sampling_k:
+                poem = self.model.sample_decoding(last_text, k=sampling_k, temperature=temperature)
+            else:
+                assert False
         except Exception as e:
-            transform = self.model.transforms.pop()
+            self.model.transforms.pop()
             raise e
 
-        transform = self.model.transforms.pop()
+        self.model.transforms.pop()
 
         words = poem.split(" ")
         words = words[::-1]

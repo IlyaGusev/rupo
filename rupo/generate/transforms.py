@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 import numpy as np
 from collections import defaultdict
 
@@ -44,7 +44,6 @@ class PoemTransform(Transform):
                     self.letters_to_rhymes[letter].add(word)
 
     def __call__(self, probabilities: np.array) -> np.array:
-        # print(self.stress_position, self.rhyme_position, np.sum(probabilities > 0))
         if self.rhyme_position < 0 and self.stress_position == len(self.metre_pattern) - 1:
             probabilities = np.zeros(probabilities.shape, dtype="float")
             probabilities[self.eos_index] = 1.

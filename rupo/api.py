@@ -11,18 +11,13 @@ from rupo.files.reader import FileType, Reader
 from rupo.files.writer import Writer
 from rupo.g2p.graphemes import Graphemes
 from rupo.g2p.rnn import RNNG2PModel
-from rupo.generate.generator import Generator, inflate_stress_vocabulary
-from rupo.generate.language_model.markov import MarkovModelContainer
-from rupo.generate.prepare.word_form_vocabulary import WordFormVocabulary
-from rupo.generate.language_model.lstm import LSTMGenerator
 from rupo.main.markup import Markup
-from rupo.main.morph import Morph
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.rhymes.rhymes import Rhymes
 from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT
 from rupo.stress.predictor import StressPredictor, CombinedStressPredictor
-from rupo.main.vocabulary import StressVocabulary
-from rupo.generate.transforms import PoemTransform
+from rupo.main.vocabulary import StressVocabulary, inflate_stress_vocabulary
+from rupo.generate.generator import Generator
 
 from allennlp.data.vocabulary import Vocabulary, DEFAULT_OOV_TOKEN
 from allennlp.common.util import END_SYMBOL
@@ -33,9 +28,7 @@ class Engine:
     def __init__(self, language="ru"):
         self.language = language  # type: str
         self.vocabulary = None  # type: StressVocabulary
-        self.markov = None  # type: MarkovModelContainer
-        self.markov_generator = None  # type: Generator
-        self.lstm_generator = None  # type: Generator
+        self.generator = None  # type: Generator
         self.g2p_models = dict()  # type: Dict[str, RNNG2PModel]
         self.stress_predictors = dict()  # type: Dict[str, StressPredictor]
 
@@ -55,47 +48,28 @@ class Engine:
                 self.vocabulary.parse(markup_path)
         return self.vocabulary
 
-    def get_markov(self, dump_path: str, vocab_dump_path: str, markup_path: str, n_grams: int=2,
-                   n_poems: int=None) -> MarkovModelContainer:
-        if self.markov is None:
-            vocab = self.get_vocabulary(vocab_dump_path, markup_path)
-            print(vocab.size())
-            self.markov = MarkovModelContainer(dump_path, vocab, markup_path, n_grams=n_grams, n_poems=n_poems)
-        return self.markov
-
-    def get_markov_generator(self, dump_path: str, vocab_dump_path: str, markup_path: str) -> Generator:
-        if self.markov_generator is None:
-            self.markov_generator = Generator(self.get_markov(dump_path, vocab_dump_path, markup_path,
-                                                              n_grams=2, n_poems=4000),
-                                              self.get_vocabulary(vocab_dump_path, markup_path))
-        return self.markov_generator
-
-    def get_lstm_generator(self,
-                           model_path: str,
-                           token_vocab_path: str,
-                           stress_vocab_dump_path: str,
-                           metre_schema: str,
-                           rhyme_pattern: str,
-                           n_syllables: int,
-                           seed: int=1337) -> Generator:
-        if self.lstm_generator is None:
+    def get_generator(self,
+                      model_path: str,
+                      token_vocab_path: str,
+                      stress_vocab_dump_path: str) -> Generator:
+        if self.generator is None:
             assert os.path.isdir(model_path) and os.path.isdir(token_vocab_path)
             vocabulary = Vocabulary.from_files(token_vocab_path)
             stress_vocabulary = StressVocabulary()
             if not os.path.isfile(stress_vocab_dump_path):
-                stress_vocabulary = inflate_stress_vocabulary(vocabulary)
+                stress_vocabulary = inflate_stress_vocabulary(vocabulary, self.get_stress_predictor())
                 stress_vocabulary.save(stress_vocab_dump_path)
             else:
                 stress_vocabulary.load(stress_vocab_dump_path)
+
             eos_index = vocabulary.get_token_index(END_SYMBOL)
-            poem_transform = PoemTransform(stress_vocabulary, metre_schema, rhyme_pattern, n_syllables, eos_index)
             unk_index = vocabulary.get_token_index(DEFAULT_OOV_TOKEN)
             exclude_transform = ExcludeTransform((unk_index, eos_index))
-            LanguageModel.set_seed(seed)
-            lstm = LanguageModel.load(model_path, vocabulary_dir=token_vocab_path,
-                                      transforms=[exclude_transform, poem_transform])
-            self.lstm_generator = Generator(lstm, lstm.vocab, stress_vocabulary)
-        return self.lstm_generator
+
+            model = LanguageModel.load(model_path, vocabulary_dir=token_vocab_path,
+                                       transforms=[exclude_transform, ])
+            self.generator = Generator(model, vocabulary, stress_vocabulary, eos_index)
+        return self.generator
 
     def get_stress_predictor(self, language="ru", stress_model_path: str=None, raw_stress_dict_path=None,
                              stress_trie_path=None, zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT):
@@ -194,79 +168,46 @@ class Engine:
         markup_word2.set_stresses(self.get_stresses(word2))
         return Rhymes.is_rhyme(markup_word1, markup_word2)
 
-    def generate_markov_poem(self, markup_path: str, dump_path: str, vocab_dump_path: str, metre_schema: str="-+",
-                             rhyme_pattern: str="abab", n_syllables: int=8, beam_width=5) -> str:
-        """
-        Сгенерировать стих по данным из разметок.
-
-        :param markup_path: путь к разметкам.
-        :param dump_path: путь, куда сохранять модель.
-        :param vocab_dump_path: путь, куда сохранять словарь.
-        :param metre_schema: схема метра.
-        :param rhyme_pattern: схема рифм.
-        :param n_syllables: количество слогов в строке.
-        :param beam_width: ширина лучевого поиска.
-        :return: стих.
-        """
-        generator = self.get_markov_generator(dump_path, vocab_dump_path, markup_path)
-        return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables, beam_width=beam_width)
-
-    def train_rnn_model(self, filenames: List[str],
-                        morph_filename: str,
-                        gram_vectorizer_path: str,
-                        word_form_vocabulary_path: str,
-                        stress_vocabulary_path: str,
-                        model_path: str,
-                        nn_batch_size: int=128,
-                        lstm_units: int=128,
-                        dense_units: int=128,
-                        embedding_size: int=5000,
-                        softmax_size: int=10000,
-                        external_batch_size: int=100,
-                        validation_size: int=1,
-                        validation_verbosity: int=1,
-                        dump_model_freq: int=1,
-                        big_epochs: int=10):
-        Morph.get_morph_markup(filenames, morph_filename)
-        lstm = LSTMGenerator(nn_batch_size=nn_batch_size, lstm_units=lstm_units,
-                             dense_units=dense_units, embedding_size=embedding_size,
-                             softmax_size=softmax_size, external_batch_size=external_batch_size)
-        lstm.prepare([morph_filename, ], word_form_vocabulary_path, gram_vectorizer_path)
-        vocabulary = WordFormVocabulary()
-        assert os.path.isfile(word_form_vocabulary_path)
-        vocabulary.load(word_form_vocabulary_path)
-        vocabulary.inflate_vocab(stress_vocabulary_path, self.get_stress_predictor())
-        lstm.build()
-        lstm.train([morph_filename, ], validation_size=validation_size,
-                   validation_verbosity=validation_verbosity, dump_model_freq=dump_model_freq,
-                   save_path=model_path, big_epochs=big_epochs)
-
     def generate_poem(self,
                       model_path: str,
                       token_vocab_path: str,
-                      stress_vocab_dump_path: str,
+                      stress_vocab_path: str,
                       metre_schema: str="-+",
                       rhyme_pattern: str="abab",
                       n_syllables: int=8,
-                      beam_width: int=10,
+                      sampling_k: int=None,
+                      beam_width: int=None,
                       seed: int=1337,
-                      temperature: float=1.0) -> str:
+                      temperature: float=1.0,
+                      last_text: str="") -> str:
         """
-        Сгенерировать стих.
+        Сгенерировать стих. Нужно задать либо sampling_k, либо beam_width.
 
         :param model_path: путь к модели.
         :param token_vocab_path: путь к словарю.
-        :param stress_vocab_dump_path: путь к словарю ударений.
+        :param stress_vocab_path: путь к словарю ударений.
         :param metre_schema: схема метра.
         :param rhyme_pattern: схема рифм.
         :param n_syllables: количество слогов в строке.
+        :param sampling_k: top-k при семплинге
         :param beam_width: ширина лучевого поиска.
+        :param seed: seed
+        :param temperature: температура генерации
+        :param last_text: последняя строчка
         :return: стих. None, если генерация не была успешной.
         """
-        generator = self.get_lstm_generator(model_path, token_vocab_path, stress_vocab_dump_path,
-                                            metre_schema, rhyme_pattern, n_syllables, seed)
-        return generator.generate_poem(metre_schema, rhyme_pattern, n_syllables,
-                                       beam_width=beam_width, temperature=temperature)
+        generator = self.get_generator(model_path, token_vocab_path, stress_vocab_path)
+        poem = generator.generate_poem(
+            metre_schema=metre_schema,
+            rhyme_pattern=rhyme_pattern,
+            n_syllables=n_syllables,
+            sampling_k=sampling_k,
+            beam_width=beam_width,
+            temperature=temperature,
+            seed=seed,
+            last_text=last_text
+        )
+        return poem
 
     def get_word_rhymes(self, word: str, vocab_dump_path: str, markup_path: str=None) -> List[str]:
         """

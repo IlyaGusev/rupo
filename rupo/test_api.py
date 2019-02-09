@@ -65,30 +65,20 @@ class TestApi(unittest.TestCase):
                "Кругами всходит к небесам."
         self.assertEqual(self.engine.classify_metre(text), "iambos")
 
-    def test_markov_generate_poem(self):
-        random.seed(42)
-        vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab.pickle")
-        markov_dump_file = os.path.join(EXAMPLES_DIR, "markov.pickle")
-        self.assertIsNotNone(
-            self.engine.generate_markov_poem(MARKUP_XML_EXAMPLE, markov_dump_file, vocab_dump_file,
-                                             rhyme_pattern="a", n_syllables=4, beam_width=20, metre_schema="-+"))
-        if os.path.exists(vocab_dump_file):
-            os.remove(vocab_dump_file)
-        if os.path.exists(markov_dump_file):
-            os.remove(markov_dump_file)
-        self.engine.vocabulary = None
-        self.engine.markov = None
-        self.engine.markov_generator = None
-
-    def test_lstm_generate_poem(self):
+    def test_generate_poem(self):
         random.seed(42)
         model_path = "/media/yallen/My Passport/Projects/rulm/models/char-lstm-reversed"
         vocab_path = "/media/yallen/My Passport/Projects/rulm/models/char-lstm-reversed/vocabulary"
         stress_path = "/media/yallen/My Passport/Projects/RuPo/stress.pickle"
-        poem = self.engine.generate_poem(model_path, vocab_path, stress_path, beam_width=20, n_syllables=8,
-                                         rhyme_pattern="abab", metre_schema="-+")
+        poem = self.engine.generate_poem(
+            model_path,
+            vocab_path,
+            stress_path,
+            sampling_k=10000,
+            n_syllables=8,
+            rhyme_pattern="abab",
+            metre_schema="-+")
         self.assertIsNotNone(poem)
-        print(poem)
 
     def test_get_word_rhymes(self):
         vocab_dump_file = os.path.join(EXAMPLES_DIR, "vocab_rhymes.pickle")
