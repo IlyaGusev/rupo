@@ -1,4 +1,4 @@
-dist: trusty
+dist: xenial
 sudo: required
 language: python
 python: 3.6
@@ -8,4 +8,5 @@ install:
 - pip install --upgrade pip setuptools wheel
 - pip install -r requirements.txt
 - sh download.sh
-script: pytest
+script:
+- pytest
