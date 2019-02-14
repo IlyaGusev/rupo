@@ -14,7 +14,7 @@ from rupo.g2p.rnn import RNNG2PModel
 from rupo.main.markup import Markup
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.rhymes.rhymes import Rhymes
-from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT
+from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT, DATA_DIR, DICT_DIR
 from rupo.stress.predictor import StressPredictor, CombinedStressPredictor
 from rupo.main.vocabulary import StressVocabulary, inflate_stress_vocabulary
 from rupo.generate.generator import Generator
@@ -36,6 +36,10 @@ class Engine:
              stress_trie_path=None):
         self.g2p_models = dict()
         self.stress_predictors = dict()
+        if not os.path.isdir(DATA_DIR):
+            os.makedirs(DATA_DIR)
+        if not os.path.isdir(DICT_DIR):
+            os.makedirs(DICT_DIR)
         self.get_stress_predictor(self.language, stress_model_path, raw_stress_dict_path,
                                   stress_trie_path, zalyzniak_dict)
 

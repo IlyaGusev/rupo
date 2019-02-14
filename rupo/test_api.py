@@ -6,8 +6,8 @@ import unittest
 import os
 import random
 
-from rupo.settings import MARKUP_XML_EXAMPLE, EXAMPLES_DIR, GENERATOR_LSTM_MODEL_PATH, \
-    GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH, GENERATOR_GRAM_VECTORS, RU_STRESS_DEFAULT_MODEL,\
+from rupo.settings import MARKUP_XML_EXAMPLE, EXAMPLES_DIR, GENERATOR_MODEL_DIR, \
+    GENERATOR_WORD_FORM_VOCAB_PATH, GENERATOR_VOCAB_PATH, RU_STRESS_DEFAULT_MODEL,\
     ZALYZNYAK_DICT
 from rupo.main.markup import Markup
 from rupo.api import Engine
@@ -67,9 +67,9 @@ class TestApi(unittest.TestCase):
 
     def test_generate_poem(self):
         random.seed(42)
-        model_path = "/media/yallen/My Passport/Projects/rulm/models/char-lstm-reversed"
-        vocab_path = "/media/yallen/My Passport/Projects/rulm/models/char-lstm-reversed/vocabulary"
-        stress_path = "/media/yallen/My Passport/Projects/RuPo/stress.pickle"
+        model_path = GENERATOR_MODEL_DIR
+        vocab_path = GENERATOR_WORD_FORM_VOCAB_PATH
+        stress_path = GENERATOR_VOCAB_PATH
         poem = self.engine.generate_poem(
             model_path,
             vocab_path,

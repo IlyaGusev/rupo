@@ -1,7 +1,7 @@
-wget https://www.dropbox.com/s/36tbsww1ncj9uh9/generator_models_18_11.zip
+wget https://www.dropbox.com/s/dwkui2xqivzsyw5/generator_model.zip
 mkdir -p ./rupo/data/generator_models
-unzip generator_models_18_11.zip -d ./rupo/data/generator_models
-rm generator_models_18_11.zip
+unzip generator_model.zip -d ./rupo/data/generator_models
+rm generator_model.zip
 
 wget https://www.dropbox.com/s/i9tarc8pum4e40p/stress_models_14_05_17.zip
 mkdir -p ./rupo/data/stress_models
