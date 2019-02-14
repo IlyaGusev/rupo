@@ -11,5 +11,6 @@ h5py >= 2.7.0
 russian-tagsets == 0.6
 tqdm >= 4.14.0
 jsonpickle >= 0.9.4
-rnnmorph == 0.2.3
+rnnmorph >= 0.2.3
 sentence_splitter >= 1.2
+rulm == 0.0.2
