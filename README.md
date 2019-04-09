@@ -8,15 +8,9 @@
 
 ### Install ###
 ```
-sudo pip3 install rupo
-```
-
-or
-
-```
 git clone https://github.com/IlyaGusev/rupo
 cd rupo
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 sh download.sh
 ```
 
@@ -41,14 +35,27 @@ iambos
 ```
 
 #### Generation ####
+Script for poem generation. It can work in two different modes: sampling or beam search.
+
 ```
->>> from rupo.api import Engine
->>> engine = Engine(language="ru")
->>> engine.generate_poem(<model dir path>, <word form vocabulary path>, <stress vocabulary path>, beam_width=<width of beam search>, n_syllables=<number of syllables in each line>)
-<poem> or exception if generation is impossible
+python generate_poem.py
 ```
 
-### Models ###
+| Argument            | Default | Description                                |
+|:--------------------|:--------|:-------------------------------------------|
+| --metre-schema      | +-      | feet type: -+ (iambos), +- (trochee), ...  |
+| --rhyme-pattern     | abab    | rhyme pattern                              |
+| --n-syllables       | 8       | number of syllables in line                |
+| --sampling-k        | 50000   | top-k words to sample from (sampling mode) |
+| --beam-width        | None    | width of beam search (beam search mode)    |
+| --temperature       | 1.0     | sampling softmax temperature               |
+| --last-text         | None    | custom last line                           |
+| --count             | 100     | count of poems to generate                 |
+| --model-path        | None    | optional path to generator model directory |
+| --token-vocab-path  | None    | optional path to vocabulary                |
+| --stress-vocab-path | None    | optional path to stress vocabulary         |
+
+## Models ###
 * Generator: https://www.dropbox.com/s/dwkui2xqivzsyw5/generator_model.zip
 * Stress predictor: https://www.dropbox.com/s/i9tarc8pum4e40p/stress_models_14_05_17.zip
 * G2P: https://www.dropbox.com/s/7rk135fzd3i8kfw/g2p_models.zip

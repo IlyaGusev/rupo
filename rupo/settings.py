@@ -40,7 +40,7 @@ ACCENT_CURRENT_MODEL_DIR = resource_filename(__name__, "data/stress_models/")
 
 GENERATOR_MODEL_DIR = resource_filename(__name__, "data/generator_models/")
 GENERATOR_WORD_FORM_VOCAB_PATH = resource_filename(__name__, "data/generator_models/vocabulary")
-GENERATOR_VOCAB_PATH = resource_filename(__name__, "data/generator_models/stress_vocab.pickle")
+GENERATOR_VOCAB_PATH = resource_filename(__name__, "data/generator_models/stress.pickle")
 
 TEMP_PATH = resource_filename(__name__, "data/temp.txt")
 

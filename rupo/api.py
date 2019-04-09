@@ -174,8 +174,8 @@ class Engine:
 
     def generate_poem(self,
                       model_path: str,
-                      token_vocab_path: str,
-                      stress_vocab_path: str,
+                      token_vocab_path: str=None,
+                      stress_vocab_path: str=None,
                       metre_schema: str="-+",
                       rhyme_pattern: str="abab",
                       n_syllables: int=8,
@@ -200,6 +200,8 @@ class Engine:
         :param last_text: последняя строчка
         :return: стих. None, если генерация не была успешной.
         """
+        token_vocab_path = token_vocab_path or os.path.join(model_path, "vocabulary")
+        stress_vocab_path = stress_vocab_path or os.path.join(model_path, "stress.pickle")
         generator = self.get_generator(model_path, token_vocab_path, stress_vocab_path)
         poem = generator.generate_poem(
             metre_schema=metre_schema,

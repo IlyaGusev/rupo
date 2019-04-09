@@ -1,14 +1,14 @@
 import argparse
 
 from rupo.api import Engine
-from rupo.settings import RU_STRESS_DEFAULT_MODEL, ZALYZNYAK_DICT
+from rupo.settings import RU_STRESS_DEFAULT_MODEL, ZALYZNYAK_DICT, GENERATOR_MODEL_DIR
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-path', type=str, required=True)
-    parser.add_argument('--token-vocab-path', type=str, required=True)
-    parser.add_argument('--stress-vocab-path', type=str, required=True)
+    parser.add_argument('--model-path', type=str, default=GENERATOR_MODEL_DIR)
+    parser.add_argument('--token-vocab-path', type=str, default=None)
+    parser.add_argument('--stress-vocab-path', type=str, default=None)
     parser.add_argument('--metre-schema', type=str, default='+-')
     parser.add_argument('--rhyme-pattern', type=str, default='abab')
     parser.add_argument('--n-syllables', type=int, default=8)
@@ -28,7 +28,6 @@ if __name__ == "__main__":
         print(seed)
         try:
             poem = engine.generate_poem(seed=seed, **kwargs)
+            print(poem)
         except AssertionError as e:
-            print(e)
-            continue
-        print(poem)
+            print("Error: ", e)
