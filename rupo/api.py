@@ -9,12 +9,10 @@ from rulm.language_model import LanguageModel
 
 from rupo.files.reader import FileType, Reader
 from rupo.files.writer import Writer
-from rupo.g2p.graphemes import Graphemes
-from rupo.g2p.rnn import RNNG2PModel
 from rupo.main.markup import Markup
 from rupo.metre.metre_classifier import MetreClassifier, ClassificationResult
 from rupo.rhymes.rhymes import Rhymes
-from rupo.settings import RU_G2P_DEFAULT_MODEL, EN_G2P_DEFAULT_MODEL, ZALYZNYAK_DICT, CMU_DICT, DATA_DIR, DICT_DIR
+from rupo.settings import ZALYZNYAK_DICT, CMU_DICT, DATA_DIR, DICT_DIR
 from rupo.stress.predictor import StressPredictor, CombinedStressPredictor
 from rupo.main.vocabulary import StressVocabulary, inflate_stress_vocabulary
 from rupo.generate.generator import Generator
@@ -22,6 +20,7 @@ from rupo.generate.generator import Generator
 from allennlp.data.vocabulary import Vocabulary, DEFAULT_OOV_TOKEN
 from allennlp.common.util import END_SYMBOL
 from rulm.transform import ExcludeTransform
+from russ.syllables import get_syllables
 
 
 class Engine:
@@ -29,12 +28,10 @@ class Engine:
         self.language = language  # type: str
         self.vocabulary = None  # type: StressVocabulary
         self.generator = None  # type: Generator
-        self.g2p_models = dict()  # type: Dict[str, RNNG2PModel]
         self.stress_predictors = dict()  # type: Dict[str, StressPredictor]
 
     def load(self, stress_model_path: str, zalyzniak_dict: str, raw_stress_dict_path=None,
              stress_trie_path=None):
-        self.g2p_models = dict()
         self.stress_predictors = dict()
         if not os.path.isdir(DATA_DIR):
             os.makedirs(DATA_DIR)
@@ -83,18 +80,6 @@ class Engine:
                                                                        zalyzniak_dict, cmu_dict)
         return self.stress_predictors[language]
 
-    def get_g2p_model(self, language="ru", model_path=None):
-        if self.g2p_models.get(language) is None:
-            self.g2p_models[language] = RNNG2PModel(language=language)
-            if language == "ru" and model_path is None:
-                model_path = RU_G2P_DEFAULT_MODEL
-            elif language == "en" and model_path is None:
-                model_path = EN_G2P_DEFAULT_MODEL
-            else:
-                return None
-            self.g2p_models[language].load(model_path)
-        return self.g2p_models[language]
-
     def get_stresses(self, word: str, language: str="ru") -> List[int]:
         """
         :param word: слово.
@@ -109,7 +94,7 @@ class Engine:
         :param word: слово.
         :return: его слоги.
         """
-        return [syllable.text for syllable in Graphemes.get_syllables(word)]
+        return [syllable.text for syllable in get_syllables(word)]
 
     @staticmethod
     def count_syllables(word: str) -> int:
@@ -117,7 +102,7 @@ class Engine:
         :param word: слово.
         :return: количество слогов в нём.
         """
-        return len(Graphemes.get_syllables(word))
+        return len(get_syllables(word))
 
     def get_markup(self, text: str, language: str="ru") -> Markup:
         """

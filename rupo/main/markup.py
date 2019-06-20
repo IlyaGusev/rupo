@@ -12,6 +12,7 @@ from rupo.util.preprocess import get_first_vowel_position
 from rupo.util.mixins import CommonMixin
 from rupo.main.tokenizer import Tokenizer, Token
 from rupo.util.timeit import timeit
+from russ.syllables import get_syllables
 
 
 class Annotation(CommonMixin):
@@ -240,8 +241,7 @@ class Markup(CommonMixin):
             for pair in line_tokens:
                 token = pair[0]
                 stress = pair[1]
-                from rupo.g2p.graphemes import Graphemes
-                syllables = Graphemes.get_syllables(token)
+                syllables = get_syllables(token)
                 for j in range(len(syllables)):
                     syllables[j].begin += pos
                     syllables[j].end += pos
@@ -264,7 +264,6 @@ class Markup(CommonMixin):
         :param stress_predictor: предсказатель ударений.
         :return markup: разметка по слогам и ударениям
         """
-        from rupo.g2p.graphemes import Graphemes
         begin_line = 0
         lines = []
         words = []
@@ -272,8 +271,7 @@ class Markup(CommonMixin):
         for text_line in text_lines:
             tokens = [token for token in Tokenizer.tokenize(text_line) if token.token_type == Token.TokenType.WORD]
             for token in tokens:
-                word = Word(begin_line + token.begin, begin_line + token.end, token.text,
-                            Graphemes.get_syllables(token.text))
+                word = Word(begin_line + token.begin, begin_line + token.end, token.text, get_syllables(token.text))
                 # Проставляем ударения.
                 stresses = stress_predictor.predict(token.text.lower())
                 # Сопоставляем ударения слогам.
