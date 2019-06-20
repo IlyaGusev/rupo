@@ -21,9 +21,6 @@ class TestMarkup(unittest.TestCase):
             raw_stress_dict_path=RU_GRAPHEME_STRESS_PATH,
             stress_trie_path=RU_GRAPHEME_STRESS_TRIE_PATH
         )
-        # cls.stress_predictor = DictStressPredictor(raw_dict_path=RU_GRAPHEME_STRESS_PATH,
-        #                                            trie_path=RU_GRAPHEME_STRESS_TRIE_PATH,
-        #                                            zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT)
 
     @classmethod
     def tearDownClass(cls):
@@ -38,5 +35,5 @@ class TestMarkup(unittest.TestCase):
     def test_process_text(self):
         text = "Соломка король себя.\n Пора виться майкой в."
         markup = Markup.process_text(text, self.stress_predictor)
-        self.assertEqual(markup, MARKUP_EXAMPLE)
+        self.assertEqual(markup.to_json(), MARKUP_EXAMPLE.to_json())
 
