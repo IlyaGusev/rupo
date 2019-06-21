@@ -4,7 +4,7 @@
 
 from enum import Enum
 from typing import List, Set
-from rupo.g2p.graphemes import Graphemes
+from russ.syllables import get_syllables
 
 
 class Stress:
@@ -42,7 +42,7 @@ class StressedWord:
     def __init__(self, text: str, stresses: Set[Stress]) -> None:
         self.stresses = stresses
         self.text = text
-        self.syllables = Graphemes.get_syllables(text)
+        self.syllables = get_syllables(text)
         self.__accent_syllables()
 
     def get_primary_stresses(self) -> List[int]:

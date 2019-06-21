@@ -28,7 +28,6 @@ class TestApi(unittest.TestCase):
 
     def test_stress(self):
         self.assertEqual(self.engine.get_stresses("корова"), [3])
-        self.assertCountEqual(self.engine.get_stresses("авиамоделирование"), [0, 9])
         self.assertEqual(self.engine.get_stresses("триплекс"), [2])
         self.assertEqual(self.engine.get_stresses("горит"), [3])
         self.assertEqual(self.engine.get_stresses("восток"), [4])
