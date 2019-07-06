@@ -50,7 +50,7 @@ class Generator(object):
         )
 
         if last_text:
-            words = last_text.split(" ")
+            words = last_text.lower().split(" ")
             last_text = " ".join(words[::-1])
             filled_syllables = 0
             for word in last_text.split():
