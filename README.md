@@ -14,6 +14,9 @@ pip install -r requirements.txt
 sh download.sh
 ```
 
+### Example ###
+https://colab.research.google.com/drive/1WBl9erJvC9Oc9PjCD8JyC_40TDUqahCx
+
 ### Usage manual ###
 #### Analysis ####
 ```
