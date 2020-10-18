@@ -6,7 +6,7 @@ from typing import List
 
 from rupo.stress.dict import StressDict
 from rupo.util.preprocess import count_vowels, get_first_vowel_position
-from rupo.settings import CMU_DICT, ZALYZNYAK_DICT
+from rupo.settings import CMU_DICT, ZALYZNYAK_DICT, RU_STRESS_DEFAULT_MODEL
 from rupo.stress.word import Stress
 
 from russ.stress.model import StressModel
@@ -66,9 +66,9 @@ class DictStressPredictor(StressPredictor):
 
 
 class CombinedStressPredictor(StressPredictor):
-    def __init__(self, language="ru", stress_model_path: str=None, raw_stress_dict_path=None,
+    def __init__(self, language="ru", stress_model_path: str=RU_STRESS_DEFAULT_MODEL, raw_stress_dict_path=None,
                  stress_trie_path=None, zalyzniak_dict=ZALYZNYAK_DICT, cmu_dict=CMU_DICT):
-        self.rnn = StressModel.load()
+        self.rnn = StressModel.load(stress_model_path)
         self.dict = DictStressPredictor(language, raw_stress_dict_path, stress_trie_path, zalyzniak_dict, cmu_dict)
 
     def predict(self, word: str) -> List[int]:

@@ -3,10 +3,10 @@ mkdir -p ./rupo/data/generator_models
 unzip generator_model.zip -d ./rupo/data/generator_models
 rm generator_model.zip
 
-wget https://www.dropbox.com/s/i9tarc8pum4e40p/stress_models_14_05_17.zip
-mkdir -p ./rupo/data/stress_models
-unzip stress_models_14_05_17.zip -d ./rupo/data/stress_models
-rm stress_models_14_05_17.zip
+wget https://www.dropbox.com/s/ajd8b7lpqaao7xt/stress_ru_main.tar.gz
+mkdir -p ./rupo/data/stress_models/ru_main
+tar -xzvf stress_ru_main.tar.gz --directory ./rupo/data/stress_models/ru_main
+rm stress_ru_main.tar.gz
 
 wget https://www.dropbox.com/s/7rk135fzd3i8kfw/g2p_models.zip
 mkdir -p ./rupo/data/g2p_models
