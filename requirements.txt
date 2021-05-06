@@ -12,5 +12,6 @@ jsonpickle >= 0.9.4
 rnnmorph >= 0.2.3
 sentence_splitter >= 1.2
 allennlp == 0.9.0
+overrides == 3.0.0
 git+git://github.com/IlyaGusev/rulm.git@4e78a49
 git+git://github.com/IlyaGusev/russ.git@288fe6a
