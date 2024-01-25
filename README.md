@@ -7,6 +7,8 @@
 [![Documentation Status](https://readthedocs.org/projects/rupo/badge/?version=latest)](http://rupo.readthedocs.io/en/latest/?badge=latest)
 
 ### Install ###
+Warning: Python 3.9+ is not supported! Use Python 3.8.
+
 ```
 git clone https://github.com/IlyaGusev/rupo
 cd rupo
